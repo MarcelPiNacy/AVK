@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="algorithms">
+      <UniqueIdentifier>{bbda5252-70d3-4e41-9549-ba62c5113f53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="avk">
+      <UniqueIdentifier>{69677b46-c6bf-4f56-92ac-0d7f2b60e42d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="avk\internal">
+      <UniqueIdentifier>{ccbb454c-a1c0-416a-b006-57bef6c42298}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="avk\internal\shaders">
+      <UniqueIdentifier>{1f48e620-c1f4-491b-8206-9836487cd3c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="avk\internal\windows-specific">
+      <UniqueIdentifier>{dfc2f904-9a4b-435f-847b-67b03a7d26be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="avk\internal\graphics">
+      <UniqueIdentifier>{28d7bbd1-0240-4922-bdec-cea781f3b47e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="LICENSE" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="avk\internal\common.h">
+      <Filter>avk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="avk\internal\windows-specific\framework.h">
+      <Filter>avk\internal\windows-specific</Filter>
+    </ClInclude>
+    <ClInclude Include="avk\internal\windows-specific\Resource.h">
+      <Filter>avk\internal\windows-specific</Filter>
+    </ClInclude>
+    <ClInclude Include="avk\internal\windows-specific\targetver.h">
+      <Filter>avk\internal\windows-specific</Filter>
+    </ClInclude>
+    <ClInclude Include="avk\internal\platform.h">
+      <Filter>avk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="avk\internal\enforce.h">
+      <Filter>avk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="avk\internal\algorithm_thread.h">
+      <Filter>avk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="avk\internal\main_array.h">
+      <Filter>avk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="avk\avk.h">
+      <Filter>avk</Filter>
+    </ClInclude>
+    <ClInclude Include="algorithms\sort_traits.h">
+      <Filter>algorithms</Filter>
+    </ClInclude>
+    <ClInclude Include="avk\internal\graphics\vulkan_state.h">
+      <Filter>avk\internal\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="avk\internal\locks.h">
+      <Filter>avk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="avk\internal\defer.h">
+      <Filter>avk\internal</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="avk\internal\main.cpp">
+      <Filter>avk\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\internal\stats.cpp">
+      <Filter>avk\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\internal\graphics\main_array.cpp">
+      <Filter>avk\internal\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\internal\algorithm_thread.cpp">
+      <Filter>avk\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\internal\graphics\vulkan_init.cpp">
+      <Filter>avk\internal\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="algorithms\selection_sort.h">
+      <Filter>algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\internal\graphics\vulkan_draw.cpp">
+      <Filter>avk\internal\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\internal\platform.cpp">
+      <Filter>avk\internal</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="avk\internal\windows-specific\array_vk.aps">
+      <Filter>avk\internal\windows-specific</Filter>
+    </None>
+    <None Include="avk\internal\shaders\bar_graph.frag">
+      <Filter>avk\internal\shaders</Filter>
+    </None>
+    <None Include="avk\internal\shaders\bar_graph.vert">
+      <Filter>avk\internal\shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="avk\internal\windows-specific\array_vk.ico">
+      <Filter>avk\internal\windows-specific</Filter>
+    </Image>
+    <Image Include="avk\internal\windows-specific\small.ico">
+      <Filter>avk\internal\windows-specific</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="avk\internal\windows-specific\array_vk.rc">
+      <Filter>avk\internal\windows-specific</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
