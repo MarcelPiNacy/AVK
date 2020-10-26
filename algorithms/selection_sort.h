@@ -6,11 +6,11 @@ namespace selection_sort
 {
 	inline void run(main_array& array)
 	{
-		for (int i = 0; i < array.size() - 1; ++i)
+		for (int i = 1; i < array.size(); ++i)
 		{
-			int min = i;
+			int min = i - 1;
 
-			for (int j = i + 1; j < array.size(); ++j)
+			for (int j = i; j < array.size(); ++j)
 				if (array[j] < array[min])
 					min = j;
 

@@ -65,18 +65,14 @@ struct main_array
 	/// <param name="size">
 	/// The size of the array.
 	/// </param>
-	static void initialize(uint size) noexcept;
+	static void resize(uint size) noexcept;
 	static void finalize() noexcept;
 
 	element& operator[](uint index) noexcept;
 	static uint size() noexcept;
 
-	element* begin() noexcept;
-	element* end() noexcept;
-	const element* cbegin() const noexcept;
-	const element* cend() const noexcept;
-	const element* begin() const noexcept;
-	const element* end() const noexcept;
+	static element* begin() noexcept;
+	static element* end() noexcept;
 
 	template <typename F>
 	static void fill(F&& function) noexcept
@@ -84,5 +80,10 @@ struct main_array
 		for (uint i = 0; i < size(); ++i)
 			function(begin()[i], i);
 	}
+
+	static void set_read_delay(uint32_t milliseconds);
+	static void set_write_delay(uint32_t milliseconds);
+	static void set_compare_delay(uint32_t milliseconds);
+	static void sleep(uint32_t milliseconds);
 
 };

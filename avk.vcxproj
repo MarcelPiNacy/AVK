@@ -198,6 +198,7 @@
     <ClInclude Include="avk\internal\defer.h" />
     <ClInclude Include="avk\internal\enforce.h" />
     <ClInclude Include="avk\internal\common.h" />
+    <ClInclude Include="avk\internal\graphics\shader_params.h" />
     <ClInclude Include="avk\internal\graphics\vulkan_state.h" />
     <ClInclude Include="avk\internal\main_array.h" />
     <ClInclude Include="avk\internal\platform.h" />
@@ -216,6 +217,7 @@
     <ClCompile Include="avk\internal\platform.cpp" />
     <ClCompile Include="avk\internal\stats.cpp" />
     <ClCompile Include="avk\internal\algorithm_thread.cpp" />
+    <ClCompile Include="avk\internal\windows_callbacks.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="avk\internal\shaders\bar_graph.frag" />

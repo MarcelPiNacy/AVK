@@ -1,10 +1,8 @@
-// array_vk.cpp : Defines the entry point for the application.
-//
-
 #include "algorithm_thread.h"
 #include "windows-specific/framework.h"
 #include "windows-specific/Resource.h"
 #include <atomic>
+#include <chrono>
 
 #define MAX_LOADSTRING 100
 
@@ -17,78 +15,12 @@ std::atomic<bool> should_continue_sort;
 
 
 
-INT_PTR CALLBACK about_callbacks(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    UNREFERENCED_PARAMETER(lParam);
-    switch (message)
-    {
-    case WM_INITDIALOG:
-        return (INT_PTR)TRUE;
-
-    case WM_COMMAND:
-        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-        {
-            EndDialog(hDlg, LOWORD(wParam));
-            return (INT_PTR)TRUE;
-        }
-        break;
-    }
-    return (INT_PTR)FALSE;
-}
-
-LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    switch (message)
-    {
-    case WM_COMMAND:
-        {
-            int wmId = LOWORD(wParam);
-            switch (wmId)
-            {
-            case IDM_CREDITS:
-                DialogBox(hinstance, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, about_callbacks);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-            case IDM_SELECTION_SORT:
-                break;
-            case IDM_INSERTION_SORT:
-                break;
-            case IDM_BUBBLE_SORT:
-                break;
-            case IDM_MAX_HEAP_SORT:
-                break;
-            case IDM_MERGE_SORT:
-                break;
-            case IDM_LR_QUICK_SORT:
-                break;
-            default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
-        }
-        break;
-    case WM_PAINT:
-    {
-        PAINTSTRUCT ps;
-        HDC hdc = BeginPaint(hWnd, &ps);
-        // TODO: Add any drawing code that uses hdc here...
-        EndPaint(hWnd, &ps);
-    }
-    break;
-    case WM_DESTROY:
-        should_continue_global.store(false, std::memory_order_release);
-        PostQuitMessage(0);
-        break;
-    default:
-        return DefWindowProc(hWnd, message, wParam, lParam);
-    }
-    return 0;
-}
+extern LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 
 
 extern int init_vulkan();
+extern void draw_main_array();
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
@@ -140,18 +72,40 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     if (init_vulkan() < 0)
         return -(__COUNTER__ - base_counter);
 
-    algorithm_thread::initialize();
+    algorithm_thread::launch();
+
+    using namespace std::chrono;
+
+    constexpr auto framerrate = milliseconds(120);
+    auto last = high_resolution_clock::now();
+
+    main_array::resize(1 << 10);
+    main_array::fill([](element& e, uint32_t position)
+    {
+        e.internal_value = position;
+        e.initial_position = position;
+    });
+    main_array::set_read_delay(1);
+    main_array::set_write_delay(1);
+    main_array::set_compare_delay(1);
 
     MSG msg = {};
     while (should_continue_global.load(std::memory_order_acquire))
     {
-        if (!GetMessage(&msg, nullptr, 0, 0))
-            break;
-
-        if (!TranslateAccelerator(msg.hwnd, accel, &msg))
+        while (PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE))
         {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            if (!TranslateAccelerator(msg.hwnd, accel, &msg))
+            {
+                TranslateMessage(&msg);
+                DispatchMessage(&msg);
+            }
+        }
+
+        const auto now = high_resolution_clock::now();
+        if (duration_cast<milliseconds>(now - last) >= framerrate)
+        {
+            draw_main_array();
+            last = now;
         }
     }
 

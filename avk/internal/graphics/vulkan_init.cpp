@@ -12,16 +12,30 @@ static VkBool32 VKAPI_CALL debugger_callback(
 	const VkDebugUtilsMessengerCallbackDataEXT* payload,
 	void* pUserData)
 {
-	const char* header;
-	if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-		header = "WARNING";
-	else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-		header = "ERROR";
-	else
-		return false;
-	printf("[VULKAN %s]: %s", header, payload->pMessage);
-	if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-		DebugBreak();
+	static char buffer[65536];
+	switch (severity)
+	{
+	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+		strcpy_s(buffer, "[ verbose ]: ");
+		break;
+	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+		strcpy_s(buffer, "[ info ]: ");
+		break;
+	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+		strcpy_s(buffer, "[ warning ]: ");
+		break;
+	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+		strcpy_s(buffer, "[ error ]: ");
+		break;
+	default:
+		break;
+	}
+
+	strcat_s(buffer, payload->pMessage);
+	strcat_s(buffer, "\n");
+	OutputDebugStringA(buffer);
+	puts(buffer);
+
 	return false;
 }
 #endif
@@ -487,6 +501,26 @@ int init_vulkan()
 			}
 		}
 
+		const VkSpecializationMapEntry specialization_entry[2] =
+		{
+			{ 0, 0, sizeof(float) },
+			{ 0, sizeof(float), sizeof(float) },
+		};
+
+		const float specialization_data[2] =
+		{
+			(float)swapchain_extent.width,
+			(float)swapchain_extent.height
+		};
+
+		const VkSpecializationInfo specialization_info =
+		{
+			2,
+			specialization_entry,
+			sizeof(float) * 2,
+			specialization_data
+		};
+
 		VkPipelineShaderStageCreateInfo stages[2] = {};
 		stages[0].sType = stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -494,6 +528,7 @@ int init_vulkan()
 		stages[0].pName = stages[1].pName = "main";
 		stages[0].module = vertex_shader;
 		stages[1].module = fragment_shader;
+		stages[1].pSpecializationInfo = stages[1].pSpecializationInfo = &specialization_info;
 
 		const VkVertexInputAttributeDescription attr_desc[] =
 		{

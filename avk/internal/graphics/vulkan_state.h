@@ -12,7 +12,7 @@ struct element;
 
 
 
-inline rw_spinlock array_lock;
+inline ticket_spinlock array_lock;
 
 inline VkInstance instance;
 #ifdef DEBUG
@@ -60,5 +60,5 @@ inline VkMemoryAllocateInfo memory_info;
 inline VkSubmitInfo submit_info;
 inline element* mapping;
 inline uint array_size;
-inline VkBuffer buffer;
-inline VkDeviceMemory memory;
+inline VkBuffer main_array_buffer;
+inline VkDeviceMemory main_array_memory;

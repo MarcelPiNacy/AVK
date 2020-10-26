@@ -37,7 +37,7 @@ namespace algorithm_thread
 		WakeByAddressAll(&head);
 	}
 
-	void initialize() noexcept
+	void launch() noexcept
 	{
 		thread_handle = CreateThread(nullptr, 1 << 21, algorithm_thread_entry_point, nullptr, CREATE_SUSPENDED, nullptr);
 		enforce(thread_handle != nullptr);
@@ -51,6 +51,8 @@ namespace algorithm_thread
 
 	void await(uint32_t timeout_ms) noexcept
 	{
+		if (is_idle())
+			return;
 		auto desired = head.load(std::memory_order_acquire);
 		(void)WaitOnAddress(&tail, &desired, sizeof(desired), timeout_ms == UINT32_MAX ? INFINITE : timeout_ms);
 	}

@@ -63,6 +63,9 @@
     <ClInclude Include="avk\internal\defer.h">
       <Filter>avk\internal</Filter>
     </ClInclude>
+    <ClInclude Include="avk\internal\graphics\shader_params.h">
+      <Filter>avk\internal\graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="avk\internal\main.cpp">
@@ -87,6 +90,9 @@
       <Filter>avk\internal\graphics</Filter>
     </ClCompile>
     <ClCompile Include="avk\internal\platform.cpp">
+      <Filter>avk\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\internal\windows_callbacks.cpp">
       <Filter>avk\internal</Filter>
     </ClCompile>
   </ItemGroup>
