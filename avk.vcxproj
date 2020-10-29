@@ -240,7 +240,12 @@
     <ClInclude Include="avk\internal\windows-specific\targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="avk\algorithms\bubble_sort.cpp" />
+    <ClCompile Include="avk\algorithms\std_sort.cpp" />
+    <ClCompile Include="avk\algorithms\std_sort_heap.cpp" />
+    <ClCompile Include="avk\algorithms\insertion_sort.cpp" />
     <ClCompile Include="avk\algorithms\selection_sort.cpp" />
+    <ClCompile Include="avk\algorithms\std_stable_sort.cpp" />
     <ClCompile Include="avk\internal\graphics\main_array.cpp" />
     <ClCompile Include="avk\internal\graphics\vulkan_draw.cpp" />
     <ClCompile Include="avk\internal\graphics\vulkan_init.cpp" />

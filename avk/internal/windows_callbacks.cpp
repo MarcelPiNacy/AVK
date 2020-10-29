@@ -51,14 +51,19 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             algorithm_thread::assign_sort(selection_sort);
             break;
         case IDM_INSERTION_SORT:
+            algorithm_thread::assign_sort(insertion_sort);
             break;
         case IDM_BUBBLE_SORT:
+            algorithm_thread::assign_sort(bubble_sort);
             break;
-        case IDM_MAX_HEAP_SORT:
+        case IDM_STD_SORT_HEAP:
+            algorithm_thread::assign_sort(std_sort_heap);
             break;
-        case IDM_MERGE_SORT:
+        case IDM_STD_STABLE_SORT:
+            algorithm_thread::assign_sort(std_stable_sort);
             break;
-        case IDM_LR_QUICK_SORT:
+        case IDM_STD_SORT:
+            algorithm_thread::assign_sort(std_sort);
             break;
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);

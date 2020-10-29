@@ -95,6 +95,21 @@
     <ClCompile Include="avk\algorithms\selection_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
+    <ClCompile Include="avk\algorithms\insertion_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\bubble_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\std_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\std_sort_heap.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\std_stable_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="avk\internal\windows-specific\array_vk.aps">

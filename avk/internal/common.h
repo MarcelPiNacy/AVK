@@ -14,8 +14,8 @@
 using sint = int32_t;
 using uint = uint32_t;
 #else
-using sint = ptrdiff_t;
-using uint = size_t;
+using sint = int32_t;
+using uint = uint32_t;
 #endif
 
 template <typename R, typename... P>
