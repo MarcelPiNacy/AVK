@@ -1,19 +1,16 @@
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <vulkan/vulkan.h>
 #include <vector>
+#include <chrono>
 #include "..\main_array.h"
 #include <cassert>
 #include "../enforce.h"
 #include "vulkan_state.h"
 #include "../defer.h"
 
-
-
-static uint32_t read_delay;
-static uint32_t write_delay;
-static uint32_t compare_delay;
-
-
+static double read_delay;
+static double write_delay;
+static double compare_delay;
 
 static uint32_t find_buffer_memory_type(VkBuffer buffer, VkMemoryPropertyFlags flags)
 {
@@ -30,190 +27,221 @@ static uint32_t find_buffer_memory_type(VkBuffer buffer, VkMemoryPropertyFlags f
 	return UINT32_MAX;
 }
 
-void fill_infos()
+static uint8_t fast_log2(size_t value)
 {
-	buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	buffer_info.queueFamilyIndexCount = 1;
-	buffer_info.pQueueFamilyIndices = &graphics_queue_index;
-	buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	memory_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submit_info.commandBufferCount = 1;
-	submit_info.pCommandBuffers = &array_command_buffer;
+#if UINTPTR_MAX == UINT32_MAX
+	return (uint8_t)_lzcnt_u32(value);
+#else
+	return (uint8_t)_lzcnt_u64(value);
+#endif
 }
 
-void main_array::resize(uint size) noexcept
+static uint32_t round_pow2(size_t value)
 {
-	if (main_array_buffer != VK_NULL_HANDLE)
-		finalize();
-	if (buffer_info.sType == 0)
-		fill_infos();
-	array_size = size;
-	buffer_info.size = sizeof(element) * array_size;
-	buffer_info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	return 1 << ((sizeof(size_t) * 8) - fast_log2(value));
+}
+
+void main_array::resize(uint32_t size) noexcept
+{
+	main_array_size = size;
+	main_array_capacity = round_pow2(size);
+	VkBufferCreateInfo buffer_info = {};
+	buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	buffer_info.size = main_array_capacity * sizeof(item);
+	buffer_info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	enforce(vkCreateBuffer(device, &buffer_info, nullptr, &main_array_buffer) == VK_SUCCESS);
-	memory_info.allocationSize = buffer_info.size;
-	memory_info.memoryTypeIndex = find_buffer_memory_type(main_array_buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-	enforce(vkAllocateMemory(device, &memory_info, nullptr, &main_array_memory) == VK_SUCCESS);
-	enforce(vkMapMemory(device, main_array_memory, 0, buffer_info.size, 0, (void**)&mapping) == VK_SUCCESS);
+	VkMemoryAllocateInfo alloc_info = {};
+	alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	alloc_info.allocationSize = buffer_info.size;
+	alloc_info.memoryTypeIndex = find_buffer_memory_type(main_array_buffer, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+	enforce(vkAllocateMemory(device, &alloc_info, nullptr, &main_array_memory) == VK_SUCCESS);
+	enforce(vkBindBufferMemory(device, main_array_buffer, main_array_memory, 0) == VK_SUCCESS);
+	enforce(vkMapMemory(device, main_array_memory, 0, buffer_info.size, 0, (void**)&main_array_mapping) == VK_SUCCESS);
 }
 
 void main_array::finalize() noexcept
 {
+	if (main_array_buffer == VK_NULL_HANDLE)
+		return;
+	vkUnmapMemory(device, main_array_memory);
+	main_array_mapping = nullptr;
 	vkFreeMemory(device, main_array_memory, nullptr);
 	vkDestroyBuffer(device, main_array_buffer, nullptr);
+	main_array_buffer = nullptr;
 }
 
-element& main_array::operator[](uint index) noexcept
+item& main_array::operator[](uint index) noexcept
 {
-	enforce(mapping != nullptr);
+	enforce(main_array_mapping != nullptr);
 	enforce(index < size());
-	return mapping[index];
+	return main_array_mapping[index];
 }
 
 uint main_array::size() noexcept
 {
-	return array_size;
+	return main_array_size;
 }
 
-element* main_array::begin() noexcept
+item* main_array::begin() noexcept
 {
-	return mapping;
+	return main_array_mapping;
 }
 
-element* main_array::end() noexcept
+item* main_array::end() noexcept
 {
-	return mapping + array_size;
+	return main_array_mapping + main_array_size;
 }
 
-void main_array::set_read_delay(uint32_t milliseconds)
+void main_array::set_read_delay(double seconds)
 {
-	read_delay = milliseconds;
+	read_delay = seconds;
 }
 
-void main_array::set_write_delay(uint32_t milliseconds)
+void main_array::set_write_delay(double seconds)
 {
-	write_delay = milliseconds;
+	write_delay = seconds;
 }
 
-void main_array::set_compare_delay(uint32_t milliseconds)
+void main_array::set_compare_delay(double seconds)
 {
-	compare_delay = milliseconds;
+	compare_delay = seconds;
 }
 
-void main_array::sleep(uint32_t milliseconds)
+void main_array::sleep(double seconds)
 {
-	Sleep(milliseconds);
+	constexpr double sleep_threshold = 1.0 / 1000000.0;
+	if (seconds < sleep_threshold)
+	{
+		seconds *= 1000.0;
+		Sleep((DWORD)seconds);
+	}
+	else
+	{
+		using namespace std::chrono;
+		seconds *= 1000'000;
+		const uint64_t nanoseconds = (uint64_t)seconds;
+		const auto start = high_resolution_clock::now();
+		while ((high_resolution_clock::now() - start).count() < nanoseconds)
+			platform::yield_cpu();
+	}
 }
 
-element::operator uint() const noexcept
+item::operator uint() const noexcept
 {
-	stats::add_read();
+	main_array::sleep(read_delay);
 	array_lock.lock();
 	DEFER{ array_lock.unlock(); };
-	main_array::sleep(read_delay);
-	return internal_value;
+	stats::add_read();
+	return value;
 }
 
-element& element::operator=(const element& other) noexcept
+item& item::operator=(const item& other) noexcept
 {
+	main_array::sleep(read_delay + write_delay);
+	array_lock.lock();
+	DEFER{ array_lock.unlock(); };
 	stats::add_read();
 	stats::add_write();
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
-	internal_value = other.internal_value;
-	main_array::sleep(read_delay + write_delay);
+	value = other.value;
+	color = other.color;
 	return *this;
 }
 
-bool element::operator==(const element& other) const noexcept
+bool item::operator==(const item& other) const noexcept
 {
-	stats::add_comparisson();
-	stats::add_read(2);
+	main_array::sleep(read_delay * 2);
 	array_lock.lock();
 	DEFER{ array_lock.unlock(); };
-	main_array::sleep(read_delay * 2);
-	return internal_value == other.internal_value;
-}
-
-bool element::operator!=(const element& other) const noexcept
-{
 	stats::add_comparisson();
 	stats::add_read(2);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
-	main_array::sleep(read_delay * 2);
-	return internal_value != other.internal_value;
+	return value == other.value;
 }
 
-bool element::operator<(const element& other) const noexcept
+bool item::operator!=(const item& other) const noexcept
 {
+	main_array::sleep(read_delay * 2);
+	array_lock.lock();
+	DEFER{ array_lock.unlock(); };
 	stats::add_comparisson();
 	stats::add_read(2);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
-	main_array::sleep(read_delay * 2);
-	return internal_value < other.internal_value;
+	return value != other.value;
 }
 
-bool element::operator>(const element& other) const noexcept
+bool item::operator<(const item& other) const noexcept
 {
+	main_array::sleep(read_delay * 2);
+	array_lock.lock();
+	DEFER{ array_lock.unlock(); };
 	stats::add_comparisson();
 	stats::add_read(2);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
-	main_array::sleep(read_delay * 2);
-	return internal_value > other.internal_value;
+	return value < other.value;
 }
 
-bool element::operator<=(const element& other) const noexcept
+bool item::operator>(const item& other) const noexcept
 {
+	main_array::sleep(read_delay * 2);
+	array_lock.lock();
+	DEFER{ array_lock.unlock(); };
 	stats::add_comparisson();
 	stats::add_read(2);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
-	main_array::sleep(read_delay * 2);
-	return internal_value <= other.internal_value;
+	return value > other.value;
 }
 
-bool element::operator>=(const element& other) const noexcept
+bool item::operator<=(const item& other) const noexcept
 {
+	main_array::sleep(read_delay * 2);
+	array_lock.lock();
+	DEFER{ array_lock.unlock(); };
 	stats::add_comparisson();
 	stats::add_read(2);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
-	main_array::sleep(read_delay * 2);
-	return internal_value >= other.internal_value;
+	return value <= other.value;
 }
 
-sint compare(const element& left, const element& right) noexcept
+bool item::operator>=(const item& other) const noexcept
 {
+	main_array::sleep(read_delay * 2);
+	array_lock.lock();
+	DEFER{ array_lock.unlock(); };
 	stats::add_comparisson();
 	stats::add_read(2);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
-	main_array::sleep(read_delay * 2);
-	return (sint)left.internal_value - (sint)right.internal_value;
+	return value >= other.value;
 }
 
-void swap(element& left, element& right) noexcept
+sint compare(const item& left, const item& right) noexcept
 {
+	main_array::sleep(read_delay * 2);
+	array_lock.lock();
+	DEFER{ array_lock.unlock(); };
+	stats::add_comparisson();
+	stats::add_read(2);
+	if (left.value == right.value)
+		return 0;
+	sint r = 1;
+	if (left.value < right.value)
+		r = -1;
+	return r;
+}
+
+void swap(item& left, item& right) noexcept
+{
+	main_array::sleep(read_delay * 2 + write_delay * 2);
+	array_lock.lock();
+	DEFER{ array_lock.unlock(); };
 	stats::add_swap();
 	stats::add_read(2);
 	stats::add_write(2);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
-	main_array::sleep(read_delay * 2 + write_delay * 2);
-	const element tmp = left;
-	left = right;
-	right = tmp;
+	const auto v = left.value;
+	const auto c = left.color;
+	left.value = right.value;
+	left.color = right.color;
+	right.value = v;
+	right.color = c;
 }
 
 void reverse(main_array& array, uint offset, uint size)
 {
 	stats::add_reversal(1);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
 	uint begin = offset;
 	uint end = offset + size - 1;
 	while (begin < end)

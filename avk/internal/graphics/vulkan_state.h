@@ -8,7 +8,7 @@
 #undef max
 #undef min
 
-struct element;
+struct item;
 
 
 
@@ -47,18 +47,18 @@ inline std::vector<VkCommandBuffer> command_buffers;
 inline std::vector<VkSemaphore> begin_render_semaphore;
 inline std::vector<VkSemaphore> end_render_semaphore;
 
-/* CURRENTLY UNNECESSARY
-inline VkDescriptorPool descriptor_pool;
-inline VkDescriptorSetLayout descriptor_set_layout;
-inline VkDescriptorSet descriptor_set;
-*/
 inline VkPipeline bar_graph_pipeline;
 inline VkPipelineLayout bar_graph_pipeline_layout;
 
-inline VkBufferCreateInfo buffer_info;
-inline VkMemoryAllocateInfo memory_info;
-inline VkSubmitInfo submit_info;
-inline element* mapping;
-inline uint array_size;
+inline uint32_t main_array_capacity;
+inline uint32_t main_array_size;
 inline VkBuffer main_array_buffer;
 inline VkDeviceMemory main_array_memory;
+inline item* main_array_mapping;
+
+
+
+struct shader_args
+{
+	uint32_t array_size;
+};

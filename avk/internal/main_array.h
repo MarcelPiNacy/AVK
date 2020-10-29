@@ -33,57 +33,64 @@ namespace stats
 
 
 
-struct alignas(sizeof(uint64_t)) element
+struct item_color
 {
-	uint32_t	internal_value;
-	uint32_t	initial_position;
-
-	operator uint() const noexcept;
-
-	element& operator=(const element& other) noexcept;
-	bool operator==(const element& other) const noexcept;
-	bool operator!=(const element& other) const noexcept;
-	bool operator<(const element& other) const noexcept;
-	bool operator>(const element& other) const noexcept;
-	bool operator<=(const element& other) const noexcept;
-	bool operator>=(const element& other) const noexcept;
+	float r, g, b;
+	
+	static constexpr item_color black()	{ return{ 0, 0, 0 }; }
+	static constexpr item_color white()	{ return{ 1, 1, 1 }; }
+	static constexpr item_color red()	{ return{ 1, 0, 0 }; }
+	static constexpr item_color green()	{ return{ 0, 1, 0 }; }
+	static constexpr item_color blue()	{ return{ 0, 0, 1 }; }
 };
 
 
 
-sint compare(const element& left, const element& right) noexcept;
-void swap(element& left, element& right) noexcept;
+struct item
+{
+	uint32_t	value;
+	uint32_t	original_position;
+	item_color	color;
+
+	operator uint() const noexcept;
+
+	item& operator=(const item& other) noexcept;
+	bool operator==(const item& other) const noexcept;
+	bool operator!=(const item& other) const noexcept;
+	bool operator<(const item& other) const noexcept;
+	bool operator>(const item& other) const noexcept;
+	bool operator<=(const item& other) const noexcept;
+	bool operator>=(const item& other) const noexcept;
+};
+
+
+
+sint compare(const item& left, const item& right) noexcept;
+void swap(item& left, item& right) noexcept;
 void reverse(main_array& array, uint offset, uint size);
 
 
 
 struct main_array
 {
-	/// <summary>
-	/// Initializes the main array.
-	/// </summary>
-	/// <param name="size">
-	/// The size of the array.
-	/// </param>
-	static void resize(uint size) noexcept;
+	static void resize(uint32_t size) noexcept;
 	static void finalize() noexcept;
 
-	element& operator[](uint index) noexcept;
+	item& operator[](uint index) noexcept;
 	static uint size() noexcept;
 
-	static element* begin() noexcept;
-	static element* end() noexcept;
+	static item* begin() noexcept;
+	static item* end() noexcept;
 
 	template <typename F>
 	static void fill(F&& function) noexcept
 	{
-		for (uint i = 0; i < size(); ++i)
+		for (uint32_t i = 0; i < size(); ++i)
 			function(begin()[i], i);
 	}
 
-	static void set_read_delay(uint32_t milliseconds);
-	static void set_write_delay(uint32_t milliseconds);
-	static void set_compare_delay(uint32_t milliseconds);
-	static void sleep(uint32_t milliseconds);
-
+	static void set_read_delay(double seconds);
+	static void set_write_delay(double seconds);
+	static void set_compare_delay(double seconds);
+	static void sleep(double seconds);
 };

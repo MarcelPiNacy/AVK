@@ -1,16 +1,16 @@
 #include "../common.h"
 #include "vulkan_state.h"
+#include "../main_array.h"
+#include "../defer.h"
+#include "../enforce.h"
+
 using std::vector;
 
 extern HINSTANCE hinstance;
 extern HWND hwnd;
 
 #ifdef DEBUG
-static VkBool32 VKAPI_CALL debugger_callback(
-	VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-	VkDebugUtilsMessageTypeFlagsEXT type,
-	const VkDebugUtilsMessengerCallbackDataEXT* payload,
-	void* pUserData)
+static VkBool32 VKAPI_CALL debugger_callback(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* payload, void* pUserData)
 {
 	static char buffer[65536];
 	switch (severity)
@@ -88,7 +88,7 @@ int init_vulkan()
 		VkInstanceCreateInfo info = {};
 		info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		info.pApplicationInfo = &app_info;
-		info.enabledExtensionCount = c_array_size(instance_extensions);
+		info.enabledExtensionCount = (uint32_t)c_array_size(instance_extensions);
 		info.ppEnabledExtensionNames = instance_extensions;
 
 		result = vkCreateInstance(&info, nullptr, &instance);
@@ -210,7 +210,7 @@ int init_vulkan()
 		info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		info.queueCreateInfoCount = same ? 1 : 3;
 		info.pQueueCreateInfos = queue_info;
-		info.enabledExtensionCount = c_array_size(device_extensions);
+		info.enabledExtensionCount = (uint32_t)c_array_size(device_extensions);
 		info.ppEnabledExtensionNames = device_extensions;
 		info.pEnabledFeatures = &features;
 
@@ -314,24 +314,26 @@ int init_vulkan()
 
 		vkGetSwapchainImagesKHR(device, swapchain, &k, nullptr);
 		swapchain_images.resize(k);
+		vkGetSwapchainImagesKHR(device, swapchain, &k, swapchain_images.data());
 		swapchain_image_views.resize(k);
 		framebuffers.resize(k);
 		command_buffers.resize(k);
 		begin_render_semaphore.resize(k);
 		end_render_semaphore.resize(k);
-		vkGetSwapchainImagesKHR(device, swapchain, &k, swapchain_images.data());
+	}
 
-		VkImageViewCreateInfo ivi = {};
-		ivi.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		ivi.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		ivi.format = swapchain_format.format;
-		ivi.components = {};
-		ivi.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+	{
+		VkImageViewCreateInfo info = {};
+		info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		info.format = swapchain_format.format;
+		info.components = {};
+		info.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
 
-		for (uint_fast32_t i = 0; i < k; ++i)
+		for (uint_fast32_t i = 0; i < swapchain_images.size(); ++i)
 		{
-			ivi.image = swapchain_images[i];
-			result = vkCreateImageView(device, &ivi, nullptr, &swapchain_image_views[i]);
+			info.image = swapchain_images[i];
+			result = vkCreateImageView(device, &info, nullptr, &swapchain_image_views[i]);
 			if (result != VK_SUCCESS)
 			{
 				BREAKPOINT;
@@ -422,7 +424,7 @@ int init_vulkan()
 		VkCommandBufferAllocateInfo info = {};
 		info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		info.commandPool = command_pool;
-		info.commandBufferCount = swapchain_images.size();
+		info.commandBufferCount = (uint32_t)swapchain_images.size();
 		info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		result = vkAllocateCommandBuffers(device, &info, command_buffers.data());
 		if (result != VK_SUCCESS)
@@ -464,22 +466,36 @@ int init_vulkan()
 	}
 
 	{
+		VkPushConstantRange push_consts = {};
+		push_consts.offset = 0;
+		push_consts.size = sizeof(shader_args);
+		push_consts.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+		VkPipelineLayoutCreateInfo info = {};
+		info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		info.pushConstantRangeCount = 1;
+		info.pPushConstantRanges = &push_consts;
+		result = vkCreatePipelineLayout(device, &info, nullptr, &bar_graph_pipeline_layout);
+		if (result != VK_SUCCESS)
 		{
-			VkPipelineLayoutCreateInfo info = {};
-			info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-			result = vkCreatePipelineLayout(device, &info, nullptr, &bar_graph_pipeline_layout);
-			if (result != VK_SUCCESS)
-			{
-				BREAKPOINT;
-				return -(__COUNTER__ - base_counter);
-			}
+			BREAKPOINT;
+			return -(__COUNTER__ - base_counter);
 		}
+	}
 
+	{
 		VkShaderModule vertex_shader = VK_NULL_HANDLE;
 		VkShaderModule fragment_shader = VK_NULL_HANDLE;
+		DEFER
+		{
+			if (vertex_shader != VK_NULL_HANDLE)
+				vkDestroyShaderModule(device, vertex_shader, nullptr);
+			if (fragment_shader != VK_NULL_HANDLE)
+				vkDestroyShaderModule(device, fragment_shader, nullptr);
+		};
 
 		{
 			auto code = read_file("bar_graph_vs.spv");
+			enforce(code.size() != 0);
 			VkShaderModuleCreateInfo info = {};
 			info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 			info.codeSize = code.size();
@@ -491,6 +507,7 @@ int init_vulkan()
 				return -(__COUNTER__ - base_counter);
 			}
 			code = read_file("bar_graph_fs.spv");
+			enforce(code.size() != 0);
 			info.codeSize = code.size();
 			info.pCode = (const uint32_t*)code.data();
 			result = vkCreateShaderModule(device, &info, nullptr, &fragment_shader);
@@ -501,26 +518,6 @@ int init_vulkan()
 			}
 		}
 
-		const VkSpecializationMapEntry specialization_entry[2] =
-		{
-			{ 0, 0, sizeof(float) },
-			{ 0, sizeof(float), sizeof(float) },
-		};
-
-		const float specialization_data[2] =
-		{
-			(float)swapchain_extent.width,
-			(float)swapchain_extent.height
-		};
-
-		const VkSpecializationInfo specialization_info =
-		{
-			2,
-			specialization_entry,
-			sizeof(float) * 2,
-			specialization_data
-		};
-
 		VkPipelineShaderStageCreateInfo stages[2] = {};
 		stages[0].sType = stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -528,41 +525,38 @@ int init_vulkan()
 		stages[0].pName = stages[1].pName = "main";
 		stages[0].module = vertex_shader;
 		stages[1].module = fragment_shader;
-		stages[1].pSpecializationInfo = stages[1].pSpecializationInfo = &specialization_info;
 
-		const VkVertexInputAttributeDescription attr_desc[] =
+		const VkVertexInputAttributeDescription attrs[] =
 		{
-			{ 0, 0, VK_FORMAT_R32_UINT, 0 },
-			{ 1, 0, VK_FORMAT_R32_UINT, sizeof(uint32_t) },
+			{ 0, 0, VK_FORMAT_R32_UINT, offsetof(item, value) },
+			{ 1, 0, VK_FORMAT_R32_UINT, offsetof(item, original_position) },
+			{ 2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(item, color) }
 		};
 
-		const VkVertexInputBindingDescription bind_desc[] =
+		const VkVertexInputBindingDescription bindings[] =
 		{
-			{ 0, sizeof(uint64_t), VK_VERTEX_INPUT_RATE_INSTANCE }
+			0, sizeof(item), VK_VERTEX_INPUT_RATE_INSTANCE
 		};
+
+		VkPipelineVertexInputStateCreateInfo inputs = {};
+		inputs.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+		inputs.vertexAttributeDescriptionCount = c_array_size(attrs);
+		inputs.pVertexAttributeDescriptions = attrs;
+		inputs.vertexBindingDescriptionCount = c_array_size(bindings);
+		inputs.pVertexBindingDescriptions = bindings;
 
 		VkPipelineInputAssemblyStateCreateInfo input_assembly = {};
 		input_assembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 		input_assembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 
-		VkPipelineVertexInputStateCreateInfo inputs = {};
-		inputs.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		inputs.vertexAttributeDescriptionCount = 2;
-		inputs.pVertexAttributeDescriptions = attr_desc;
-		inputs.vertexBindingDescriptionCount = 1;
-		inputs.pVertexBindingDescriptions = bind_desc;
-		
 		const VkViewport vp =
 		{
 			0, 0,
-			swapchain_extent.width, swapchain_extent.height,
+			(float)swapchain_extent.width, (float)swapchain_extent.height,
 			0.0f, 1.0f
 		};
 
-		const VkRect2D scissor =
-		{
-			{}, swapchain_extent
-		};
+		const VkRect2D scissor = { {}, swapchain_extent };
 
 		VkPipelineViewportStateCreateInfo viewport_info = {};
 		viewport_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -601,11 +595,9 @@ int init_vulkan()
 		info.pStages = stages;
 		info.pVertexInputState = &inputs;
 		info.pInputAssemblyState = &input_assembly;
-		//info.pTessellationState = nullptr;
 		info.pViewportState = &viewport_info;
 		info.pRasterizationState = &rasterization_info;
 		info.pMultisampleState = &multisample_info;
-		//info.pDepthStencilState = nullptr;
 		info.pColorBlendState = &color_blend_info;
 		info.layout = bar_graph_pipeline_layout;
 		info.renderPass = renderpass;
@@ -616,9 +608,6 @@ int init_vulkan()
 			BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
-
-		vkDestroyShaderModule(device, vertex_shader, nullptr);
-		vkDestroyShaderModule(device, fragment_shader, nullptr);
 	}
 
 	return 0;

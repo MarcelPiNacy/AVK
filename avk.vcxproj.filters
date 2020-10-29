@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="algorithms">
-      <UniqueIdentifier>{bbda5252-70d3-4e41-9549-ba62c5113f53}</UniqueIdentifier>
-    </Filter>
     <Filter Include="avk">
       <UniqueIdentifier>{69677b46-c6bf-4f56-92ac-0d7f2b60e42d}</UniqueIdentifier>
     </Filter>
@@ -18,6 +15,12 @@
     </Filter>
     <Filter Include="avk\internal\graphics">
       <UniqueIdentifier>{28d7bbd1-0240-4922-bdec-cea781f3b47e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="git items %28fake folder%29">
+      <UniqueIdentifier>{8e4eae68-129f-4510-9086-573b184ac662}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="avk\algorithms">
+      <UniqueIdentifier>{e737a2b4-ce38-4353-b0d7-7fc94aadb1be}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -51,9 +54,6 @@
     <ClInclude Include="avk\avk.h">
       <Filter>avk</Filter>
     </ClInclude>
-    <ClInclude Include="algorithms\sort_traits.h">
-      <Filter>algorithms</Filter>
-    </ClInclude>
     <ClInclude Include="avk\internal\graphics\vulkan_state.h">
       <Filter>avk\internal\graphics</Filter>
     </ClInclude>
@@ -63,8 +63,8 @@
     <ClInclude Include="avk\internal\defer.h">
       <Filter>avk\internal</Filter>
     </ClInclude>
-    <ClInclude Include="avk\internal\graphics\shader_params.h">
-      <Filter>avk\internal\graphics</Filter>
+    <ClInclude Include="avk\algorithms\all.h">
+      <Filter>avk\algorithms</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -83,9 +83,6 @@
     <ClCompile Include="avk\internal\graphics\vulkan_init.cpp">
       <Filter>avk\internal\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="algorithms\selection_sort.h">
-      <Filter>algorithms</Filter>
-    </ClCompile>
     <ClCompile Include="avk\internal\graphics\vulkan_draw.cpp">
       <Filter>avk\internal\graphics</Filter>
     </ClCompile>
@@ -94,6 +91,9 @@
     </ClCompile>
     <ClCompile Include="avk\internal\windows_callbacks.cpp">
       <Filter>avk\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\selection_sort.cpp">
+      <Filter>avk\algorithms</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -106,6 +106,13 @@
     <None Include="avk\internal\shaders\bar_graph.vert">
       <Filter>avk\internal\shaders</Filter>
     </None>
+    <None Include=".gitattributes">
+      <Filter>git items %28fake folder%29</Filter>
+    </None>
+    <None Include=".gitignore">
+      <Filter>git items %28fake folder%29</Filter>
+    </None>
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="avk\internal\windows-specific\array_vk.ico">

@@ -9,5 +9,7 @@ namespace algorithm_thread
 	void assign_sort(sort_function_pointer sort) noexcept;
 	void launch() noexcept;
 	bool is_idle() noexcept;
+	void signal() noexcept;
 	void await(uint32_t timeout_ms = UINT32_MAX) noexcept;
+	void terminate() noexcept;
 }

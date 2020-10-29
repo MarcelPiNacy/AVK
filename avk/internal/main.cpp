@@ -38,7 +38,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     wcex.hInstance = hInstance;
     wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ARRAYVK));
     wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground = CreateSolidBrush(0x0d0c00);
+    wcex.hbrBackground = CreateSolidBrush(0);
     wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_ARRAYVK);
     wcex.lpszClassName = class_name;
     wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
@@ -69,25 +69,29 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     accel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_ARRAYVK));
 
-    if (init_vulkan() < 0)
-        return -(__COUNTER__ - base_counter);
+    const int res = init_vulkan();
+    if (res < 0)
+        return (1 << 30) | res;
 
     algorithm_thread::launch();
 
     using namespace std::chrono;
 
-    constexpr auto framerrate = milliseconds(120);
     auto last = high_resolution_clock::now();
 
-    main_array::resize(1 << 10);
-    main_array::fill([](element& e, uint32_t position)
+    item_color color = { 1, 0, 0 };
+    double delay = 0.01;
+    main_array::set_compare_delay(delay);
+    main_array::set_read_delay(delay);
+    main_array::set_write_delay(delay);
+    main_array::resize(1 << 8);
+    main_array::fill([&](item& e, uint32_t position)
     {
-        e.internal_value = position;
-        e.initial_position = position;
+        e.value = main_array::size() - position;
+        e.original_position = position;
+        e.color = color;
+        color.r -= 1.0f / (float)main_array::size();
     });
-    main_array::set_read_delay(1);
-    main_array::set_write_delay(1);
-    main_array::set_compare_delay(1);
 
     MSG msg = {};
     while (should_continue_global.load(std::memory_order_acquire))
@@ -102,12 +106,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         }
 
         const auto now = high_resolution_clock::now();
-        if (duration_cast<milliseconds>(now - last) >= framerrate)
+        if (duration_cast<milliseconds>(now - last).count() >= 16)
         {
             draw_main_array();
             last = now;
         }
     }
 
+    algorithm_thread::terminate(); //die
     return (int)msg.message;
 }

@@ -1,40 +1,43 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(constant_id = 0) const float SCREEN_WIDTH = 0.0;
-layout(constant_id = 1) const float SCREEN_HEIGHT = 0.0;
-
-layout(push_constant) uniform ArrayInfo
+layout(push_constant) uniform ShaderArgs
 {
-	uint size;
-} array_info;
+	uint array_size;
+} args;
 
-layout(location = 0) in uint value;
-layout(location = 1) in uint initial_position;
-layout(location = 0) out vec4 frag_color;
+layout(location = 0) in uint	item_value;
+layout(location = 1) in uint	item_original_position;
+layout(location = 2) in vec3	item_color;
+layout(location = 0) out vec4	out_frag_color;
 
-const uint indices[6] = uint[]
+const vec2 local_vertices[4] = vec2[]
 (
-	0, 1, 2,
-	2, 3, 1
+	vec2(1, 1), vec2(0, 1),
+	vec2(0, 0), vec2(1, 0)
 );
 
-const vec2 vertices[4] = vec2[]
-(
-	vec2(0, 0), vec2(1, 0),
-	vec2(0, 1), vec2(1, 1)
-);
+const uint local_indices[6] = uint[](0, 1, 2, 2, 3, 0);
 
 void main()
 {
-	const float bar_width = SCREEN_WIDTH / float(array_info.size);
-	const float base_position = float(gl_VertexIndex) / float(array_info.size);
+	vec2 v = local_vertices[local_indices[gl_VertexIndex]];
+	uint item_index = gl_InstanceIndex;
 
-	vec2 bar_position = base_position + vertices[indices[gl_InstanceIndex]];
-	bar_position.y *= SCREEN_HEIGHT;
-	bar_position.x *= bar_width;
+	float relative_item_value = float(item_value) / float(args.array_size);
 
-	gl_Position = vec4(bar_position, 0.0, 1.0);
+	float bar_width = 2.0 / float(args.array_size);
+	float bar_height = 2.0 * relative_item_value;
 
-	frag_color = vec4(1.0);
+	v.x *= bar_width;
+	v.y *= bar_height;
+
+	v.x += item_index * bar_width;
+
+	--v.x;
+	--v.y;
+	v.y += 2.0 * (1.0 - relative_item_value);
+
+	gl_Position = vec4(v, 0.0, 1.0);
+	out_frag_color = vec4(item_color, 1.0);
 }

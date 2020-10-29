@@ -123,13 +123,19 @@ struct ticket_spinlock
 
 	void lock() noexcept
 	{
+		uint8_t retries = 16;
 		const auto desired = head.fetch_add(1, std::memory_order_acquire);
-		while (tail.load(std::memory_order_acquire) != desired)
+		while (true)
+		{
+			auto t = tail.load(std::memory_order_acquire);
+			if (t == desired)
+				break;
 			platform::yield_cpu();
+		}
 	}
 
 	void unlock() noexcept
 	{
-		tail.fetch_add(1, std::memory_order_release);
+		(void)tail.fetch_add(1, std::memory_order_release);
 	}
 };

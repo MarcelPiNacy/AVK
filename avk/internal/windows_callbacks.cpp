@@ -1,7 +1,7 @@
 #include "algorithm_thread.h"
 #include "windows-specific/framework.h"
 #include "windows-specific/Resource.h"
-#include "../../algorithms/selection_sort.h"
+#include "../algorithms/all.h"
 
 
 
@@ -48,7 +48,7 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             DestroyWindow(hWnd);
             break;
         case IDM_SELECTION_SORT:
-            algorithm_thread::assign_sort(selection_sort::run);
+            algorithm_thread::assign_sort(selection_sort);
             break;
         case IDM_INSERTION_SORT:
             break;

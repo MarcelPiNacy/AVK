@@ -15,12 +15,15 @@ static std::atomic<uint32_t> tail;
 
 static DWORD WINAPI algorithm_thread_entry_point(void* unused) noexcept
 {
-	auto& main_array = *(::main_array*)nullptr; //WHEEZE
+	auto& main_array = *(::main_array*)nullptr;
 	while (should_continue_global.load(std::memory_order_acquire))
 	{
 		auto h = head.load(std::memory_order_acquire);
 		(void)WaitOnAddress(&head, &h, sizeof(head), INFINITE);
+		if (sort_function == nullptr)
+			break;
 		sort_function(main_array);
+		sort_function = nullptr;
 		(void)tail.fetch_add(1, std::memory_order_release);
 		(void)WakeByAddressAll(&tail);
 	}
@@ -33,8 +36,7 @@ namespace algorithm_thread
 	{
 		await();
 		sort_function = sort;
-		(void)head.fetch_add(1, std::memory_order_acquire);
-		WakeByAddressAll(&head);
+		signal();
 	}
 
 	void launch() noexcept
@@ -49,11 +51,22 @@ namespace algorithm_thread
 		return head.load(std::memory_order_acquire) == tail.load(std::memory_order_acquire);
 	}
 
+	void signal() noexcept
+	{
+		(void)head.fetch_add(1, std::memory_order_acquire);
+		WakeByAddressSingle(&head);
+	}
+
 	void await(uint32_t timeout_ms) noexcept
 	{
 		if (is_idle())
 			return;
 		auto desired = head.load(std::memory_order_acquire);
 		(void)WaitOnAddress(&tail, &desired, sizeof(desired), timeout_ms == UINT32_MAX ? INFINITE : timeout_ms);
+	}
+
+	void terminate() noexcept
+	{
+		(void)TerminateThread(thread_handle, 0);
 	}
 }
