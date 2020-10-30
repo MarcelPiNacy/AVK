@@ -2,6 +2,7 @@
 #include "enforce.h"
 #include <Windows.h>
 #include <atomic>
+#include <new>
 #pragma comment(lib, "Synchronization.lib")
 
 // TODO: This synchronization is probably overkill: Maybe remove atomics or reduce the number of generation counters...
@@ -10,8 +11,10 @@ extern std::atomic<bool> should_continue_global;
 
 static sort_function_pointer sort_function;
 static HANDLE thread_handle;
-static std::atomic<uint32_t> head;
-static std::atomic<uint32_t> tail;
+
+static std::atomic<bool> paused;	//Rarely modified: cache line segreggation isn't required.
+static std::atomic<uint32_t> head;	//Same
+static std::atomic<uint32_t> tail;	//Same
 
 static DWORD WINAPI thread_entry_point(void* unused) noexcept
 {
@@ -46,6 +49,11 @@ namespace algorithm_thread
 		ResumeThread(thread_handle);
 	}
 
+	bool is_paused() noexcept
+	{
+		return paused.load(std::memory_order_acquire);
+	}
+
 	bool is_idle() noexcept
 	{
 		return head.load(std::memory_order_acquire) == tail.load(std::memory_order_acquire);
@@ -54,11 +62,13 @@ namespace algorithm_thread
 	void pause() noexcept
 	{
 		SuspendThread(thread_handle);
+		paused.store(true, std::memory_order_release);
 	}
 
 	void resume() noexcept
 	{
 		ResumeThread(thread_handle);
+		paused.store(false, std::memory_order_release);
 	}
 
 	void abort_sort() noexcept

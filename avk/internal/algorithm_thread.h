@@ -8,6 +8,7 @@ namespace algorithm_thread
 {
 	void assign_sort(sort_function_pointer sort) noexcept;
 	void launch() noexcept;
+	bool is_paused() noexcept;
 	bool is_idle() noexcept;
 	void pause() noexcept;
 	void resume() noexcept;

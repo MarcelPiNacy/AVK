@@ -540,9 +540,9 @@ int init_vulkan()
 
 		VkPipelineVertexInputStateCreateInfo inputs = {};
 		inputs.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		inputs.vertexAttributeDescriptionCount = c_array_size(attrs);
+		inputs.vertexAttributeDescriptionCount = (uint32_t)c_array_size(attrs);
 		inputs.pVertexAttributeDescriptions = attrs;
-		inputs.vertexBindingDescriptionCount = c_array_size(bindings);
+		inputs.vertexBindingDescriptionCount = (uint32_t)c_array_size(bindings);
 		inputs.pVertexBindingDescriptions = bindings;
 
 		VkPipelineInputAssemblyStateCreateInfo input_assembly = {};

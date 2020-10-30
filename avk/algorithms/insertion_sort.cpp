@@ -2,7 +2,7 @@
 
 void insertion_sort(main_array& array)
 {
-	for (int i = 1; i < array.size(); ++i)
+	for (int i = 1; i < (int)array.size(); ++i)
 	{
 		item tmp = array[i];
 		int j = i - 1;

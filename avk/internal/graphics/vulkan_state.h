@@ -12,7 +12,7 @@ struct item;
 
 
 
-inline ticket_spinlock array_lock;
+inline spin_lock array_lock;
 
 inline VkInstance instance;
 #ifdef DEBUG
