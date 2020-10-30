@@ -35,7 +35,7 @@ static DWORD WINAPI thread_entry_point(void* unused) noexcept
 
 namespace algorithm_thread
 {
-	void assign_sort(sort_function_pointer sort) noexcept
+	void assign_body(sort_function_pointer sort) noexcept
 	{
 		await();
 		sort_function = sort;

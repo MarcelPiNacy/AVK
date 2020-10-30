@@ -80,11 +80,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     auto last = high_resolution_clock::now();
 
     item_color color = item_color::white();
-    double delay = 0.1;
+    double delay = 0.001;
     main_array::set_compare_delay(delay);
     main_array::set_read_delay(delay);
     main_array::set_write_delay(delay);
-    main_array::resize(1 << 10);
+    main_array::resize(1 << 16);
     constexpr TCHAR title_format[] = TEXT("ArrayVK - Sorting Algorithm Visualizer - [ %u elements ]");
 #ifdef UNICODE
     wsprintf(window_title_buffer, title_format, main_array::size());
@@ -93,7 +93,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     sprintf(window_title_buffer, title_format, main_array::size());
     SetWindowTextA(hwnd, window_title_buffer);
 #endif
-    main_array::fill([&](item& e, uint32_t position)
+    main_array::for_each([&](item& e, uint32_t position)
     {
         e.value = position;
         e.original_position = position;
@@ -120,9 +120,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             draw_main_array();
             last = now;
         }
-
-        if (algorithm_thread::is_paused() || algorithm_thread::is_idle())
-            WaitMessage();
     }
 
     algorithm_thread::terminate(); //die

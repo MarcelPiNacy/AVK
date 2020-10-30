@@ -65,6 +65,15 @@ struct item
 
 
 
+struct item_raw
+{
+	uint32_t	value;
+	uint32_t	original_position;
+	item_color	color;
+};
+
+
+
 sint compare(const item& left, const item& right) noexcept;
 void swap(item& left, item& right) noexcept;
 void reverse(main_array& array, uint offset, uint size);
@@ -83,7 +92,7 @@ struct main_array
 	static item* end() noexcept;
 
 	template <typename F>
-	static void fill(F&& function) noexcept
+	static void for_each(F&& function) noexcept
 	{
 		for (uint32_t i = 0; i < size(); ++i)
 			function(begin()[i], i);
