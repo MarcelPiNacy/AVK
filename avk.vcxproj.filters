@@ -86,9 +86,6 @@
     <ClCompile Include="avk\internal\stats.cpp">
       <Filter>avk\internal</Filter>
     </ClCompile>
-    <ClCompile Include="avk\internal\graphics\main_array.cpp">
-      <Filter>avk\internal\graphics</Filter>
-    </ClCompile>
     <ClCompile Include="avk\internal\algorithm_thread.cpp">
       <Filter>avk\internal</Filter>
     </ClCompile>
@@ -133,6 +130,12 @@
     </ClCompile>
     <ClCompile Include="avk\algorithms\bitonic_sort.cpp">
       <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\odd_even_merge_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\internal\graphics\main_array.cpp">
+      <Filter>avk\internal\graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -12,6 +12,7 @@ extern std::atomic<bool> should_continue_global;
 static sort_function_pointer sort_function;
 static HANDLE thread_handle;
 
+static bool is_run_all;
 static std::atomic<bool> paused;	//Rarely modified: cache line segreggation isn't required.
 static std::atomic<uint32_t> head;	//Same
 static std::atomic<uint32_t> tail;	//Same

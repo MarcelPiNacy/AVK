@@ -52,8 +52,6 @@ struct item
 	uint32_t	original_position;
 	item_color	color;
 
-	operator uint() const noexcept;
-
 	item& operator=(const item& other) noexcept;
 	bool operator==(const item& other) const noexcept;
 	bool operator!=(const item& other) const noexcept;

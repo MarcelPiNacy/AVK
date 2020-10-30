@@ -7,6 +7,8 @@
 #include "../enforce.h"
 #include "vulkan_state.h"
 #include "../defer.h"
+#include <mutex>
+using std::scoped_lock;
 
 static double read_delay;
 static double write_delay;
@@ -43,6 +45,8 @@ static uint32_t round_pow2(size_t value)
 
 void main_array::resize(uint32_t size) noexcept
 {
+	if (main_array_buffer != VK_NULL_HANDLE)
+		finalize();
 	main_array_size = size;
 	main_array_capacity = round_pow2(size);
 	VkBufferCreateInfo buffer_info = {};
@@ -62,8 +66,6 @@ void main_array::resize(uint32_t size) noexcept
 
 void main_array::finalize() noexcept
 {
-	if (main_array_buffer == VK_NULL_HANDLE)
-		return;
 	vkUnmapMemory(device, main_array_memory);
 	main_array_mapping = nullptr;
 	vkFreeMemory(device, main_array_memory, nullptr);
@@ -127,22 +129,12 @@ void main_array::sleep(double seconds)
 	}
 }
 
-item::operator uint() const noexcept
-{
-	main_array::sleep(read_delay);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
-	stats::add_read();
-	return value;
-}
-
 item& item::operator=(const item& other) noexcept
 {
 	main_array::sleep(read_delay + write_delay);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
 	stats::add_read();
 	stats::add_write();
+	scoped_lock guard(array_lock);
 	value = other.value;
 	color = other.color;
 	return *this;
@@ -151,70 +143,63 @@ item& item::operator=(const item& other) noexcept
 bool item::operator==(const item& other) const noexcept
 {
 	main_array::sleep(read_delay * 2);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
 	stats::add_comparisson();
 	stats::add_read(2);
+	scoped_lock guard(array_lock);
 	return value == other.value;
 }
 
 bool item::operator!=(const item& other) const noexcept
 {
 	main_array::sleep(read_delay * 2);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
 	stats::add_comparisson();
 	stats::add_read(2);
+	scoped_lock guard(array_lock);
 	return value != other.value;
 }
 
 bool item::operator<(const item& other) const noexcept
 {
 	main_array::sleep(read_delay * 2);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
 	stats::add_comparisson();
 	stats::add_read(2);
+	scoped_lock guard(array_lock);
 	return value < other.value;
 }
 
 bool item::operator>(const item& other) const noexcept
 {
 	main_array::sleep(read_delay * 2);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
 	stats::add_comparisson();
 	stats::add_read(2);
+	scoped_lock guard(array_lock);
 	return value > other.value;
 }
 
 bool item::operator<=(const item& other) const noexcept
 {
 	main_array::sleep(read_delay * 2);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
 	stats::add_comparisson();
 	stats::add_read(2);
+	scoped_lock guard(array_lock);
 	return value <= other.value;
 }
 
 bool item::operator>=(const item& other) const noexcept
 {
 	main_array::sleep(read_delay * 2);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
 	stats::add_comparisson();
 	stats::add_read(2);
+	scoped_lock guard(array_lock);
 	return value >= other.value;
 }
 
 sint compare(const item& left, const item& right) noexcept
 {
 	main_array::sleep(read_delay * 2);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
 	stats::add_comparisson();
 	stats::add_read(2);
+	scoped_lock guard(array_lock);
 	if (left.value == right.value)
 		return 0;
 	sint r = 1;
@@ -226,11 +211,10 @@ sint compare(const item& left, const item& right) noexcept
 void swap(item& left, item& right) noexcept
 {
 	main_array::sleep(read_delay * 2 + write_delay * 2);
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
 	stats::add_swap();
 	stats::add_read(2);
 	stats::add_write(2);
+	scoped_lock guard(array_lock);
 	const auto v = left.value;
 	const auto c = left.color;
 	left.value = right.value;

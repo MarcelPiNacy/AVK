@@ -21,9 +21,11 @@ const uint local_indices[6] = uint[](0, 1, 2, 2, 3, 0);
 
 void main()
 {
-	vec2 v = local_vertices[local_indices[gl_VertexIndex]];
+	const vec2 base_vertex = local_vertices[local_indices[gl_VertexIndex]];
+	vec2 v = base_vertex;
 	uint item_index = gl_InstanceIndex;
 
+	float relative_original_position = float(item_original_position) / float(args.array_size);
 	float relative_item_value = float(item_value) / float(args.array_size);
 
 	float bar_width = 2.0 / float(args.array_size);
@@ -31,13 +33,16 @@ void main()
 
 	v.x *= bar_width;
 	v.y *= bar_height;
-
 	v.x += item_index * bar_width;
-
 	--v.x;
 	--v.y;
 	v.y += 2.0 * (1.0 - relative_item_value);
 
 	gl_Position = vec4(v, 0.0, 1.0);
-	out_frag_color = vec4(item_color, 1.0);
+
+	relative_original_position *= relative_original_position;
+	if (base_vertex.y == 1)
+		out_frag_color = vec4(vec3(relative_original_position), 1.0);
+	else
+		out_frag_color = vec4(item_color, 1.0);
 }
