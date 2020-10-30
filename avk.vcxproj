@@ -227,6 +227,7 @@
   <ItemGroup>
     <ClInclude Include="avk\algorithms\all.h" />
     <ClInclude Include="avk\avk.h" />
+    <ClInclude Include="avk\external_dependencies\fold_sort.h" />
     <ClInclude Include="avk\external_dependencies\GrailSort.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
@@ -245,7 +246,9 @@
     <ClInclude Include="avk\internal\windows-specific\targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="avk\algorithms\bitonic_sort.cpp" />
     <ClCompile Include="avk\algorithms\bubble_sort.cpp" />
+    <ClCompile Include="avk\algorithms\fold_sort.cpp" />
     <ClCompile Include="avk\algorithms\grail_sort.cpp" />
     <ClCompile Include="avk\algorithms\std_sort.cpp" />
     <ClCompile Include="avk\algorithms\std_sort_heap.cpp" />

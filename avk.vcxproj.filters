@@ -75,6 +75,9 @@
     <ClInclude Include="avk\external_dependencies\GrailSort.h">
       <Filter>avk\external dependencies</Filter>
     </ClInclude>
+    <ClInclude Include="avk\external_dependencies\fold_sort.h">
+      <Filter>avk\external dependencies</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="avk\internal\main.cpp">
@@ -123,6 +126,12 @@
       <Filter>avk\internal</Filter>
     </ClCompile>
     <ClCompile Include="avk\algorithms\grail_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\fold_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\bitonic_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
   </ItemGroup>

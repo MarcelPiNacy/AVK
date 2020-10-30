@@ -4,6 +4,7 @@
 #include "../algorithms/all.h"
 #include "prng.h"
 #include <ctime>
+#include <algorithm>
 
 
 
@@ -76,6 +77,12 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         case IDM_GRAIL_SORT:
             algorithm_thread::assign_sort(block_merge_grail_sort);
             break;
+        case IDM_FOLD_SORT:
+            algorithm_thread::assign_sort(fold_sort);
+            break;
+        case IDM_BITONIC_SORT:
+            algorithm_thread::assign_sort(bitonic_sort);
+            break;
         case IDM_INITIALIZE_ALREADY_SORTED:
             if (algorithm_thread::is_idle())
             {
@@ -120,7 +127,15 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
                 });
             }
             break;
-        case IDM_INITIALIZE_CSTDLIB_RANDOM:
+        case IDM_INITIALIZE_SHUFFLED:
+            if (algorithm_thread::is_idle())
+            {
+                romu_duo_set_seed(main_array::size() ^ time(nullptr));
+                romu_duo_functor tmp;
+                std::shuffle(main_array::begin(), main_array::end(), tmp);
+            }
+            break;
+        case IDM_INITIALIZE_ROMUDUOJR:
             if (algorithm_thread::is_idle())
             {
                 romu_duo_set_seed(main_array::size() ^ time(nullptr));
