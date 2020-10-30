@@ -114,6 +114,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             }
         }
 
+        if (algorithm_thread::is_paused() || algorithm_thread::is_idle())
+            WaitMessage();
+
         const auto now = high_resolution_clock::now();
         if (now - last >= MAX_FPS)
         {
