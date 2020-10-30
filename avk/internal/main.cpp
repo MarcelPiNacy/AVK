@@ -13,7 +13,7 @@ static HACCEL accel;
 std::atomic<bool> should_continue_global = true;
 std::atomic<bool> should_continue_sort;
 
-
+static TCHAR window_title_buffer[1 << 12];
 
 extern LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -50,7 +50,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     hinstance = hInstance;
 
-    const TCHAR title[] = TEXT("ArrayVK - Sorting Algorithm Visualizer");
+    constexpr TCHAR title[] = TEXT("ArrayVK - Sorting Algorithm Visualizer");
 
     hwnd = CreateWindow(
         class_name,
@@ -79,19 +79,30 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     auto last = high_resolution_clock::now();
 
-    item_color color = { 1, 0, 0 };
-    double delay = 0.5;
+    srand(time(nullptr));
+
+    item_color color = item_color::red();
+    double delay = 0.0001;
     main_array::set_compare_delay(delay);
     main_array::set_read_delay(delay);
     main_array::set_write_delay(delay);
-    main_array::resize(1 << 8);
+    main_array::resize(1 << 17);
+    constexpr TCHAR title_format[] = TEXT("ArrayVK - Sorting Algorithm Visualizer - [ %u elements ]");
+#ifdef UNICODE
+    wsprintf(window_title_buffer, title_format, main_array::size());
+    SetWindowText(hwnd, window_title_buffer);
+#else
+    sprintf(window_title_buffer, title_format, main_array::size());
+    SetWindowTextA(hwnd, window_title_buffer);
+#endif
     main_array::fill([&](item& e, uint32_t position)
     {
-        e.value = main_array::size() - position;
+        e.value = position;
         e.original_position = position;
         e.color = color;
-        color.r -= 1.0f / (float)main_array::size();
     });
+
+    constexpr auto MAX_FPS = milliseconds(8);
 
     MSG msg = {};
     while (should_continue_global.load(std::memory_order_acquire))
@@ -106,7 +117,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         }
 
         const auto now = high_resolution_clock::now();
-        if (duration_cast<milliseconds>(now - last).count() >= 16)
+        if (now - last >= MAX_FPS)
         {
             draw_main_array();
             last = now;

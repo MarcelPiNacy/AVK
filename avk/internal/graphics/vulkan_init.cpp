@@ -612,3 +612,12 @@ int init_vulkan()
 
 	return 0;
 }
+
+
+
+void vulkan_on_window_resize()
+{
+	if (instance == VK_NULL_HANDLE)
+		return;
+	abort();
+}

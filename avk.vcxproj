@@ -95,7 +95,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING; WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\VulkanSDK\1.1.121.2\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -124,9 +124,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING; WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\VulkanSDK\1.1.121.2\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\1.1.121.2\Include;C:\grail_sort_cpp;C:\Users\Admin\Downloads\GrailSort-master;C:\sorting\networks;C:\ska_sort;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -160,7 +160,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING; _DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>C:\VulkanSDK\1.1.121.2\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -189,9 +189,9 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING; NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\VulkanSDK\1.1.121.2\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\VulkanSDK\1.1.121.2\Include;C:\grail_sort_cpp;C:\Users\Admin\Downloads\GrailSort-master;C:\sorting\networks;C:\ska_sort;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -227,6 +227,10 @@
   <ItemGroup>
     <ClInclude Include="avk\algorithms\all.h" />
     <ClInclude Include="avk\avk.h" />
+    <ClInclude Include="avk\external_dependencies\GrailSort.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="avk\internal\defer.h" />
     <ClInclude Include="avk\internal\enforce.h" />
     <ClInclude Include="avk\internal\common.h" />
@@ -235,12 +239,14 @@
     <ClInclude Include="avk\internal\platform.h" />
     <ClInclude Include="avk\internal\locks.h" />
     <ClInclude Include="avk\internal\algorithm_thread.h" />
+    <ClInclude Include="avk\internal\prng.h" />
     <ClInclude Include="avk\internal\windows-specific\framework.h" />
     <ClInclude Include="avk\internal\windows-specific\Resource.h" />
     <ClInclude Include="avk\internal\windows-specific\targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="avk\algorithms\bubble_sort.cpp" />
+    <ClCompile Include="avk\algorithms\grail_sort.cpp" />
     <ClCompile Include="avk\algorithms\std_sort.cpp" />
     <ClCompile Include="avk\algorithms\std_sort_heap.cpp" />
     <ClCompile Include="avk\algorithms\insertion_sort.cpp" />
@@ -251,6 +257,7 @@
     <ClCompile Include="avk\internal\graphics\vulkan_init.cpp" />
     <ClCompile Include="avk\internal\main.cpp" />
     <ClCompile Include="avk\internal\platform.cpp" />
+    <ClCompile Include="avk\internal\prng.cpp" />
     <ClCompile Include="avk\internal\stats.cpp" />
     <ClCompile Include="avk\internal\algorithm_thread.cpp" />
     <ClCompile Include="avk\internal\windows_callbacks.cpp" />

@@ -2,12 +2,18 @@
 #include "windows-specific/framework.h"
 #include "windows-specific/Resource.h"
 #include "../algorithms/all.h"
+#include "prng.h"
+#include <ctime>
 
 
 
 extern std::atomic<bool> should_continue_global;
 extern HINSTANCE hinstance;
 extern HWND hwnd;
+
+
+
+extern void vulkan_on_window_resize();
 
 
 
@@ -34,6 +40,8 @@ INT_PTR CALLBACK about_callbacks(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 
 LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    item_color color = item_color::red();
+
     switch (message)
     {
     case WM_COMMAND:
@@ -42,7 +50,7 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         switch (wmId)
         {
         case IDM_CREDITS:
-            DialogBox(hinstance, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, about_callbacks);
+            DialogBox(hinstance, MAKEINTRESOURCE(IDD_CREDITSBOX), hWnd, about_callbacks);
             break;
         case IDM_EXIT:
             DestroyWindow(hWnd);
@@ -65,11 +73,82 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         case IDM_STD_SORT:
             algorithm_thread::assign_sort(std_sort);
             break;
+        case IDM_GRAIL_SORT:
+            algorithm_thread::assign_sort(block_merge_grail_sort);
+            break;
+        case IDM_INITIALIZE_ALREADY_SORTED:
+            if (algorithm_thread::is_idle())
+            {
+                main_array::fill([&](item& e, uint32_t position)
+                {
+                    e.value = position;
+                    e.original_position = position;
+                    e.color = color;
+                    //color.r += 1.0f / (float)main_array::size();
+                });
+            }
+            break;
+        case IDM_INITIALIZE_REVERSED:
+            if (algorithm_thread::is_idle())
+            {
+                main_array::fill([&](item& e, uint32_t position)
+                {
+                    e.value = main_array::size() - position;
+                    e.original_position = position;
+                    e.color = color;
+                    //color.r += 1.0f / (float)main_array::size();
+                });
+            }
+            break;
+        case IDM_INITIALIZE_ORGAN_PIPE_LINEAR:
+            if (algorithm_thread::is_idle())
+            {
+                uint32_t k = 0;
+                bool forward = true;
+                const auto mid = main_array::size() / 2;
+                main_array::fill([&](item& e, uint32_t position)
+                {
+                    e.value = k;
+                    if (position > mid)
+                        forward = false;
+                    if (forward)
+                        k += 2;
+                    else
+                        k -= 2;
+                    e.original_position = position;
+                    e.color = color;
+                });
+            }
+            break;
+        case IDM_INITIALIZE_CSTDLIB_RANDOM:
+            if (algorithm_thread::is_idle())
+            {
+                romu_duo_set_seed(main_array::size() ^ time(nullptr));
+                main_array::fill([&](item& e, uint32_t position)
+                {
+                    e.value = romu_duo_get() % main_array::size();
+                    e.original_position = position;
+                    e.color = color;
+                });
+            }
+            break;
+        case IDM_PAUSE_SIMULATION:
+            algorithm_thread::pause();
+            break;
+        case IDM_RESUME_SIMULATION:
+            algorithm_thread::resume();
+            break;
+        case IDM_ABORT_SIMULATION:
+            algorithm_thread::abort_sort();
+            break;
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);
         }
     }
     break;
+    case WM_SIZE:
+        vulkan_on_window_resize();
+        break;
     case WM_PAINT:
     {
         PAINTSTRUCT ps;

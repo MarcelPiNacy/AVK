@@ -13,7 +13,7 @@ static HANDLE thread_handle;
 static std::atomic<uint32_t> head;
 static std::atomic<uint32_t> tail;
 
-static DWORD WINAPI algorithm_thread_entry_point(void* unused) noexcept
+static DWORD WINAPI thread_entry_point(void* unused) noexcept
 {
 	auto& main_array = *(::main_array*)nullptr;
 	while (should_continue_global.load(std::memory_order_acquire))
@@ -41,7 +41,7 @@ namespace algorithm_thread
 
 	void launch() noexcept
 	{
-		thread_handle = CreateThread(nullptr, 1 << 21, algorithm_thread_entry_point, nullptr, CREATE_SUSPENDED, nullptr);
+		thread_handle = CreateThread(nullptr, 1 << 21, thread_entry_point, nullptr, CREATE_SUSPENDED, nullptr);
 		enforce(thread_handle != nullptr);
 		ResumeThread(thread_handle);
 	}
@@ -49,6 +49,22 @@ namespace algorithm_thread
 	bool is_idle() noexcept
 	{
 		return head.load(std::memory_order_acquire) == tail.load(std::memory_order_acquire);
+	}
+
+	void pause() noexcept
+	{
+		SuspendThread(thread_handle);
+	}
+
+	void resume() noexcept
+	{
+		ResumeThread(thread_handle);
+	}
+
+	void abort_sort() noexcept
+	{
+		TerminateThread(thread_handle, 0); //Return 0, nothing happened here :^)
+		launch();
 	}
 
 	void signal() noexcept
