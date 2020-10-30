@@ -74,6 +74,7 @@ namespace algorithm_thread
 	void abort_sort() noexcept
 	{
 		TerminateThread(thread_handle, 0); //Return 0, nothing happened here :^)
+		(void)tail.fetch_add(1, std::memory_order_release);
 		launch();
 	}
 

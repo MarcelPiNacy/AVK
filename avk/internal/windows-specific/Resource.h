@@ -11,7 +11,6 @@
 #define IDD_CREDITSBOX			106
 #define IDM_EXIT				107
 #define IDC_MYICON				108
-#define IDM_LOAD_SCRIPT			109
 
 #define IDM_SELECTION_SORT		228
 #define IDM_INSERTION_SORT		229

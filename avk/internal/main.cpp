@@ -79,7 +79,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     auto last = high_resolution_clock::now();
 
-    item_color color = item_color::red();
+    item_color color = item_color::white();
     double delay = 0.001;
     main_array::set_compare_delay(delay);
     main_array::set_read_delay(delay);

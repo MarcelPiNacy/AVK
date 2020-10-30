@@ -40,7 +40,7 @@ INT_PTR CALLBACK about_callbacks(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 
 LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    item_color color = item_color::red();
+    item_color color = item_color::white();
 
     switch (message)
     {
@@ -153,7 +153,6 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
     {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hWnd, &ps);
-        // TODO: Add any drawing code that uses hdc here...
         EndPaint(hWnd, &ps);
     }
     break;
