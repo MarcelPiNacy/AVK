@@ -149,16 +149,19 @@
     <ClCompile Include="avk\algorithms\grail_sort_cpp_buffer.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="avk\algorithms\lazy_std_inplace_merge.cpp">
-      <Filter>avk\algorithms</Filter>
-    </ClCompile>
     <ClCompile Include="avk\algorithms\american_flag_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="avk\algorithms\lsd_radix_sort_256.cpp">
+    <ClCompile Include="avk\algorithms\lsd_radix_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="avk\algorithms\msd_radix_sort_256.cpp">
+    <ClCompile Include="avk\algorithms\msd_radix_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\std_inplace_merge.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\std_merge_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
   </ItemGroup>

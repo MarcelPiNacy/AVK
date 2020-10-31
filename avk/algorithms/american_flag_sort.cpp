@@ -61,5 +61,6 @@ void american_flag_sort_256_helper(item* begin, item* end, uint radix_index, uin
 
 void american_flag_sort_256(main_array& array)
 {
-	american_flag_sort_256_helper(array.begin(), array.end(), item::max_radix() - 1, 256);
+	const uint default_radix_size = 256;
+	american_flag_sort_256_helper(array.begin(), array.end(), item::max_radix(default_radix_size) - 1, default_radix_size);
 }

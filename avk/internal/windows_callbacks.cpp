@@ -96,16 +96,19 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         case IDM_FOLD_SORT:
             algorithm_thread::assign_body(fold_sort);
             break;
+        case IDM_STD_MERGE_SORT:
+            algorithm_thread::assign_body(std_merge_sort);
+            break;
         case IDM_STD_INPLACE_MERGE_SORT:
-            algorithm_thread::assign_body(lazy_std_merge_sort);
+            algorithm_thread::assign_body(std_inplace_merge_sort);
             break;
-        case IDM_MSD_RADIX_SORT_256:
-            algorithm_thread::assign_body(msd_radix_sort_256);
+        case IDM_MSD_RADIX_SORT:
+            algorithm_thread::assign_body(msd_radix_sort);
             break;
-        case IDM_LSD_RADIX_SORT_256:
-            algorithm_thread::assign_body(lsd_radix_sort_256);
+        case IDM_LSD_RADIX_SORT:
+            algorithm_thread::assign_body(lsd_radix_sort);
             break;
-        case IDM_AMERICAN_FLAG_SORT_256:
+        case IDM_AMERICAN_FLAG_SORT:
             algorithm_thread::assign_body(american_flag_sort_256);
             break;
         case IDM_INITIALIZE_ALREADY_SORTED:

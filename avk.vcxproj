@@ -255,10 +255,11 @@
     <ClCompile Include="avk\algorithms\fold_sort.cpp" />
     <ClCompile Include="avk\algorithms\grail_sort.cpp" />
     <ClCompile Include="avk\algorithms\grail_sort_cpp_buffer.cpp" />
-    <ClCompile Include="avk\algorithms\lazy_std_inplace_merge.cpp" />
-    <ClCompile Include="avk\algorithms\lsd_radix_sort_256.cpp" />
-    <ClCompile Include="avk\algorithms\msd_radix_sort_256.cpp" />
+    <ClCompile Include="avk\algorithms\std_inplace_merge.cpp" />
+    <ClCompile Include="avk\algorithms\lsd_radix_sort.cpp" />
+    <ClCompile Include="avk\algorithms\msd_radix_sort.cpp" />
     <ClCompile Include="avk\algorithms\odd_even_merge_sort.cpp" />
+    <ClCompile Include="avk\algorithms\std_merge_sort.cpp" />
     <ClCompile Include="avk\algorithms\std_sort.cpp" />
     <ClCompile Include="avk\algorithms\std_sort_heap.cpp" />
     <ClCompile Include="avk\algorithms\insertion_sort.cpp" />

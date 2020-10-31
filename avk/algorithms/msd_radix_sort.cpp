@@ -2,19 +2,19 @@
 #include <vector>
 #include <array>
 
-void msd_radix_sort_256_helper(item* begin, item* end, uint radix_index)
+void msd_radix_sort_helper(item* begin, item* end, uint radix_index, uint radix_size)
 {
 	const uint size = end - begin;
 
 	std::vector<uint> offsets = {};
 	std::vector<uint> counts = {};
-	counts.resize(256);
-	offsets.resize(256);
+	counts.resize(radix_size);
+	offsets.resize(radix_size);
 	//std::vector zero-initializes the elements
 
 	for (auto e = begin; e < end; ++e)
 	{
-		++counts[extract_radix(*e, radix_index)];
+		++counts[extract_radix(*e, radix_index, radix_size)];
 	}
 
 	uint offset = 0;
@@ -30,7 +30,7 @@ void msd_radix_sort_256_helper(item* begin, item* end, uint radix_index)
 
 		for (auto e = begin; e < end; ++e)
 		{
-			const uint radix = extract_radix(*e, radix_index);
+			const uint radix = extract_radix(*e, radix_index, radix_size);
 			uint& o = offsets[radix];
 			buffer[o] = *e;
 			++o;
@@ -48,13 +48,14 @@ void msd_radix_sort_256_helper(item* begin, item* end, uint radix_index)
 	{
 		if (e > 0)
 		{
-			msd_radix_sort_256_helper(begin, begin + e, radix_index);
+			msd_radix_sort_helper(begin, begin + e, radix_index, radix_size);
 			begin += e;
 		}
 	}
 }
 
-void msd_radix_sort_256(main_array& array)
+void msd_radix_sort(main_array& array)
 {
-	msd_radix_sort_256_helper(array.begin(), array.end(), item::max_radix() - 1);
+	const uint default_radix_size = 256;
+	msd_radix_sort_helper(array.begin(), array.end(), item::max_radix(default_radix_size) - 1, default_radix_size);
 }
