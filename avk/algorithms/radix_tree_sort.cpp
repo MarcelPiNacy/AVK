@@ -1,10 +1,8 @@
 #include "all.h"
 #include <vector>
 #include <memory>
-#include <optional>
 
 using std::vector;
-using std::optional;
 
 struct node;
 
@@ -40,7 +38,7 @@ struct node
 	union
 	{
 		vector<node_ptr>			next;
-		vector<optional<item>>		values;
+		vector<vector<item>>		values;
 	};
 };
 
@@ -60,7 +58,7 @@ node_ptr build_radix_tree(main_array& array, uint radix_size)
 		const uint radix = extract_radix(e, 0, radix_size);
 		if (*n == nullptr)
 			*n = node::make(radix_size, true);
-		(*n)->values[radix] = e;
+		(*n)->values[radix].push_back(e);
 	}
 	return root;
 }
@@ -69,12 +67,15 @@ void traverse_radix_tree(node& node, uint depth, uint max_radix, item*& out_begi
 {
 	if (depth == item::max_radix(max_radix) - 1)
 	{
-		for (optional<item>& value : node.values)
+		for (auto& bin : node.values)
 		{
-			if (value.has_value())
+			if (bin.size() != 0)
 			{
-				*out_begin = value.value();
-				++out_begin;
+				for (auto& e : bin)
+				{
+					*out_begin = e;
+					++out_begin;
+				}
 			}
 		}
 	}
