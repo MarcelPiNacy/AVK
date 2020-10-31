@@ -39,6 +39,107 @@ INT_PTR CALLBACK about_callbacks(HWND hDlg, UINT message, WPARAM wParam, LPARAM 
 
 
 
+enum class array_mode
+{
+    LINEAL,
+    REVERSE,
+    ORGAN_PIPE_LINEAL,
+    SHUFFLED,
+    RANDOM_ROMUDUOJR
+};
+
+
+
+static array_mode last_array_mode = array_mode::LINEAL;
+
+
+
+static void array_lineal_init()
+{
+    last_array_mode = array_mode::LINEAL;
+    main_array::for_each([&](item& e, uint32_t position)
+    {
+        item tmp;
+        tmp.value = position;
+        e = tmp;
+        e.original_position = position;
+        e.color = item_color::white();
+    });
+}
+
+static void array_reverse_init()
+{
+    last_array_mode = array_mode::REVERSE;
+    main_array::for_each([&](item& e, uint32_t position)
+    {
+        item tmp;
+        tmp.value = main_array::size() - position;
+        e = tmp;
+        e.original_position = position;
+        e.color = item_color::white();
+    });
+}
+
+static void array_organ_pipe_lineal_init()
+{
+    last_array_mode = array_mode::ORGAN_PIPE_LINEAL;
+    main_array::for_each([&](item& e, uint32_t position)
+    {
+        static uint32_t k = 0;
+        item tmp;
+        tmp.value = k;
+        if (position < main_array::size() / 2)
+            k += 2;
+        else
+            k -= 2;
+        e = tmp;
+        e.original_position = position;
+        e.color = item_color::white();
+    });
+}
+
+static void array_shuffled_init()
+{
+    last_array_mode = array_mode::SHUFFLED;
+    struct romu_duo_functor
+    {
+        using result_type = uint64_t;
+
+        static constexpr auto min() { return 0; }
+        static constexpr auto max() { return UINT64_MAX; }
+
+        inline auto operator()() noexcept
+        {
+            return romu_duo_get();
+        }
+    };
+
+    romu_duo_set_seed(main_array::size() ^ time(nullptr));
+    romu_duo_functor tmp;
+    std::shuffle(main_array::begin(), main_array::end(), tmp);
+    main_array::for_each([](item& e, uint32_t position)
+    {
+        e.original_position = position;
+        e.color = item_color::white();
+    });
+}
+
+static void array_random_romuduojr_init()
+{
+    last_array_mode = array_mode::RANDOM_ROMUDUOJR;
+    romu_duo_set_seed(main_array::size() ^ time(nullptr));
+    main_array::for_each([](item& e, uint32_t position)
+    {
+        item tmp;
+        tmp.value = romu_duo_get() % main_array::size();
+        e = tmp;
+        e.original_position = position;
+        e.color = item_color::white();
+    });
+}
+
+
+
 LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
@@ -55,7 +156,34 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             DestroyWindow(hWnd);
             break;
         case IDM_RUN_ALL_SORTS:
-            abort();
+            algorithm_thread::assign_body([](main_array& array)
+            {
+                for (auto fn : sort_table)
+                {
+                    switch (last_array_mode)
+                    {
+                    case array_mode::LINEAL:
+                        array_lineal_init();
+                        break;
+                    case array_mode::REVERSE:
+                        array_reverse_init();
+                        break;
+                    case array_mode::ORGAN_PIPE_LINEAL:
+                        array_organ_pipe_lineal_init();
+                        break;
+                    case array_mode::SHUFFLED:
+                        array_shuffled_init();
+                        break;
+                    case array_mode::RANDOM_ROMUDUOJR:
+                        array_random_romuduojr_init();
+                        break;
+                    default:
+                        break;
+                    }
+                    fn(array);
+                    main_array::sleep(1);
+                }
+            });
             break;
         case IDM_SELECTION_SORT:
             algorithm_thread::assign_body(selection_sort);
@@ -112,7 +240,7 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             algorithm_thread::assign_body(lsd_radix_sort);
             break;
         case IDM_AMERICAN_FLAG_SORT:
-            algorithm_thread::assign_body(american_flag_sort_256);
+            algorithm_thread::assign_body(american_flag_sort);
             break;
         case IDM_RADIX_TREE_SORT:
             algorithm_thread::assign_body(radix_tree_sort);
@@ -123,100 +251,31 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         case IDM_INITIALIZE_ALREADY_SORTED:
             if (algorithm_thread::is_idle())
             {
-                algorithm_thread::assign_body([](main_array& unused)
-                {
-                    main_array::for_each([&](item& e, uint32_t position)
-                    {
-                        item tmp;
-                        tmp.value = position;
-                        e = tmp;
-                        e.original_position = position;
-                        e.color = item_color::white();
-                    });
-                });
+                algorithm_thread::assign_body([](main_array& unused) { array_lineal_init(); });
             }
             break;
         case IDM_INITIALIZE_REVERSED:
             if (algorithm_thread::is_idle())
             {
-                algorithm_thread::assign_body([](main_array& unused)
-                {
-                    main_array::for_each([&](item& e, uint32_t position)
-                    {
-                        item tmp;
-                        tmp.value = main_array::size() - position;
-                        e = tmp;
-                        e.original_position = position;
-                        e.color = item_color::white();
-                    });
-                });
+                algorithm_thread::assign_body([](main_array& unused) { array_reverse_init(); });
             }
             break;
         case IDM_INITIALIZE_ORGAN_PIPE_LINEAR:
             if (algorithm_thread::is_idle())
             {
-                algorithm_thread::assign_body([](main_array& unused)
-                {
-                    main_array::for_each([&](item& e, uint32_t position)
-                    {
-                        static uint32_t k = 0;
-                        item tmp;
-                        tmp.value = k;
-                        if (position < main_array::size() / 2)
-                            k += 2;
-                        else
-                            k -= 2;
-                        e = tmp;
-                        e.original_position = position;
-                        e.color = item_color::white();
-                    });
-                });
+                algorithm_thread::assign_body([](main_array& unused) { array_organ_pipe_lineal_init(); });
             }
             break;
         case IDM_INITIALIZE_SHUFFLED:
             if (algorithm_thread::is_idle())
             {
-                algorithm_thread::assign_body([](main_array& unused)
-                {
-                    struct romu_duo_functor
-                    {
-                        using result_type = uint64_t;
-
-                        static constexpr auto min() { return 0; }
-                        static constexpr auto max() { return UINT64_MAX; }
-
-                        inline auto operator()() noexcept
-                        {
-                            return romu_duo_get();
-                        }
-                    };
-
-                    romu_duo_set_seed(main_array::size() ^ time(nullptr));
-                    romu_duo_functor tmp;
-                    std::shuffle(main_array::begin(), main_array::end(), tmp);
-                    main_array::for_each([](item& e, uint32_t position)
-                    {
-                        e.original_position = position;
-                        e.color = item_color::white();
-                    });
-                });
+                algorithm_thread::assign_body([](main_array& unused) { array_shuffled_init(); });
             }
             break;
         case IDM_INITIALIZE_ROMUDUOJR:
             if (algorithm_thread::is_idle())
             {
-                algorithm_thread::assign_body([](main_array& unused)
-                {
-                    romu_duo_set_seed(main_array::size() ^ time(nullptr));
-                    main_array::for_each([](item& e, uint32_t position)
-                    {
-                        item tmp;
-                        tmp.value = romu_duo_get() % main_array::size();
-                        e = tmp;
-                        e.original_position = position;
-                        e.color = item_color::white();
-                    });
-                });
+                algorithm_thread::assign_body([](main_array& unused) { array_random_romuduojr_init(); });
             }
             break;
         case IDM_PAUSE_SIMULATION:
@@ -235,7 +294,9 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
     break;
     case WM_SIZE:
         if (vulkan_on_window_resize() != 0)
+        {
             abort();
+        }
         break;
     case WM_PAINT:
     {

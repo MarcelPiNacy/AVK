@@ -17,14 +17,14 @@ void counting_sort(main_array& array)
 		stats::add_comparisson();
 	}
 
-	counts.resize(max);
+	counts.resize(max + 1);
 	for (item& e : buffer)
 		++counts[e.value];
 	uint offset = 0;
 	for (uint& e : counts)
 	{
 		uint k = e;
-		e += offset;
+		e = offset;
 		offset += k;
 	}
 	for (item& e : buffer)

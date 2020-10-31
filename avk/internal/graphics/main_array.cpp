@@ -112,8 +112,8 @@ void main_array::set_compare_delay(double seconds)
 
 void main_array::sleep(double seconds)
 {
-	constexpr double sleep_threshold = 1.0 / 1000000.0;
-	if (seconds < sleep_threshold)
+	constexpr double sleep_threshold = 1.0 / 1000.0f;
+	if (seconds > sleep_threshold)
 	{
 		seconds *= 1000.0;
 		Sleep((DWORD)seconds);
@@ -121,7 +121,7 @@ void main_array::sleep(double seconds)
 	else
 	{
 		using namespace std::chrono;
-		seconds *= 1000'000;
+		seconds *= 1000'000'000;
 		const uint64_t nanoseconds = (uint64_t)seconds;
 		const auto start = high_resolution_clock::now();
 		while ((high_resolution_clock::now() - start).count() < nanoseconds)

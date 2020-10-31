@@ -80,11 +80,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     auto last = high_resolution_clock::now();
 
     item_color color = item_color::white();
-    double delay = 0.005;
+    double delay = 0.0002;
     main_array::set_compare_delay(delay);
     main_array::set_read_delay(delay);
     main_array::set_write_delay(delay);
-    main_array::resize(1 << 16);
+    main_array::resize(1 << 8);
     constexpr TCHAR title_format[] = TEXT("AVK - Sorting Algorithm Visualizer - [ %u elements ]");
 #ifdef UNICODE
     wsprintf(window_title_buffer, title_format, main_array::size());
