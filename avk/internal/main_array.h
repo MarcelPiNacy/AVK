@@ -59,6 +59,8 @@ struct item
 	bool operator>(const item& other) const noexcept;
 	bool operator<=(const item& other) const noexcept;
 	bool operator>=(const item& other) const noexcept;
+
+	static uint max_radix(uint radix = 256) noexcept;
 };
 
 
@@ -74,7 +76,8 @@ struct item_raw
 
 sint compare(const item& left, const item& right) noexcept;
 void swap(item& left, item& right) noexcept;
-void reverse(main_array& array, uint offset, uint size);
+void reverse(main_array& array, uint offset, uint size) noexcept;
+uint extract_radix(const item& value, uint radix_index, uint radix = 256) noexcept;
 
 
 

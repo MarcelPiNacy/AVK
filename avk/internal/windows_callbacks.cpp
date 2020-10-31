@@ -14,7 +14,7 @@ extern HWND hwnd;
 
 
 
-extern void vulkan_on_window_resize();
+extern int vulkan_on_window_resize();
 
 
 
@@ -55,24 +55,7 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             DestroyWindow(hWnd);
             break;
         case IDM_RUN_ALL_SORTS:
-            algorithm_thread::assign_body([](main_array& array)
-            {
-                constexpr function_ptr<void, main_array&> sort_list[] =
-                {
-                    selection_sort,
-                    insertion_sort,
-                    bubble_sort,
-                    std_sort_heap,
-                    std_stable_sort,
-                    std_sort,
-                    block_merge_grail_sort,
-                    odd_even_merge_sort,
-                    bitonic_sort,
-                    fold_sort,
-                };
-                for (const auto fn : sort_list)
-                    fn(array);
-            });
+            abort();
             break;
         case IDM_SELECTION_SORT:
             algorithm_thread::assign_body(selection_sort);
@@ -95,6 +78,15 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         case IDM_GRAIL_SORT:
             algorithm_thread::assign_body(block_merge_grail_sort);
             break;
+        case IDM_GRAIL_SORT_STATIC:
+            algorithm_thread::assign_body(block_merge_grail_sort_static);
+            break;
+        case IDM_GRAIL_SORT_CPP:
+            algorithm_thread::assign_body(block_merge_grail_sort_cpp);
+            break;
+        case IDM_GRAIL_SORT_CPP_STATIC:
+            algorithm_thread::assign_body(block_merge_grail_sort_cpp_static);
+            break;
         case IDM_ODD_EVEN_MERGE_SORT:
             algorithm_thread::assign_body(odd_even_merge_sort);
             break;
@@ -103,6 +95,18 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             break;
         case IDM_FOLD_SORT:
             algorithm_thread::assign_body(fold_sort);
+            break;
+        case IDM_STD_INPLACE_MERGE_SORT:
+            algorithm_thread::assign_body(lazy_std_merge_sort);
+            break;
+        case IDM_MSD_RADIX_SORT_256:
+            algorithm_thread::assign_body(msd_radix_sort_256);
+            break;
+        case IDM_LSD_RADIX_SORT_256:
+            algorithm_thread::assign_body(lsd_radix_sort_256);
+            break;
+        case IDM_AMERICAN_FLAG_SORT_256:
+            algorithm_thread::assign_body(american_flag_sort_256);
             break;
         case IDM_INITIALIZE_ALREADY_SORTED:
             if (algorithm_thread::is_idle())
@@ -218,7 +222,8 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
     }
     break;
     case WM_SIZE:
-        vulkan_on_window_resize();
+        if (vulkan_on_window_resize() != 0)
+            abort();
         break;
     case WM_PAINT:
     {

@@ -41,8 +41,8 @@ void build_commands(uint32_t index)
 
 void draw_main_array()
 {
-	array_lock.lock();
-	DEFER{ array_lock.unlock(); };
+	main_array_lock.lock();
+	DEFER{ main_array_lock.unlock(); };
 
 	if (main_array_size == 0)
 		return;

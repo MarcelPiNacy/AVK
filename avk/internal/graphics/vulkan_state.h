@@ -12,7 +12,7 @@ struct item;
 
 
 
-inline spin_lock array_lock;
+inline spin_lock main_array_lock;
 
 inline VkInstance instance;
 #ifdef DEBUG

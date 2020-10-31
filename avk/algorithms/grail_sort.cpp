@@ -12,3 +12,8 @@ void block_merge_grail_sort(main_array& array)
 {
 	GrailSort(array.begin(), array.size());
 }
+
+void block_merge_grail_sort_static(main_array& array)
+{
+	GrailSortWithBuffer(array.begin(), array.size());
+}

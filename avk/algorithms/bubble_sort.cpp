@@ -2,12 +2,12 @@
 
 void bubble_sort(main_array& array)
 {
-	int max = array.size();
+	uint max = array.size();
 	bool flag;
 	do
 	{
 		flag = false;
-		for (int i = 1; i < max; ++i)
+		for (uint i = 1; i < max; ++i)
 		{
 			if (array[i - 1] > array[i])
 			{

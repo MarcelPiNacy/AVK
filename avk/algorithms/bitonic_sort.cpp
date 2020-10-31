@@ -2,13 +2,13 @@
 
 void bitonic_sort(main_array& array)
 {
-	for (int k = 2; k <= array.size(); k *= 2)
+	for (uint k = 2; k <= array.size(); k *= 2)
 	{
-		for (int j = k / 2; j > 0; j /= 2)
+		for (uint j = k / 2; j > 0; j /= 2)
 		{
-			for (int i = 0; i < array.size(); ++i)
+			for (uint i = 0; i < array.size(); ++i)
 			{
-				int l = i ^ j;
+				uint l = i ^ j;
 				if (l > i)
 				{
 					if (((i & k) == 0 && (array[i] > array[l])) ||
