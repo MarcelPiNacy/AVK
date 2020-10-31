@@ -66,6 +66,9 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         case IDM_BUBBLE_SORT:
             algorithm_thread::assign_body(bubble_sort);
             break;
+        case IDM_ODD_EVEN_SORT:
+            algorithm_thread::assign_body(odd_even_sort);
+            break;
         case IDM_STD_SORT_HEAP:
             algorithm_thread::assign_body(std_sort_heap);
             break;
@@ -110,6 +113,12 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             break;
         case IDM_AMERICAN_FLAG_SORT:
             algorithm_thread::assign_body(american_flag_sort_256);
+            break;
+        case IDM_RADIX_TREE_SORT:
+            algorithm_thread::assign_body(radix_tree_sort);
+            break;
+        case IDM_COUNTING_SORT:
+            algorithm_thread::assign_body(radix_tree_sort);
             break;
         case IDM_INITIALIZE_ALREADY_SORTED:
             if (algorithm_thread::is_idle())

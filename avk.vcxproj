@@ -250,11 +250,14 @@
   <ItemGroup>
     <ClCompile Include="avk\algorithms\american_flag_sort.cpp" />
     <ClCompile Include="avk\algorithms\bitonic_sort.cpp" />
+    <ClCompile Include="avk\algorithms\counting_sort.cpp" />
     <ClCompile Include="avk\algorithms\grail_sort_cpp.cpp" />
     <ClCompile Include="avk\algorithms\bubble_sort.cpp" />
     <ClCompile Include="avk\algorithms\fold_sort.cpp" />
     <ClCompile Include="avk\algorithms\grail_sort.cpp" />
     <ClCompile Include="avk\algorithms\grail_sort_cpp_buffer.cpp" />
+    <ClCompile Include="avk\algorithms\odd_even_sort.cpp" />
+    <ClCompile Include="avk\algorithms\radix_tree_sort.cpp" />
     <ClCompile Include="avk\algorithms\std_inplace_merge.cpp" />
     <ClCompile Include="avk\algorithms\lsd_radix_sort.cpp" />
     <ClCompile Include="avk\algorithms\msd_radix_sort.cpp" />

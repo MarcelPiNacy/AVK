@@ -164,6 +164,15 @@
     <ClCompile Include="avk\algorithms\std_merge_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
+    <ClCompile Include="avk\algorithms\odd_even_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\radix_tree_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\counting_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="avk\internal\windows-specific\array_vk.aps">
