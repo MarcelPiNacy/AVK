@@ -13,7 +13,7 @@ void american_flag_sort_256_helper(item* begin, item* end, uint radix_index, uin
 
 	for (auto e = begin; e < end; ++e)
 	{
-		++counts[extract_radix(*e, radix_index)];
+		++counts[extract_radix(*e, radix_index, radix_size)];
 	}
 
 	uint offset = 0;
@@ -34,7 +34,7 @@ void american_flag_sort_256_helper(item* begin, item* end, uint radix_index, uin
 			partition = next_partition;
 			continue;
 		}
-		const uint radix = extract_radix(begin[i], radix_index);
+		const uint radix = extract_radix(begin[i], radix_index, radix_size);
 		if (radix == partition)
 		{
 			++i;
@@ -61,6 +61,6 @@ void american_flag_sort_256_helper(item* begin, item* end, uint radix_index, uin
 
 void american_flag_sort(main_array& array)
 {
-	const uint default_radix_size = 256;
+	const uint default_radix_size = sort_config::radix_size;
 	american_flag_sort_256_helper(array.begin(), array.end(), item::max_radix(default_radix_size) - 1, default_radix_size);
 }

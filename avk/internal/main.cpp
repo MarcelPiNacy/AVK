@@ -39,7 +39,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ARRAYVK));
     wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
     wcex.hbrBackground = CreateSolidBrush(0);
-    wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_ARRAYVK);
+    wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_MAIN_MENU);
     wcex.lpszClassName = class_name;
     wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
@@ -67,7 +67,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     ShowWindow(hwnd, nCmdShow);
     UpdateWindow(hwnd);
 
-    accel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_ARRAYVK));
+    accel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_MAIN_MENU));
 
     const int res = init_vulkan();
     if (res < 0)
@@ -80,7 +80,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     auto last = high_resolution_clock::now();
 
     item_color color = item_color::white();
-    double delay = 0.00001;
+    double delay = 0.000002;
     main_array::set_compare_delay(delay);
     main_array::set_read_delay(delay);
     main_array::set_write_delay(delay);

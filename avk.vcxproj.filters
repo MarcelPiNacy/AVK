@@ -84,6 +84,9 @@
     <ClInclude Include="avk\algorithms\sort_utility.h">
       <Filter>avk\algorithms</Filter>
     </ClInclude>
+    <ClInclude Include="avk\algorithms\sort_config.h">
+      <Filter>avk\internal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="avk\internal\main.cpp">
@@ -171,6 +174,12 @@
       <Filter>avk\algorithms</Filter>
     </ClCompile>
     <ClCompile Include="avk\algorithms\counting_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\fold_sort_v2.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\binary_tree_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
   </ItemGroup>

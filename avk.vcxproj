@@ -138,6 +138,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -203,6 +204,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -226,6 +228,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="avk\algorithms\all.h" />
+    <ClInclude Include="avk\algorithms\sort_config.h" />
     <ClInclude Include="avk\algorithms\sort_utility.h" />
     <ClInclude Include="avk\avk.h" />
     <ClInclude Include="avk\external_dependencies\fold_sort.h" />
@@ -249,8 +252,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="avk\algorithms\american_flag_sort.cpp" />
+    <ClCompile Include="avk\algorithms\binary_tree_sort.cpp" />
     <ClCompile Include="avk\algorithms\bitonic_sort.cpp" />
     <ClCompile Include="avk\algorithms\counting_sort.cpp" />
+    <ClCompile Include="avk\algorithms\fold_sort_v2.cpp" />
     <ClCompile Include="avk\algorithms\grail_sort_cpp.cpp" />
     <ClCompile Include="avk\algorithms\bubble_sort.cpp" />
     <ClCompile Include="avk\algorithms\fold_sort.cpp" />

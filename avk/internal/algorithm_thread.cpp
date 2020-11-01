@@ -8,6 +8,7 @@
 // TODO: This synchronization is probably overkill: Maybe remove atomics or reduce the number of generation counters...
 
 extern std::atomic<bool> should_continue_global;
+static std::atomic<bool> should_exit_algorithm;
 
 static sort_function_pointer sort_function;
 static HANDLE thread_handle;
@@ -24,12 +25,14 @@ static DWORD WINAPI thread_entry_point(void* unused) noexcept
 	{
 		auto h = head.load(std::memory_order_acquire);
 		(void)WaitOnAddress(&head, &h, sizeof(head), INFINITE);
-		if (sort_function == nullptr)
+		if (should_exit_algorithm.load(std::memory_order_acquire))
 			break;
+		if (sort_function == nullptr)
+			continue;
 		sort_function(main_array);
 		sort_function = nullptr;
 		(void)tail.fetch_add(1, std::memory_order_release);
-		(void)WakeByAddressAll(&tail);
+		(void)WakeByAddressSingle(&tail);
 	}
 	return 0;
 }
@@ -45,9 +48,8 @@ namespace algorithm_thread
 
 	void launch() noexcept
 	{
-		thread_handle = CreateThread(nullptr, 1 << 21, thread_entry_point, nullptr, CREATE_SUSPENDED, nullptr);
+		thread_handle = CreateThread(nullptr, 1 << 21, thread_entry_point, nullptr, 0, nullptr);
 		enforce(thread_handle != nullptr);
-		ResumeThread(thread_handle);
 	}
 
 	bool is_paused() noexcept
@@ -74,8 +76,16 @@ namespace algorithm_thread
 
 	void abort_sort() noexcept
 	{
-		TerminateThread(thread_handle, 0); //Return 0, nothing happened here :^)
-		(void)tail.fetch_add(1, std::memory_order_release);
+		should_exit_algorithm.store(true, std::memory_order_release);
+		(void)head.fetch_add(1, std::memory_order_release);
+		(void)WakeByAddressSingle(&head);
+		if (WaitForSingleObject(thread_handle, 10) == WAIT_TIMEOUT)
+			TerminateThread(thread_handle, 0); //Return 0, nothing happened here :^)
+		sort_function = nullptr;
+		non_atomic_store(should_exit_algorithm, false);
+		non_atomic_store(paused, false);
+		non_atomic_store(head, 0);
+		non_atomic_store(tail, 0);
 		launch();
 	}
 

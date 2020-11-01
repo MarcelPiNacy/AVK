@@ -18,19 +18,92 @@ extern int vulkan_on_window_resize();
 
 
 
-INT_PTR CALLBACK about_callbacks(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+static wchar_t dialog_box_buffer[4096 / sizeof(wchar_t)];
+
+
+
+static INT_PTR CALLBACK about_callbacks(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
     UNREFERENCED_PARAMETER(lParam);
     switch (message)
     {
     case WM_INITDIALOG:
         return (INT_PTR)TRUE;
-
     case WM_COMMAND:
         if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
         {
             EndDialog(hDlg, LOWORD(wParam));
             return (INT_PTR)TRUE;
+        }
+        break;
+    }
+    return (INT_PTR)FALSE;
+}
+
+static INT_PTR CALLBACK set_radix_size_callbacks(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    UNREFERENCED_PARAMETER(lParam);
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        return (INT_PTR)TRUE;
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        case IDOK:
+            if (GetDlgItemText(hDlg, IDD_SET_RADIX_SIZE_BOX_TEXTBOX, dialog_box_buffer, sizeof(dialog_box_buffer) / 2))
+            {
+                uint64_t k = 0;
+                if (swscanf_s(dialog_box_buffer, L"%llu", &k) == 1)
+                {
+                    sort_config::radix_size = k;
+                    if (__popcnt(k) != 1)
+                    {
+                        MessageBox(
+                            nullptr,
+                            L"Error: Non power of 2 inputs are illegal.",
+                            L"Invalid Radix!",
+                            MB_OK | MB_ICONERROR);
+                    }
+                }
+            }
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        case IDCANCEL:
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)FALSE;
+        default:
+            break;
+        }
+        break;
+    }
+    return (INT_PTR)FALSE;
+}
+
+static INT_PTR CALLBACK set_grailsort_buffer_size_callbacks(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    UNREFERENCED_PARAMETER(lParam);
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        return (INT_PTR)TRUE;
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        case IDOK:
+            if (GetDlgItemText(hDlg, IDD_SET_GRAILSORT_BUFFER_SIZE_TEXTBOX, dialog_box_buffer, sizeof(dialog_box_buffer) / 2))
+            {
+                uint64_t k = 0;
+                if (swscanf_s(dialog_box_buffer, L"%llu", &k) == 1)
+                    sort_config::grail_sort_buffer_size = k;
+            }
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        case IDCANCEL:
+            EndDialog(hDlg, LOWORD(wParam));
+            break;
+        default:
+            break;
         }
         break;
     }
@@ -83,15 +156,33 @@ static void array_reverse_init()
 static void array_organ_pipe_lineal_init()
 {
     last_array_mode = array_mode::ORGAN_PIPE_LINEAL;
+    uint32_t k = 0;
     main_array::for_each([&](item& e, uint32_t position)
     {
-        static uint32_t k = 0;
         item tmp;
         tmp.value = k;
         if (position < main_array::size() / 2)
             k += 2;
         else
             k -= 2;
+        e = tmp;
+        e.original_position = position;
+        e.color = item_color::white();
+    });
+}
+
+static void array_reverse_organ_pipe_lineal_init()
+{
+    last_array_mode = array_mode::ORGAN_PIPE_LINEAL;
+    uint32_t k = main_array::size();
+    main_array::for_each([&](item& e, uint32_t position)
+    {
+        item tmp;
+        tmp.value = k;
+        if (position < main_array::size() / 2)
+            k -= 2;
+        else
+            k += 2;
         e = tmp;
         e.original_position = position;
         e.color = item_color::white();
@@ -207,16 +298,16 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             algorithm_thread::assign_body(std_sort);
             break;
         case IDM_GRAIL_SORT:
-            algorithm_thread::assign_body(block_merge_grail_sort);
-            break;
-        case IDM_GRAIL_SORT_STATIC:
-            algorithm_thread::assign_body(block_merge_grail_sort_static);
+            if (sort_config::radix_size == 0)
+                algorithm_thread::assign_body(block_merge_grail_sort);
+            else
+                algorithm_thread::assign_body(block_merge_grail_sort_buffered);
             break;
         case IDM_GRAIL_SORT_CPP:
-            algorithm_thread::assign_body(block_merge_grail_sort_cpp);
-            break;
-        case IDM_GRAIL_SORT_CPP_STATIC:
-            algorithm_thread::assign_body(block_merge_grail_sort_cpp_static);
+            if (sort_config::radix_size == 0)
+                algorithm_thread::assign_body(block_merge_grail_sort_cpp);
+            else
+                algorithm_thread::assign_body(block_merge_grail_sort_cpp_buffered);
             break;
         case IDM_ODD_EVEN_MERGE_SORT:
             algorithm_thread::assign_body(odd_even_merge_sort);
@@ -248,6 +339,12 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         case IDM_COUNTING_SORT:
             algorithm_thread::assign_body(radix_tree_sort);
             break;
+        case IDM_FOLD_SORT_V2:
+            algorithm_thread::assign_body(fold_sort_v2);
+            break;
+        case IDM_BINARY_TREE_SORT:
+            algorithm_thread::assign_body(binary_tree_sort);
+            break;
         case IDM_INITIALIZE_ALREADY_SORTED:
             if (algorithm_thread::is_idle())
             {
@@ -277,6 +374,18 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             {
                 algorithm_thread::assign_body([](main_array& unused) { array_random_romuduojr_init(); });
             }
+            break;
+        case IDM_INITIALIZE_REVERSE_ORGAN_PIPE_LINEAR:
+            if (algorithm_thread::is_idle())
+            {
+                algorithm_thread::assign_body([](main_array& unused) { array_reverse_organ_pipe_lineal_init(); });
+            }
+            break;
+        case IDM_SET_RADIX_SIZE:
+            DialogBox(hinstance, MAKEINTRESOURCE(IDD_SET_RADIX_SIZE_BOX), hWnd, set_radix_size_callbacks);
+            break;
+        case IDM_SET_GRAILSORT_BUFFER_SIZE:
+            DialogBox(hinstance, MAKEINTRESOURCE(IDD_SET_GRAILSORT_BUFFER_SIZE), hWnd, set_grailsort_buffer_size_callbacks);
             break;
         case IDM_PAUSE_SIMULATION:
             algorithm_thread::pause();

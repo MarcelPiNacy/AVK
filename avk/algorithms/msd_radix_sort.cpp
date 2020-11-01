@@ -56,6 +56,6 @@ void msd_radix_sort_helper(item* begin, item* end, uint radix_index, uint radix_
 
 void msd_radix_sort(main_array& array)
 {
-	const uint default_radix_size = 256;
+	const uint default_radix_size = sort_config::radix_size;
 	msd_radix_sort_helper(array.begin(), array.end(), item::max_radix(default_radix_size) - 1, default_radix_size);
 }
