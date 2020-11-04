@@ -10,15 +10,30 @@ struct spin_lock
 {
 	std::atomic<bool> ctrl;
 
+	template <bool Optimistic = true>
 	void lock() noexcept
 	{
-		while (true)
+		if constexpr (Optimistic)
 		{
-			bool e = ctrl.load(std::memory_order_acquire);
-			if (!e)
-				if (ctrl.compare_exchange_weak(e, true, std::memory_order_acquire, std::memory_order_relaxed))
-					break;
-			platform::yield_cpu();
+			while (ctrl.exchange(true, std::memory_order_acquire))
+			{
+				platform::yield_cpu();
+			}
+		}
+		else
+		{
+			while (true)
+			{
+				bool e = ctrl.load(std::memory_order_acquire);
+				if (!e)
+				{
+					if (ctrl.compare_exchange_weak(e, true, std::memory_order_acquire, std::memory_order_relaxed))
+					{
+						break;
+					}
+				}
+				platform::yield_cpu();
+			}
 		}
 	}
 

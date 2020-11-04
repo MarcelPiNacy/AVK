@@ -43,10 +43,23 @@ static uint32_t round_pow2(size_t value)
 	return 1 << ((sizeof(size_t) * 8) - fast_log2(value));
 }
 
-void main_array::resize(uint32_t size) noexcept
+void main_array::internal_lock() noexcept
+{
+	main_array_lock.lock();
+}
+
+void main_array::internal_unlock() noexcept
+{
+	main_array_lock.unlock();
+}
+
+bool main_array::resize(uint32_t size) noexcept
 {
 	if (main_array_buffer != VK_NULL_HANDLE)
+	{
 		finalize();
+	}
+
 	main_array_size = size;
 	main_array_capacity = round_pow2(size);
 	VkBufferCreateInfo buffer_info = {};
@@ -54,14 +67,19 @@ void main_array::resize(uint32_t size) noexcept
 	buffer_info.size = main_array_capacity * sizeof(item);
 	buffer_info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 	buffer_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	enforce(vkCreateBuffer(device, &buffer_info, nullptr, &main_array_buffer) == VK_SUCCESS);
+	if (vkCreateBuffer(device, &buffer_info, nullptr, &main_array_buffer) != VK_SUCCESS)
+		return false;
 	VkMemoryAllocateInfo alloc_info = {};
 	alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	alloc_info.allocationSize = buffer_info.size;
 	alloc_info.memoryTypeIndex = find_buffer_memory_type(main_array_buffer, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
-	enforce(vkAllocateMemory(device, &alloc_info, nullptr, &main_array_memory) == VK_SUCCESS);
-	enforce(vkBindBufferMemory(device, main_array_buffer, main_array_memory, 0) == VK_SUCCESS);
-	enforce(vkMapMemory(device, main_array_memory, 0, buffer_info.size, 0, (void**)&main_array_mapping) == VK_SUCCESS);
+	if (vkAllocateMemory(device, &alloc_info, nullptr, &main_array_memory) != VK_SUCCESS)
+		return false;
+	if (vkBindBufferMemory(device, main_array_buffer, main_array_memory, 0) != VK_SUCCESS)
+		return false;
+	if (vkMapMemory(device, main_array_memory, 0, buffer_info.size, 0, (void**)&main_array_mapping) != VK_SUCCESS)
+		return false;
+	return true;
 }
 
 void main_array::finalize() noexcept
@@ -95,22 +113,22 @@ item* main_array::end() noexcept
 	return main_array_mapping + main_array_size;
 }
 
-void main_array::set_read_delay(double seconds)
+void main_array::set_read_delay(double seconds) noexcept
 {
 	read_delay = seconds;
 }
 
-void main_array::set_write_delay(double seconds)
+void main_array::set_write_delay(double seconds) noexcept
 {
 	write_delay = seconds;
 }
 
-void main_array::set_compare_delay(double seconds)
+void main_array::set_compare_delay(double seconds) noexcept
 {
 	compare_delay = seconds;
 }
 
-void main_array::sleep(double seconds)
+void main_array::sleep(double seconds) noexcept
 {
 	constexpr double sleep_threshold = 1.0 / 1000.0f;
 	if (seconds > sleep_threshold)
@@ -131,9 +149,10 @@ void main_array::sleep(double seconds)
 
 item& item::operator=(const item& other) noexcept
 {
+	scoped_highlight highlight(flags);
 	main_array::sleep(read_delay + write_delay);
-	stats::add_read();
-	stats::add_write();
+	sort_stats::add_read();
+	sort_stats::add_write();
 	scoped_lock guard(main_array_lock);
 	value = other.value;
 	color = other.color;
@@ -142,54 +161,60 @@ item& item::operator=(const item& other) noexcept
 
 bool item::operator==(const item& other) const noexcept
 {
+	scoped_highlight highlight(flags);
 	main_array::sleep(read_delay * 2);
-	stats::add_comparisson();
-	stats::add_read(2);
+	sort_stats::add_comparisson();
+	sort_stats::add_read(2);
 	scoped_lock guard(main_array_lock);
 	return value == other.value;
 }
 
 bool item::operator!=(const item& other) const noexcept
 {
+	scoped_highlight highlight(flags);
 	main_array::sleep(read_delay * 2);
-	stats::add_comparisson();
-	stats::add_read(2);
+	sort_stats::add_comparisson();
+	sort_stats::add_read(2);
 	scoped_lock guard(main_array_lock);
 	return value != other.value;
 }
 
 bool item::operator<(const item& other) const noexcept
 {
+	scoped_highlight highlight(flags);
 	main_array::sleep(read_delay * 2);
-	stats::add_comparisson();
-	stats::add_read(2);
+	sort_stats::add_comparisson();
+	sort_stats::add_read(2);
 	scoped_lock guard(main_array_lock);
 	return value < other.value;
 }
 
 bool item::operator>(const item& other) const noexcept
 {
+	scoped_highlight highlight(flags);
 	main_array::sleep(read_delay * 2);
-	stats::add_comparisson();
-	stats::add_read(2);
+	sort_stats::add_comparisson();
+	sort_stats::add_read(2);
 	scoped_lock guard(main_array_lock);
 	return value > other.value;
 }
 
 bool item::operator<=(const item& other) const noexcept
 {
+	scoped_highlight highlight(flags);
 	main_array::sleep(read_delay * 2);
-	stats::add_comparisson();
-	stats::add_read(2);
+	sort_stats::add_comparisson();
+	sort_stats::add_read(2);
 	scoped_lock guard(main_array_lock);
 	return value <= other.value;
 }
 
 bool item::operator>=(const item& other) const noexcept
 {
+	scoped_highlight highlight(flags);
 	main_array::sleep(read_delay * 2);
-	stats::add_comparisson();
-	stats::add_read(2);
+	sort_stats::add_comparisson();
+	sort_stats::add_read(2);
 	scoped_lock guard(main_array_lock);
 	return value >= other.value;
 }
@@ -201,9 +226,11 @@ uint item::max_radix(uint radix) noexcept
 
 sint compare(const item& left, const item& right) noexcept
 {
+	scoped_highlight highlight_left(left.flags);
+	scoped_highlight highlight_right(right.flags);
 	main_array::sleep(read_delay * 2);
-	stats::add_comparisson();
-	stats::add_read(2);
+	sort_stats::add_comparisson();
+	sort_stats::add_read(2);
 	scoped_lock guard(main_array_lock);
 	if (left.value == right.value)
 		return 0;
@@ -215,10 +242,12 @@ sint compare(const item& left, const item& right) noexcept
 
 void swap(item& left, item& right) noexcept
 {
+	scoped_highlight highlight_left(left.flags);
+	scoped_highlight highlight_right(right.flags);
 	main_array::sleep(read_delay * 2 + write_delay * 2);
-	stats::add_swap();
-	stats::add_read(2);
-	stats::add_write(2);
+	sort_stats::add_swap();
+	sort_stats::add_read(2);
+	sort_stats::add_write(2);
 	scoped_lock guard(main_array_lock);
 	const auto v = left.value;
 	const auto c = left.color;
@@ -230,7 +259,7 @@ void swap(item& left, item& right) noexcept
 
 void reverse(main_array& array, uint offset, uint size) noexcept
 {
-	stats::add_reversal(1);
+	sort_stats::add_reversal(1);
 	uint begin = offset;
 	uint end = offset + size - 1;
 	while (begin < end)
@@ -243,6 +272,8 @@ void reverse(main_array& array, uint offset, uint size) noexcept
 
 uint extract_radix(const item& value, uint radix_index, uint radix) noexcept
 {
+	scoped_highlight highlight(value.flags);
+	main_array::sleep(read_delay);
 	assert(__popcnt(radix) == 1);
 	const uint log2 = fast_log2(radix);
 	const uint mask = radix - 1;

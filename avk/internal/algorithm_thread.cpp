@@ -30,6 +30,7 @@ static DWORD WINAPI thread_entry_point(void* unused) noexcept
 		if (sort_function == nullptr)
 			continue;
 		sort_function(main_array);
+		sort_stats::clear();
 		sort_function = nullptr;
 		(void)tail.fetch_add(1, std::memory_order_release);
 		(void)WakeByAddressSingle(&tail);

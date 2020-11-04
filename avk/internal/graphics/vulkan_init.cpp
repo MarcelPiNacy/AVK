@@ -531,7 +531,8 @@ int init_vulkan()
 		{
 			{ 0, 0, VK_FORMAT_R32_UINT, offsetof(item, value) },
 			{ 1, 0, VK_FORMAT_R32_UINT, offsetof(item, original_position) },
-			{ 2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(item, color) }
+			{ 2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(item, color) },
+			{ 3, 0, VK_FORMAT_R32_UINT, offsetof(item, flags) }
 		};
 
 		const VkVertexInputBindingDescription bindings[] =
@@ -942,7 +943,8 @@ int vulkan_on_window_resize()
 		{
 			{ 0, 0, VK_FORMAT_R32_UINT, offsetof(item, value) },
 			{ 1, 0, VK_FORMAT_R32_UINT, offsetof(item, original_position) },
-			{ 2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(item, color) }
+			{ 2, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(item, color) },
+			{ 3, 0, VK_FORMAT_R32_UINT, offsetof(item, flags) }
 		};
 
 		const VkVertexInputBindingDescription bindings[] =

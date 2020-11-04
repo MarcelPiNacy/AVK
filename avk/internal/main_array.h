@@ -10,8 +10,9 @@ struct main_array;
 /// <summary>
 /// Used to keep sort statistics. All functions EXCEPT clear are thread-safe.
 /// </summary>
-namespace stats
+namespace sort_stats
 {
+
 	void clear() noexcept;
 
 	void add_read(uint count = 1) noexcept;
@@ -29,6 +30,7 @@ namespace stats
 	uint reversal_count() noexcept;
 	uint memory_allocation_count() noexcept;
 	uint memory_deallocation_count() noexcept;
+
 }
 
 
@@ -37,20 +39,21 @@ struct item_color
 {
 	float r, g, b;
 	
-	static constexpr item_color black()	{ return{ 0, 0, 0 }; }
-	static constexpr item_color white()	{ return{ 1, 1, 1 }; }
-	static constexpr item_color red()	{ return{ 1, 0, 0 }; }
-	static constexpr item_color green()	{ return{ 0, 1, 0 }; }
-	static constexpr item_color blue()	{ return{ 0, 0, 1 }; }
+	static constexpr item_color black()	noexcept { return{ 0, 0, 0 }; }
+	static constexpr item_color white()	noexcept { return{ 1, 1, 1 }; }
+	static constexpr item_color red()	noexcept { return{ 1, 0, 0 }; }
+	static constexpr item_color green()	noexcept { return{ 0, 1, 0 }; }
+	static constexpr item_color blue()	noexcept { return{ 0, 0, 1 }; }
 };
 
 
 
 struct item
 {
-	uint32_t	value;
-	uint32_t	original_position;
-	item_color	color;
+	uint32_t			value;
+	uint32_t			original_position;
+	item_color			color;
+	mutable uint32_t	flags;
 
 	item& operator=(const item& other) noexcept;
 	bool operator==(const item& other) const noexcept;
@@ -83,7 +86,10 @@ uint extract_radix(const item& value, uint radix_index, uint radix = 256) noexce
 
 struct main_array
 {
-	static void resize(uint32_t size) noexcept;
+	static void internal_lock() noexcept;
+	static void internal_unlock() noexcept;
+
+	static bool resize(uint32_t size) noexcept;
 	static void finalize() noexcept;
 
 	item& operator[](uint index) noexcept;
@@ -99,8 +105,30 @@ struct main_array
 			function(begin()[i], i);
 	}
 
-	static void set_read_delay(double seconds);
-	static void set_write_delay(double seconds);
-	static void set_compare_delay(double seconds);
-	static void sleep(double seconds);
+	static void set_read_delay(double seconds) noexcept;
+	static void set_write_delay(double seconds) noexcept;
+	static void set_compare_delay(double seconds) noexcept;
+	static void sleep(double seconds) noexcept;
+};
+
+
+
+struct scoped_highlight
+{
+	uint32_t& flags;
+
+	inline scoped_highlight(uint32_t& flags) noexcept
+		: flags(flags)
+	{
+		main_array::internal_lock();
+		flags |= 1;
+		main_array::internal_unlock();
+	}
+
+	inline ~scoped_highlight() noexcept
+	{
+		main_array::internal_lock();
+		flags &= ~1U;
+		main_array::internal_unlock();
+	}
 };

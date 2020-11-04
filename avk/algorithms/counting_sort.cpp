@@ -13,8 +13,8 @@ void counting_sort(main_array& array)
 		if (array[i].value > max)
 			max = array[i].value;
 		buffer[i] = array[i];
-		stats::add_read();
-		stats::add_comparisson();
+		sort_stats::add_read();
+		sort_stats::add_comparisson();
 	}
 
 	counts.resize(max + 1);

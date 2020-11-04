@@ -149,9 +149,6 @@
     <ClCompile Include="avk\algorithms\grail_sort_cpp.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="avk\algorithms\grail_sort_cpp_buffer.cpp">
-      <Filter>avk\algorithms</Filter>
-    </ClCompile>
     <ClCompile Include="avk\algorithms\american_flag_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
@@ -174,9 +171,6 @@
       <Filter>avk\algorithms</Filter>
     </ClCompile>
     <ClCompile Include="avk\algorithms\counting_sort.cpp">
-      <Filter>avk\algorithms</Filter>
-    </ClCompile>
-    <ClCompile Include="avk\algorithms\fold_sort_v2.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
     <ClCompile Include="avk\algorithms\binary_tree_sort.cpp">

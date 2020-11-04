@@ -3,59 +3,85 @@
 
 namespace grail_sort::detail
 {
-	template <typename Iterator, typename Int>
-	constexpr void insertion_sort_classic(Iterator begin, Int size) GRAILSORT_NOTHROW
+	template <typename Iterator>
+	constexpr void insertion_sort_classic(Iterator begin, Iterator end) GRAILSORT_NOTHROW
 	{
-		for (Int i = 1; i < size; ++i)
+		for (Iterator i = begin + 1; i < end; ++i)
 		{
-			Int j = i - 1;
-			auto tmp = std::move(*(begin + i));
-			for (; j >= 0 && *(begin + j) > tmp; --j)
-				move_construct(*(begin + (j + 1)), *(begin + j));
-			move_construct(*(begin + (j + 1)), tmp);
+			Iterator j = i - 1;
+			
+			auto tmp = std::move(*i);
+			
+			for (; j >= begin && *j > tmp; --j)
+			{
+				move_construct(*(j + 1), *j);
+			}
+			
+			move_construct(*(j + 1), tmp);
 		}
 	}
 
-	template <typename Iterator, typename Int>
-	constexpr void unguarded_insert(Iterator begin, Int index) GRAILSORT_NOTHROW
+	template <typename Iterator>
+	constexpr void unguarded_insert(Iterator begin, Iterator target) GRAILSORT_NOTHROW
 	{
-		auto tmp = std::move(*(begin + index));
-		--index;
-		for (; *(begin + index) > tmp; --index)
-			move_construct(*(begin + (index + 1)), *(begin + index));
-		move_construct(*(begin + (index + 1)), tmp);
+		auto tmp = std::move(*target);
+		
+		--target;
+		
+		for (; *target > tmp; --target)
+		{
+			move_construct(*(target + 1), *target);
+		}
+		
+		move_construct(*(target + 1), tmp);
 	}
 
-	template <typename Iterator, typename Int>
-	constexpr void sink_min_item(Iterator begin, Int size) GRAILSORT_NOTHROW
+	template <typename Iterator>
+	constexpr void sink_min_item(Iterator begin, Iterator end) GRAILSORT_NOTHROW
 	{
-		Int min = 0;
-		for (Int i = 1; i < size; ++i)
-			if (*(begin + i) < *(begin + min))
+		Iterator min = begin;
+		
+		for (Iterator i = min + 1; i < end; ++i)
+		{
+			if (*i < *min)
+			{
 				min = i;
-		auto tmp = std::move(*(begin + min));
-		for (Int i = min; i > 0; --i)
-			move_construct(*(begin + i), *(begin + i - 1));
+			}
+		}
+
+		auto tmp = std::move(*min);
+		
+		for (Iterator i = min; i > 0; --i)
+		{
+			move_construct(*i, *(i - 1));
+		}
+
 		move_construct(*begin, tmp);
 	}
 
-	template <typename Iterator, typename Int>
-	constexpr void insertion_sort_stable(Iterator begin, Int size) GRAILSORT_NOTHROW
+	template <typename Iterator>
+	constexpr void insertion_sort_stable(Iterator begin, Iterator end) GRAILSORT_NOTHROW
 	{
-		if (size < 8)
-			return insertion_sort_classic(begin, size);
-		sink_min_item(begin, size);
-		for (Int i = 1; i < size; ++i)
+		if (std::distance(begin, end) < 10)
+		{
+			return insertion_sort_classic(begin, end);
+		}
+
+		sink_min_item(begin, end);
+
+		for (Iterator i = begin + 1; i < end; ++i)
+		{
 			unguarded_insert(begin, i);
+		}
 	}
 
-	template <typename Iterator, typename Int>
-	constexpr void insertion_sort_unstable(Iterator begin, Int size) GRAILSORT_NOTHROW
+	template <typename Iterator>
+	constexpr void insertion_sort_unstable(Iterator begin, Iterator end) GRAILSORT_NOTHROW
 	{
-		for (Int i = 1; i < size; ++i)
+		for (Iterator i = begin + 1; i < end; ++i)
 		{
-			if (*(begin + i) < *begin)
-				swap(*begin, *(begin + i));
+			if (*i < *begin)
+				swap(*begin, *i);
 			unguarded_insert(begin, i);
 		}
 	}

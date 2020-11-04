@@ -33,11 +33,11 @@ namespace grail_sort
 	/// <summary>
 	/// Sorts the range [begin, end) stably and fully in-place.
 	/// </summary>
-	template <typename Iterator, typename Int = ptrdiff_t>
+	template <typename Iterator>
 	constexpr void sort(Iterator begin, Iterator end) GRAILSORT_NOTHROW
 	{
 		const auto size = std::distance(begin, end);
-		detail::entry_point<Iterator, Int, false>(begin, size, Iterator(), 0);
+		detail::entry_point<Iterator, ptrdiff_t, false>(begin, size, Iterator(), 0);
 	}
 
 	/// <summary>
@@ -48,6 +48,18 @@ namespace grail_sort
 	{
 		const auto size = std::distance(begin, end);
 		const auto buffer_size = std::distance(external_buffer_begin, external_buffer_end);
-		detail::entry_point<Iterator, Int, true>(begin, size, external_buffer_begin, buffer_size);
+		detail::entry_point<Iterator, ptrdiff_t, true>(begin, size, external_buffer_begin, buffer_size);
+	}
+
+	template <typename T>
+	constexpr void sort(T& collection) GRAILSORT_NOTHROW
+	{
+		sort(collection.begin(), collection.end());
+	}
+
+	template <typename T, typename Iterator>
+	constexpr void sort(T& collection, Iterator external_buffer_begin, Iterator external_buffer_end) GRAILSORT_NOTHROW
+	{
+		sort(collection.begin(), collection.end(), external_buffer_begin, external_buffer_end);
 	}
 }

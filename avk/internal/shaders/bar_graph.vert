@@ -9,6 +9,7 @@ layout(push_constant) uniform ShaderArgs
 layout(location = 0) in uint	item_value;
 layout(location = 1) in uint	item_original_position;
 layout(location = 2) in vec3	item_color;
+layout(location = 3) in uint	item_flags;
 layout(location = 0) out vec4	out_frag_color;
 
 const vec2 local_vertices[4] = vec2[]
@@ -40,9 +41,16 @@ void main()
 
 	gl_Position = vec4(v, 0.0, 1.0);
 
-	relative_original_position *= relative_original_position;
-	if (base_vertex.y == 1)
-		out_frag_color = vec4(vec3(relative_original_position), 1.0);
+	if ((item_flags & 1) == 0)
+	{
+		relative_original_position *= relative_original_position;
+		if (base_vertex.y == 1)
+			out_frag_color = vec4(vec3(relative_original_position), 1.0);
+		else
+			out_frag_color = vec4(item_color, 1.0);
+	}
 	else
-		out_frag_color = vec4(item_color, 1.0);
+	{
+		out_frag_color = vec4(1, 0, 0, 1);
+	}
 }

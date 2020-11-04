@@ -16,7 +16,7 @@ void non_atomic_store(shared_counter& where, uint value) noexcept
 	*(uint*)&where = value;
 }
 
-namespace stats
+namespace sort_stats
 {
 	void clear() noexcept
 	{
