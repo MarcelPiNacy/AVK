@@ -13,7 +13,7 @@ void std_inplace_merge_sort(main_array& array)
 		uint next = merge_size * 2;
 		for (uint i = 0; i < array.size(); i += next)
 		{
-			item* p = array.begin() + i;
+			auto p = array.begin() + i;
 			std::inplace_merge(p, p + merge_size, p + next);
 		}
 		merge_size = next;

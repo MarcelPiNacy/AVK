@@ -5,7 +5,7 @@
 
 static uint32_t frame_index;
 
-void build_commands(uint32_t index)
+bool build_commands(uint32_t index)
 {
 	VkCommandBufferBeginInfo info = {};
 	info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -18,9 +18,8 @@ void build_commands(uint32_t index)
 	rinfo.renderArea = { {}, swapchain_extent };
 	rinfo.renderPass = renderpass;
 	
-	enforce(main_array_size != 0);
-	enforce(swapchain_extent.width != 0);
-	enforce(swapchain_extent.height != 0);
+	if ((main_array_size | swapchain_extent.width | swapchain_extent.height) == 0)
+		return false;
 
 	const shader_args args =
 	{
@@ -37,6 +36,7 @@ void build_commands(uint32_t index)
 	vkCmdDraw(cmd, 6, main_array_size, 0, 0);
 	vkCmdEndRenderPass(cmd);
 	vkEndCommandBuffer(cmd);
+	return true;
 }
 
 void draw_main_array()
@@ -59,7 +59,8 @@ void draw_main_array()
 		return;
 	}
 
-	build_commands(frame_index);
+	if (!build_commands(frame_index))
+		return;
 
 	VkSubmitInfo submit_info = {};
 	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

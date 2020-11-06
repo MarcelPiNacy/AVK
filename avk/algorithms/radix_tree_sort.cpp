@@ -95,6 +95,6 @@ void radix_tree_sort(main_array& array)
 {
 	const uint default_radix_size = 256;
 	auto root = build_radix_tree(array, default_radix_size);
-	auto out = array.begin();
+	auto out = array.data();
 	traverse_radix_tree(*root, 0, default_radix_size, out);
 }

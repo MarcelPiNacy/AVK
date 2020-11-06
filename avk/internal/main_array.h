@@ -1,5 +1,6 @@
 #pragma once
 #include "common.h"
+#include <iterator>
 
 
 
@@ -7,9 +8,6 @@ struct main_array;
 
 
 
-/// <summary>
-/// Used to keep sort statistics. All functions EXCEPT clear are thread-safe.
-/// </summary>
 namespace sort_stats
 {
 
@@ -68,6 +66,47 @@ struct item
 
 
 
+struct item_iterator : std::random_access_iterator_tag
+{
+	using difference_type = sint;
+
+	uint index;
+
+	constexpr item_iterator& operator=(const item_iterator& other) noexcept { index = other.index; return *this; }
+	constexpr bool operator==(const item_iterator& other)	const noexcept { return index == other.index; }
+	constexpr bool operator!=(const item_iterator& other)	const noexcept { return index != other.index; }
+	constexpr bool operator<(const item_iterator& other)	const noexcept { return index <  other.index; }
+	constexpr bool operator>(const item_iterator& other)	const noexcept { return index >  other.index; }
+	constexpr bool operator<=(const item_iterator& other)	const noexcept { return index <= other.index; }
+	constexpr bool operator>=(const item_iterator& other)	const noexcept { return index >= other.index; }
+
+	constexpr item_iterator& operator++() noexcept { ++index; return *this; }
+	constexpr item_iterator& operator--() noexcept { --index; return *this; }
+	constexpr item_iterator operator++(int) noexcept { item_iterator r = *this; ++index; return r; }
+	constexpr item_iterator operator--(int) noexcept { item_iterator r = *this; --index; return r; }
+	constexpr item_iterator& operator+=(uint offset) noexcept { index += offset; return *this; }
+	constexpr item_iterator& operator-=(uint offset) noexcept { index -= offset; return *this; }
+	constexpr item_iterator operator+(uint offset) const noexcept { item_iterator r = *this; r.index += offset; return r; }
+	constexpr item_iterator operator-(uint offset) const noexcept { item_iterator r = *this; r.index -= offset; return r; }
+	constexpr item_iterator& operator+=(sint offset) noexcept { index += offset; return *this; }
+	constexpr item_iterator& operator-=(sint offset) noexcept { index -= offset; return *this; }
+	constexpr item_iterator operator+(sint offset) const noexcept { item_iterator r = *this; r.index += offset; return r; }
+	constexpr item_iterator operator-(sint offset) const noexcept { item_iterator r = *this; r.index -= offset; return r; }
+	constexpr sint operator-(const item_iterator& other) const noexcept { return index - other.index; }
+
+	item& operator*() const noexcept;
+};
+
+namespace std
+{
+	constexpr auto distance(item_iterator begin, item_iterator end)
+	{
+		return end - begin;
+	}
+}
+
+
+
 struct item_raw
 {
 	uint32_t	value;
@@ -92,11 +131,14 @@ struct main_array
 	static bool resize(uint32_t size) noexcept;
 	static void finalize() noexcept;
 
+	static item& get(uint index) noexcept;
 	item& operator[](uint index) noexcept;
 	static uint size() noexcept;
 
 	static item* begin() noexcept;
 	static item* end() noexcept;
+
+	static item* data() noexcept;
 
 	template <typename F>
 	static void for_each(F&& function) noexcept

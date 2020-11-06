@@ -117,12 +117,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             }
         }
 
-        const auto now = high_resolution_clock::now();
-        if (now - last >= MAX_FPS)
-        {
-            draw_main_array();
-            last = now;
-        }
+        draw_main_array();
     }
 
     algorithm_thread::terminate(); //die

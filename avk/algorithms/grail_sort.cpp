@@ -15,10 +15,10 @@ void block_merge_grail_sort(main_array& array)
 	{
 		std::vector<item> buffer;
 		buffer.resize(sort_config::grail_sort_buffer_size);
-		grail_commonSort(array.begin(), array.size(), buffer.data(), buffer.size());
+		grail_commonSort(array.data(), array.size(), buffer.data(), buffer.size());
 	}
 	else
 	{
-		GrailSort(array.begin(), array.size());
+		GrailSort(array.data(), array.size());
 	}
 }

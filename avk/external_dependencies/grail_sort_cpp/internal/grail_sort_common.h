@@ -121,7 +121,7 @@ namespace grail_sort::detail
 
 		while (right_offset < right_size)
 		{
-			if (left_offset == left_size || *(begin + left_offset) > * (begin + right_offset))
+			if (left_offset == left_size || *(begin + left_offset) > *(begin + right_offset))
 			{
 				swap(*(begin + internal_buffer_offset), *(begin + right_offset));
 				++right_offset;
@@ -408,38 +408,39 @@ namespace grail_sort::detail
 		Int current_block_size = block_size;
 		Int current_block_origin = (Int)!(*keys < *median);
 		Int current_block_end = block_size;
+		Int current_block_offset;
 
 		for (Int current_block_index = 1; current_block_index < block_count; ++current_block_index)
 		{
-			Int current_block = current_block_end - current_block_size;
+			current_block_offset = current_block_end - current_block_size;
 			Int next_block = (Int)!(*(keys + current_block_index) < *median);
 
 			if (next_block == current_block_origin)
 			{
 				if (has_buffer)
 				{
-					block_swap(begin + (current_block - block_size), begin + current_block, current_block_size);
+					block_swap(begin + (current_block_offset - block_size), begin + current_block_offset, current_block_size);
 				}
 
-				current_block = current_block_end;
+				current_block_offset = current_block_end;
 				current_block_size = block_size;
 			}
 			else
 			{
 				if (has_buffer)
 				{
-					smart_merge(begin + current_block, current_block_size, current_block_origin, block_size, block_size);
+					smart_merge(begin + current_block_offset, current_block_size, current_block_origin, block_size, block_size);
 				}
 				else
 				{
-					smart_merge_inplace(begin + current_block, current_block_size, current_block_origin, block_size);
+					smart_merge_inplace(begin + current_block_offset, current_block_size, current_block_origin, block_size);
 				}
 			}
 
 			current_block_end += block_size;
 		}
 
-		Int current_block = current_block_end - current_block_size;
+		current_block_offset = current_block_end - current_block_size;
 
 		if (last != 0)
 		{
@@ -450,12 +451,11 @@ namespace grail_sort::detail
 			{
 				if (has_buffer)
 				{
-					block_swap(begin + (current_block - block_size), begin + current_block, current_block_size);
+					block_swap(begin + (current_block_offset - block_size), begin + current_block_offset, current_block_size);
 				}
 
-				current_block = current_block_end;
+				current_block_offset = current_block_end;
 				current_block_size = k;
-				current_block_origin = 0;
 			}
 			else
 			{
@@ -464,18 +464,18 @@ namespace grail_sort::detail
 
 			if (has_buffer)
 			{
-				merge_forward(begin + current_block, current_block_size, last, -block_size);
+				merge_forward(begin + current_block_offset, current_block_size, last, -block_size);
 			}
 			else
 			{
-				merge_inplace(begin + current_block, current_block_size, last);
+				merge_inplace(begin + current_block_offset, current_block_size, last);
 			}
 		}
 		else
 		{
 			if (has_buffer)
 			{
-				block_swap(begin + current_block, begin + (current_block - block_size), current_block_size);
+				block_swap(begin + current_block_offset, begin + (current_block_offset - block_size), current_block_size);
 			}
 		}
 	}
@@ -641,6 +641,7 @@ namespace grail_sort::detail
 				break;
 
 			const Int count = (flag ? rest : merged_size) / block_size;
+			const Int last = flag ? smart_modulo(rest, block_size) : 0;
 
 			insertion_sort_unstable(keys, keys + count + (Int)flag);
 
@@ -674,7 +675,6 @@ namespace grail_sort::detail
 			}
 
 			Int bk2 = 0;
-			const Int last = flag ? smart_modulo(rest, block_size) : 0;
 
 			if (last != 0)
 			{

@@ -1,7 +1,11 @@
 #include "all.h"
 #include <vector>
 
-void american_flag_sort_256_helper(item* begin, item* end, uint radix_index, uint radix_size)
+void american_flag_sort_256_helper(
+	item* begin,
+	item* end,
+	uint radix_index,
+	uint radix_size)
 {
 	const uint size = end - begin;
 
@@ -34,14 +38,14 @@ void american_flag_sort_256_helper(item* begin, item* end, uint radix_index, uin
 			partition = next_partition;
 			continue;
 		}
-		const uint radix = extract_radix(begin[i], radix_index, radix_size);
+		const uint radix = extract_radix(*(begin + i), radix_index, radix_size);
 		if (radix == partition)
 		{
 			++i;
 			continue;
 		}
 		uint& e = next_free[radix];
-		swap(begin[e], begin[i]);
+		swap(*(begin + e), *(begin + i));
 		++e;
 	}
 

@@ -91,6 +91,13 @@ void main_array::finalize() noexcept
 	main_array_buffer = nullptr;
 }
 
+item& main_array::get(uint index) noexcept
+{
+	enforce(main_array_mapping != nullptr);
+	enforce(index < size());
+	return main_array_mapping[index];
+}
+
 item& main_array::operator[](uint index) noexcept
 {
 	enforce(main_array_mapping != nullptr);
@@ -110,7 +117,12 @@ item* main_array::begin() noexcept
 
 item* main_array::end() noexcept
 {
-	return main_array_mapping + main_array_size;
+	return main_array_mapping + size();
+}
+
+item* main_array::data() noexcept
+{
+	return main_array_mapping;
 }
 
 void main_array::set_read_delay(double seconds) noexcept
@@ -278,4 +290,9 @@ uint extract_radix(const item& value, uint radix_index, uint radix) noexcept
 	const uint log2 = fast_log2(radix);
 	const uint mask = radix - 1;
 	return (value.value >> (radix_index * log2)) & mask;
+}
+
+item& item_iterator::operator*() const noexcept
+{
+	return main_array::get(index);
 }
