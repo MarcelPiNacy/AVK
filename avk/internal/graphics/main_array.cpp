@@ -40,7 +40,8 @@ static uint8_t fast_log2(size_t value)
 
 static uint32_t round_pow2(size_t value)
 {
-	return 1 << ((sizeof(size_t) * 8) - fast_log2(value));
+	auto log2 = fast_log2(value);
+	return 1 << log2;
 }
 
 void main_array::internal_lock() noexcept
@@ -55,6 +56,7 @@ void main_array::internal_unlock() noexcept
 
 bool main_array::resize(uint32_t size) noexcept
 {
+	scoped_lock guard(main_array_lock);
 	if (main_array_buffer != VK_NULL_HANDLE)
 	{
 		finalize();
@@ -142,7 +144,7 @@ void main_array::set_compare_delay(double seconds) noexcept
 
 void main_array::sleep(double seconds) noexcept
 {
-	constexpr double sleep_threshold = 1.0 / 1000.0f;
+	constexpr double sleep_threshold = 1.0 / 1000.0;
 	if (seconds > sleep_threshold)
 	{
 		seconds *= 1000.0;

@@ -99,7 +99,7 @@ struct item_iterator : std::random_access_iterator_tag
 
 namespace std
 {
-	constexpr auto distance(item_iterator begin, item_iterator end)
+	constexpr auto distance(item_iterator begin, item_iterator end) noexcept
 	{
 		return end - begin;
 	}

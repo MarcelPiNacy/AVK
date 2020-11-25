@@ -78,14 +78,14 @@
     <ClInclude Include="avk\external_dependencies\fold_sort.h">
       <Filter>avk\external dependencies</Filter>
     </ClInclude>
-    <ClInclude Include="avk\external_dependencies\grail_sort_cpp\grail_sort.h">
-      <Filter>avk\external dependencies</Filter>
-    </ClInclude>
     <ClInclude Include="avk\algorithms\sort_utility.h">
       <Filter>avk\algorithms</Filter>
     </ClInclude>
     <ClInclude Include="avk\algorithms\sort_config.h">
       <Filter>avk\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="avk\external_dependencies\ska_sort\ska_sort.hpp">
+      <Filter>avk\external dependencies</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -146,9 +146,6 @@
     <ClCompile Include="avk\internal\graphics\main_array.cpp">
       <Filter>avk\internal\graphics</Filter>
     </ClCompile>
-    <ClCompile Include="avk\algorithms\grail_sort_cpp.cpp">
-      <Filter>avk\algorithms</Filter>
-    </ClCompile>
     <ClCompile Include="avk\algorithms\american_flag_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
@@ -174,6 +171,30 @@
       <Filter>avk\algorithms</Filter>
     </ClCompile>
     <ClCompile Include="avk\algorithms\binary_tree_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\wiki_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\gambit_insertion_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\stackless_quicksort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\simple_flashsort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\monitor_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\custom_radix_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\another_sorting_network.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\ska_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
   </ItemGroup>

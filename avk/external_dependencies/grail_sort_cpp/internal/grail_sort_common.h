@@ -32,7 +32,7 @@
 namespace grail_sort::detail
 {
 	template <typename Iterator, typename Int>
-	constexpr Int gather_keys(Iterator begin, Iterator end, Int desired_key_count) GRAILSORT_NOTHROW
+	constexpr Int gather_keys(Iterator begin, Iterator end, Int desired_key_count)
 	{
 		const auto size = std::distance(begin, end);
 		Int first_key = 0;
@@ -53,20 +53,21 @@ namespace grail_sort::detail
 		return found_count;
 	}
 
-	template <typename Iterator, typename Int>
-	constexpr void merge_left_inplace(Iterator begin, Int left_size, Int right_size) GRAILSORT_NOTHROW
+	template <typename Iterator>
+	constexpr void merge_left_inplace(Iterator begin, Iterator middle, Iterator end)
 	{
-		while (left_size != 0)
+		const Iterator m = middle;
+		while (m != begin)
 		{
-			const Int target = lower_bound(begin + left_size, right_size, begin);
-			if (target != 0)
+			const Iterator target = lower_bound(middle, end, begin);
+			if (target != middle)
 			{
-				rotate(begin, left_size, target);
+				rotate(begin, middle, target);
 				begin += target;
-				right_size -= target;
+				end -= target;
 			}
 
-			if (right_size == 0)
+			if (end == m)
 			{
 				break;
 			}
@@ -74,46 +75,47 @@ namespace grail_sort::detail
 			do
 			{
 				++begin;
-				--left_size;
-			} while (left_size != 0 && *begin <= *(begin + left_size));
+				--middle;
+			} while (middle != begin && *begin <= *(middle));
 		}
 	}
 
-	template <typename Iterator, typename Int>
-	constexpr void merge_right_inplace(Iterator begin, Int left_size, Int right_size) GRAILSORT_NOTHROW
+	template <typename Iterator>
+	constexpr void merge_right_inplace(Iterator begin, Iterator middle, Iterator end)
 	{
-		while (right_size != 0)
+		const Iterator m = middle;
+		while (end != m)
 		{
-			const Int target = upper_bound(begin, left_size, begin + (left_size + right_size - 1));
-			if (target != left_size)
+			const Iterator target = upper_bound(begin, middle, end - 1);
+			if (target != middle)
 			{
-				rotate(begin + target, left_size - target, right_size);
-				left_size = target;
+				rotate(target, middle - std::distance(begin, target), end);
+				middle = target;
 			}
 
-			if (left_size == 0)
+			if (middle == begin)
 			{
 				break;
 			}
 
 			do
 			{
-				--right_size;
-			} while (right_size != 0 && *(begin + (left_size - 1)) <= *(begin + (left_size + right_size - 1)));
+				--end;
+			} while (end != begin && *(middle - 1) <= *(end - 1));
 		}
 	}
 
-	template <typename Iterator, typename Int>
-	constexpr void merge_inplace(Iterator begin, Int left_size, Int right_size) GRAILSORT_NOTHROW
+	template <typename Iterator>
+	constexpr void merge_inplace(Iterator begin, Iterator middle, Iterator end)
 	{
-		if (left_size < right_size)
-			merge_left_inplace(begin, left_size, right_size);
+		if (std::distance(begin, middle) < std::distance(middle, end))
+			merge_left_inplace(begin, middle, end);
 		else
-			merge_right_inplace(begin, left_size, right_size);
+			merge_right_inplace(begin, middle, end);
 	}
 
 	template <typename Iterator, typename Int>
-	constexpr void merge_forward(Iterator begin, Int left_size, Int right_size, Int internal_buffer_offset) GRAILSORT_NOTHROW
+	constexpr void merge_forward(Iterator begin, Int left_size, Int right_size, Int internal_buffer_offset)
 	{
 		Int left_offset = 0;
 		Int right_offset = left_size;
@@ -141,7 +143,7 @@ namespace grail_sort::detail
 	}
 
 	template <typename Iterator, typename Int>
-	constexpr void merge_backward(Iterator begin, Int left_size, Int right_size, Int internal_buffer_offset) GRAILSORT_NOTHROW
+	constexpr void merge_backward(Iterator begin, Int left_size, Int right_size, Int internal_buffer_offset)
 	{
 		Int left_offset = left_size - 1;
 		Int right_offset = right_size + left_offset;
@@ -174,7 +176,7 @@ namespace grail_sort::detail
 	}
 
 	template <typename Iterator, typename Int>
-	constexpr void smart_merge(Iterator begin, Int& ref_left_size, Int& ref_type, Int right_size, Int key_count) GRAILSORT_NOTHROW
+	constexpr void smart_merge(Iterator begin, Int& ref_left_size, Int& ref_type, Int right_size, Int key_count)
 	{
 		Int buffer_offset = -key_count;
 		Int left_offset = 0;
@@ -216,7 +218,7 @@ namespace grail_sort::detail
 	}
 
 	template <typename Iterator, typename Int>
-	constexpr void smart_merge_inplace(Iterator begin, Int& ref_left_size, Int& ref_type, Int right_size) GRAILSORT_NOTHROW
+	constexpr void smart_merge_inplace(Iterator begin, Int& ref_left_size, Int& ref_type, Int right_size)
 	{
 		if (right_size == 0)
 			return;
@@ -256,7 +258,7 @@ namespace grail_sort::detail
 	}
 
 	template <typename Iterator, typename Int>
-	constexpr void merge_forward_using_external_buffer(Iterator begin, Int left_size, Int right_size, Int m) GRAILSORT_NOTHROW
+	constexpr void merge_forward_using_external_buffer(Iterator begin, Int left_size, Int right_size, Int m)
 	{
 		Int left_offset = 0;
 		Int right_offset = left_size;
@@ -289,7 +291,7 @@ namespace grail_sort::detail
 	}
 
 	template <typename Iterator, typename Int>
-	constexpr void smart_merge_using_external_buffer(Iterator begin, Int& ref_left_size, Int& ref_type, Int right_size, Int key_count) GRAILSORT_NOTHROW
+	constexpr void smart_merge_using_external_buffer(Iterator begin, Int& ref_left_size, Int& ref_type, Int right_size, Int key_count)
 	{
 		Int buffer_offset = -key_count;
 		Int left_offset = 0;
@@ -331,7 +333,7 @@ namespace grail_sort::detail
 	}
 
 	template <typename Iterator, typename Int>
-	constexpr void merge_buffers_forward_using_external_buffer(Iterator begin, Iterator keys, Iterator median, Int block_count, Int block_size, Int block_count_2, Int last) GRAILSORT_NOTHROW
+	constexpr void merge_buffers_forward_using_external_buffer(Iterator begin, Iterator keys, Iterator median, Int block_count, Int block_size, Int block_count_2, Int last)
 	{
 		if (block_count == 0)
 		{
@@ -387,7 +389,7 @@ namespace grail_sort::detail
 	}
 
 	template <typename Iterator, typename Int>
-	constexpr void merge_buffers_forward(Iterator begin, Iterator keys, Iterator median, Int block_count, Int block_size, bool has_buffer, Int block_count_2, Int last) GRAILSORT_NOTHROW
+	constexpr void merge_buffers_forward(Iterator begin, Iterator keys, Iterator median, Int block_count, Int block_size, bool has_buffer, Int block_count_2, Int last)
 	{
 		if (block_count == 0)
 		{
@@ -481,7 +483,7 @@ namespace grail_sort::detail
 	}
 
 	template <typename Iterator, typename Int, bool DisableExternalBuffer>
-	constexpr void build_blocks(Iterator begin, Int size, Int block_size, Iterator external_buffer, Int external_buffer_size) GRAILSORT_NOTHROW
+	constexpr void build_blocks(Iterator begin, Int size, Int block_size, Iterator external_buffer, Int external_buffer_size)
 	{
 		Int buffer_size = external_buffer_size;
 		if (block_size < external_buffer_size)
@@ -614,7 +616,7 @@ namespace grail_sort::detail
 	}
 
 	template <typename Iterator, typename Int>
-	constexpr void combine_blocks(Iterator begin, Iterator keys, Int size, Int range_size, Int block_size, bool has_buffer, Iterator external_buffer) GRAILSORT_NOTHROW
+	constexpr void combine_blocks(Iterator begin, Iterator keys, Int size, Int range_size, Int block_size, bool has_buffer, Iterator external_buffer)
 	{
 		const auto nil_iterator = Iterator();
 
@@ -717,7 +719,7 @@ namespace grail_sort::detail
 	}
 
 	template <typename Iterator>
-	constexpr void lazy_merge_sort(Iterator begin, Iterator end) GRAILSORT_NOTHROW
+	constexpr void lazy_merge_sort(Iterator begin, Iterator end)
 	{
 		for (Iterator e = begin + 1; e < end; e += 2)
 		{
@@ -729,23 +731,29 @@ namespace grail_sort::detail
 		}
 
 		const auto size = std::distance(begin, end);
-		using Int = std::remove_const_t<decltype(size)>;
+		using U = std::make_unsigned_t<typename std::iterator_traits<Iterator>::difference_type>;
 
-		for (Int block_size = 2; block_size < size;)
+		for (U block_size = 2; block_size < size;)
 		{
-			const Int step_size = block_size * 2;
-			Int left_offset = 0;
+			const U step_size = block_size * 2;
+			U left_offset = 0;
 			
-			for (Int p1 = size - step_size; left_offset <= p1; left_offset += step_size)
+			for (U p1 = size - step_size; left_offset <= p1; left_offset += step_size)
 			{
-				merge_inplace(begin + left_offset, block_size, block_size);
+				const Iterator b = begin + left_offset;
+				const Iterator m = b + block_size;
+				const Iterator e = m + block_size;
+				merge_inplace(b, m, e);
 			}
 			
-			const Int rest = size - left_offset;
+			const U rest = size - left_offset;
 
 			if (rest > block_size)
 			{
-				merge_inplace(begin + left_offset, block_size, rest - block_size);
+				const Iterator b = begin + left_offset;
+				const Iterator m = b + block_size;
+				const Iterator e = m + (rest - block_size);
+				merge_inplace(b, m, e);
 			}
 
 			block_size = step_size;
@@ -753,8 +761,9 @@ namespace grail_sort::detail
 	}
 
 	template <typename Iterator, typename Int, bool DisableExternalBuffer>
-	constexpr void entry_point(Iterator begin, Int size, Iterator external_buffer, Int external_buffer_size) GRAILSORT_NOTHROW
+	constexpr void entry_point(Iterator begin, Iterator end, Iterator external_buffer, Int external_buffer_size)
 	{
+		const auto size = std::distance(begin, end);
 		if (size < 64)
 		{
 			insertion_sort_stable(begin, begin + size);
@@ -772,7 +781,7 @@ namespace grail_sort::detail
 
 		Int key_count = 1 + (size - 1) / block_size;
 		const Int desired_key_count = key_count + block_size;
-		Int found_key_count = gather_keys(begin, begin + size, desired_key_count);
+		auto found_key_count = gather_keys(begin, end, desired_key_count);
 		const bool has_buffer = found_key_count >= desired_key_count;
 
 		if (!has_buffer)
@@ -861,6 +870,6 @@ namespace grail_sort::detail
 		}
 
 		insertion_sort_unstable(begin, begin + key_buffer_size);
-		merge_inplace(begin, key_buffer_size, range);
+		merge_inplace(begin, begin + found_key_count, end);
 	}
 }

@@ -13,7 +13,7 @@ static HACCEL accel;
 std::atomic<bool> should_continue_global = true;
 std::atomic<bool> should_continue_sort;
 
-static TCHAR window_title_buffer[1 << 12];
+TCHAR window_title_buffer[4096];
 
 extern LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -78,13 +78,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     using namespace std::chrono;
 
     auto last = high_resolution_clock::now();
-
-    item_color color = item_color::white();
+    
     double delay = 0.0001;
     main_array::set_compare_delay(delay);
     main_array::set_read_delay(delay);
     main_array::set_write_delay(delay);
-    main_array::resize(1 << 11);
+    main_array::resize(1 << 10);
     
     constexpr TCHAR title_format[] = TEXT("AVK - Sorting Algorithm Visualizer - [ %u elements ]");
 
@@ -100,10 +99,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     {
         e.value = position;
         e.original_position = position;
-        e.color = color;
+        e.color = item_color::white();
     });
 
-    constexpr auto MAX_FPS = milliseconds(8);
+    constexpr auto framerrate = duration<long double>(1.0 / 120.0);
+
+    auto last_draw = high_resolution_clock::now();
 
     MSG msg = {};
     while (should_continue_global.load(std::memory_order_acquire))
@@ -117,7 +118,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             }
         }
 
-        draw_main_array();
+        const auto now = high_resolution_clock::now();
+        if (now - last_draw > framerrate)
+        {
+            draw_main_array();
+            last_draw = now;
+        }
     }
 
     algorithm_thread::terminate(); //die

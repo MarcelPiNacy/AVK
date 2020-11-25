@@ -236,7 +236,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
-    <ClInclude Include="avk\external_dependencies\grail_sort_cpp\grail_sort.h" />
+    <ClInclude Include="avk\external_dependencies\ska_sort\ska_sort.hpp" />
     <ClInclude Include="avk\internal\defer.h" />
     <ClInclude Include="avk\internal\enforce.h" />
     <ClInclude Include="avk\internal\common.h" />
@@ -252,15 +252,21 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="avk\algorithms\american_flag_sort.cpp" />
+    <ClCompile Include="avk\algorithms\another_sorting_network.cpp" />
     <ClCompile Include="avk\algorithms\binary_tree_sort.cpp" />
     <ClCompile Include="avk\algorithms\bitonic_sort.cpp" />
+    <ClCompile Include="avk\algorithms\custom_radix_sort.cpp" />
+    <ClCompile Include="avk\algorithms\monitor_sort.cpp" />
     <ClCompile Include="avk\algorithms\counting_sort.cpp" />
-    <ClCompile Include="avk\algorithms\grail_sort_cpp.cpp" />
+    <ClCompile Include="avk\algorithms\gambit_insertion_sort.cpp" />
     <ClCompile Include="avk\algorithms\bubble_sort.cpp" />
     <ClCompile Include="avk\algorithms\fold_sort.cpp" />
     <ClCompile Include="avk\algorithms\grail_sort.cpp" />
     <ClCompile Include="avk\algorithms\odd_even_sort.cpp" />
     <ClCompile Include="avk\algorithms\radix_tree_sort.cpp" />
+    <ClCompile Include="avk\algorithms\simple_flashsort.cpp" />
+    <ClCompile Include="avk\algorithms\ska_sort.cpp" />
+    <ClCompile Include="avk\algorithms\stackless_quicksort.cpp" />
     <ClCompile Include="avk\algorithms\std_inplace_merge.cpp" />
     <ClCompile Include="avk\algorithms\lsd_radix_sort.cpp" />
     <ClCompile Include="avk\algorithms\msd_radix_sort.cpp" />
@@ -271,6 +277,7 @@
     <ClCompile Include="avk\algorithms\insertion_sort.cpp" />
     <ClCompile Include="avk\algorithms\selection_sort.cpp" />
     <ClCompile Include="avk\algorithms\std_stable_sort.cpp" />
+    <ClCompile Include="avk\algorithms\wiki_sort.cpp" />
     <ClCompile Include="avk\internal\graphics\main_array.cpp" />
     <ClCompile Include="avk\internal\graphics\vulkan_draw.cpp" />
     <ClCompile Include="avk\internal\graphics\vulkan_init.cpp" />

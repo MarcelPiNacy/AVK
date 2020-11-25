@@ -4,7 +4,7 @@
 namespace grail_sort::detail
 {
 	template <typename Iterator>
-	constexpr void insertion_sort_classic(Iterator begin, Iterator end) GRAILSORT_NOTHROW
+	constexpr void insertion_sort_classic(Iterator begin, Iterator end)
 	{
 		for (Iterator i = begin + 1; i < end; ++i)
 		{
@@ -22,7 +22,7 @@ namespace grail_sort::detail
 	}
 
 	template <typename Iterator>
-	constexpr void unguarded_insert(Iterator begin, Iterator target) GRAILSORT_NOTHROW
+	constexpr void unguarded_insert(Iterator begin, Iterator target)
 	{
 		auto tmp = std::move(*target);
 		
@@ -37,7 +37,7 @@ namespace grail_sort::detail
 	}
 
 	template <typename Iterator>
-	constexpr void sink_min_item(Iterator begin, Iterator end) GRAILSORT_NOTHROW
+	constexpr void sink_min_item(Iterator begin, Iterator end)
 	{
 		Iterator min = begin;
 		
@@ -60,7 +60,7 @@ namespace grail_sort::detail
 	}
 
 	template <typename Iterator>
-	constexpr void insertion_sort_stable(Iterator begin, Iterator end) GRAILSORT_NOTHROW
+	constexpr void insertion_sort_stable(Iterator begin, Iterator end)
 	{
 		if (std::distance(begin, end) < 10)
 		{
@@ -76,7 +76,7 @@ namespace grail_sort::detail
 	}
 
 	template <typename Iterator>
-	constexpr void insertion_sort_unstable(Iterator begin, Iterator end) GRAILSORT_NOTHROW
+	constexpr void insertion_sort_unstable(Iterator begin, Iterator end)
 	{
 		for (Iterator i = begin + 1; i < end; ++i)
 		{

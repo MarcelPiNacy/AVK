@@ -34,31 +34,29 @@ namespace grail_sort
 	/// Sorts the range [begin, end) stably and fully in-place.
 	/// </summary>
 	template <typename Iterator>
-	constexpr void sort(Iterator begin, Iterator end) GRAILSORT_NOTHROW
+	constexpr void sort(Iterator begin, Iterator end)
 	{
-		const auto size = std::distance(begin, end);
-		detail::entry_point<Iterator, ptrdiff_t, false>(begin, size, Iterator(), 0);
+		detail::entry_point<Iterator, ptrdiff_t, false>(begin, end, Iterator(), 0);
 	}
 
 	/// <summary>
 	/// Sorts the range [begin, end) stably, using (external_buffer_begin, external_buffer_end] as a temporary buffer. Recommended sizes for this buffer are 512 or the square root of the length of range to sort. The size of this buffer can be 0.
 	/// </summary>
-	template <typename Iterator, typename Int = ptrdiff_t>
-	constexpr void sort(Iterator begin, Iterator end, Iterator external_buffer_begin, Iterator external_buffer_end) GRAILSORT_NOTHROW
+	template <typename Iterator>
+	constexpr void sort(Iterator begin, Iterator end, Iterator external_buffer_begin, Iterator external_buffer_end)
 	{
-		const auto size = std::distance(begin, end);
 		const auto buffer_size = std::distance(external_buffer_begin, external_buffer_end);
-		detail::entry_point<Iterator, ptrdiff_t, true>(begin, size, external_buffer_begin, buffer_size);
+		detail::entry_point<Iterator, ptrdiff_t, true>(begin, end, external_buffer_begin, buffer_size);
 	}
 
-	template <typename T>
-	constexpr void sort(T& collection) GRAILSORT_NOTHROW
+	template <typename Collection>
+	constexpr void sort(Collection& collection)
 	{
 		sort(collection.begin(), collection.end());
 	}
 
-	template <typename T, typename Iterator>
-	constexpr void sort(T& collection, Iterator external_buffer_begin, Iterator external_buffer_end) GRAILSORT_NOTHROW
+	template <typename Collection, typename Iterator>
+	constexpr void sort(Collection& collection, Iterator external_buffer_begin, Iterator external_buffer_end)
 	{
 		sort(collection.begin(), collection.end(), external_buffer_begin, external_buffer_end);
 	}

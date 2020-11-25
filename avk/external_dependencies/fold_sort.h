@@ -31,7 +31,7 @@ namespace sorting::networks
 	namespace detail
 	{
 		template <typename Iterator>
-		constexpr void fold(Iterator low, Iterator high)
+		constexpr void halver(Iterator low, Iterator high)
 		{
 			while (low < high)
 			{
@@ -62,7 +62,7 @@ namespace sorting::networks
 				for (auto low = begin; low < end;)
 				{
 					auto high = low + j;
-					detail::fold(low, high - 1);
+					detail::halver(low, high - 1);
 					low = high;
 				}
 			}

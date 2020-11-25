@@ -1,5 +1,14 @@
 #pragma once
 #include "../internal/main_array.h"
+#include <intrin.h>
+#include <cassert>
+
+template <typename T>
+T fast_log2(T value)
+{
+	assert(value != 0);
+	return _tzcnt_u64(value);
+}
 
 template <typename T>
 constexpr void guarded_insert(T* begin, T* end, const T& value)

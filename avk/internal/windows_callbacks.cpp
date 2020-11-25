@@ -9,6 +9,7 @@
 extern std::atomic<bool> should_continue_global;
 extern HINSTANCE hinstance;
 extern HWND hwnd;
+extern TCHAR window_title_buffer[4096];
 
 extern int vulkan_on_window_resize();
 
@@ -258,7 +259,14 @@ static INT_PTR CALLBACK set_array_size_callbacks(HWND hDlg, UINT message, WPARAM
                 {
                     if (!main_array::resize(k))
                         return (INT_PTR)FALSE;
-
+                    constexpr TCHAR title_format[] = TEXT("AVK - Sorting Algorithm Visualizer - [ %u elements ]");
+#ifdef UNICODE
+                    wsprintf(window_title_buffer, title_format, main_array::size());
+                    SetWindowText(hwnd, window_title_buffer);
+#else
+                    sprintf(window_title_buffer, title_format, main_array::size());
+                    SetWindowTextA(hwnd, window_title_buffer);
+#endif
                 }
             }
             EndDialog(hDlg, LOWORD(wParam));
@@ -344,10 +352,7 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             algorithm_thread::assign_body(std_sort);
             break;
         case IDM_GRAIL_SORT:
-            algorithm_thread::assign_body(block_merge_grail_sort);
-            break;
-        case IDM_GRAIL_SORT_CPP:
-            algorithm_thread::assign_body(block_merge_grail_sort_cpp);
+            algorithm_thread::assign_body(grail_sort);
             break;
         case IDM_ODD_EVEN_MERGE_SORT:
             algorithm_thread::assign_body(odd_even_merge_sort);
@@ -381,6 +386,33 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             break;
         case IDM_BINARY_TREE_SORT:
             algorithm_thread::assign_body(binary_tree_sort);
+            break;
+        case IDM_MONITOR_SORT:
+            algorithm_thread::assign_body(block_merge_monitor_sort);
+            break;
+        case IDM_SIMPLE_FLASH_SORT:
+            algorithm_thread::assign_body(simple_flash_sort);
+            break;
+        case IDM_WIKI_SORT:
+            algorithm_thread::assign_body(wiki_sort);
+            break;
+        case IDM_GAMBIT_INSERTION_SORT:
+            algorithm_thread::assign_body(gambit_insertion_sort);
+            break;
+        case IDM_STACKLESS_QUICK_SORT:
+            algorithm_thread::assign_body(stackless_quick_sort);
+            break;
+        case IDM_ANOTHER_SORTING_NETWORK:
+            algorithm_thread::assign_body(another_sorting_network);
+            break;
+        case IDM_CUSTOM_RADIX_SORT:
+            algorithm_thread::assign_body(custom_radix_sort);
+            break;
+        case IDM_SKA_SORT:
+            algorithm_thread::assign_body(ska_sort);
+            break;
+        case IDM_SKA_SORT_COPY:
+            algorithm_thread::assign_body(ska_sort_copy);
             break;
         case IDM_INITIALIZE_LINEAR:
             if (algorithm_thread::is_idle())
