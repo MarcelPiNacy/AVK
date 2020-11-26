@@ -360,7 +360,7 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         case IDM_BITONIC_SORT:
             algorithm_thread::assign_body(bitonic_sort);
             break;
-        case IDM_FOLD_SORT:
+        case IDM_FOLD_SORT_TOP_DOWN:
             algorithm_thread::assign_body(fold_sort);
             break;
         case IDM_STD_MERGE_SORT:
@@ -402,8 +402,8 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         case IDM_STACKLESS_QUICK_SORT:
             algorithm_thread::assign_body(stackless_quick_sort);
             break;
-        case IDM_ANOTHER_SORTING_NETWORK:
-            algorithm_thread::assign_body(another_sorting_network);
+        case IDM_FOLD_SORT_BOTTOM_UP:
+            algorithm_thread::assign_body(fold_sort_bottom_up);
             break;
         case IDM_CUSTOM_RADIX_SORT:
             algorithm_thread::assign_body(custom_radix_sort);

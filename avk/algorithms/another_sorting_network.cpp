@@ -9,10 +9,7 @@ bool compare_swap(main_array& array, uint left, uint right)
 	return r;
 }
 
-/*
-*	TRIVIAL HALVER: 
-*/
-void trivial_halver(main_array& array, uint low, uint high)
+void halver(main_array& array, uint low, uint high)
 {
 	while (low < high)
 	{
@@ -22,23 +19,18 @@ void trivial_halver(main_array& array, uint low, uint high)
 	}
 }
 
-void halver(main_array& array, uint low, uint high)
+void fold_sort_bottom_up(main_array& array)
 {
-	trivial_halver(array, low, high);
-}
+	uint size = array.size();
+	uint log2 = fast_log2(size);
 
-void another_sorting_network(main_array& array)
-{
-	const auto size = array.size();
-	for (auto i = size; i > 0; i /= 2)
+	for (uint n = 0; n <= log2; ++n)
 	{
-		for (auto j = size; j >= i; j /= 2)
+		for (uint step = 1; step <= size; step *= 2)
 		{
-			for (auto low = 0; low < array.size();)
+			for (uint i = 0; i < size; i += step)
 			{
-				auto high = low + j;
-				halver(array, low, high - 1);
-				low = high;
+				halver(array, i, i + step - 1);
 			}
 		}
 	}

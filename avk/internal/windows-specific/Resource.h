@@ -25,7 +25,7 @@
 #define IDM_GRAIL_SORT									507
 #define IDM_BITONIC_SORT								510
 #define IDM_ODD_EVEN_MERGE_SORT							511
-#define IDM_FOLD_SORT									512
+#define IDM_FOLD_SORT_TOP_DOWN									512
 #define IDM_STD_INPLACE_MERGE_SORT						513
 #define IDM_MSD_RADIX_SORT								514
 #define IDM_LSD_RADIX_SORT								515
@@ -40,7 +40,7 @@
 #define IDM_GAMBIT_INSERTION_SORT						525
 #define IDM_STACKLESS_QUICK_SORT						526
 #define IDM_SIMPLE_FLASH_SORT							527
-#define IDM_ANOTHER_SORTING_NETWORK						528
+#define IDM_FOLD_SORT_BOTTOM_UP						528
 #define IDM_CUSTOM_RADIX_SORT							529
 #define IDM_SKA_SORT									530
 #define IDM_SKA_SORT_COPY								531
