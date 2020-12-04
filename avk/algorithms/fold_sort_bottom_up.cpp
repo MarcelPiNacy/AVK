@@ -1,15 +1,7 @@
 #include "all.h"
 #include "sort_utility.h"
 
-bool compare_swap(main_array& array, uint left, uint right)
-{
-	const bool r = array[right] < array[left];
-	if (r)
-		swap(array[right], array[left]);
-	return r;
-}
-
-void halver(main_array& array, uint low, uint high)
+static void halver(main_array& array, uint low, uint high)
 {
 	while (low < high)
 	{

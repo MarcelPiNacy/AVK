@@ -7,7 +7,7 @@ void american_flag_sort_256_helper(
 	uint radix_index,
 	uint radix_size)
 {
-	const uint size = end - begin;
+	const uint size = (uint)(end - begin);
 
 	std::vector<uint> offsets;
 	std::vector<uint> counts;

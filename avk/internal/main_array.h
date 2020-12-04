@@ -117,7 +117,11 @@ struct item_raw
 
 
 sint compare(const item& left, const item& right) noexcept;
+sint compare(main_array& array, uint left_index, uint right_index) noexcept;
 void swap(item& left, item& right) noexcept;
+void swap(main_array& array, uint left_index, uint right_index) noexcept;
+bool compare_swap(item& left, item& right) noexcept;
+bool compare_swap(main_array& array, uint left_index, uint right_index) noexcept;
 void reverse(main_array& array, uint offset, uint size) noexcept;
 uint extract_radix(const item& value, uint radix_index, uint radix = 256) noexcept;
 

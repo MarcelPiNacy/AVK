@@ -839,23 +839,23 @@ namespace monitor_sort
 			return end;
 		}
 
+		if (indirect_cmpgt(begin, begin + 1))
+		{
+			const I run_end = find_reverse_end(begin, end);
+			if (unsigned_distance(begin, run_end) >= min_run_size)
+			{
+				reverse_stable(begin, run_end);
+				return run_end;
+			}
+		}
+
 		for (I i = begin + 1; i < end; ++i)
 		{
 			const I previous = i - 1;
-
 			if (indirect_cmplt(previous, i))
 				continue;
-
-			const I rend = find_reverse_end(previous, end);
-			if (unsigned_distance(previous, rend) >= min_run_size)
-			{
-				reverse_stable(previous, rend);
-				return rend;
-			}
-
 			if (i >= min_end)
 				return i;
-
 			const I to = find_insertion_slot(begin, i);
 			if (unsigned_distance(to, i) >= min_run_size)
 				return i;
@@ -980,6 +980,7 @@ namespace monitor_sort
 	template <typename I>
 	constexpr void distribute_blocks_forward(I begin, I middle, I end, I control_begin)
 	{
+
 	}
 
 	template <typename I, typename K>
@@ -1079,7 +1080,6 @@ namespace monitor_sort
 			run_count = merge_pass_backward(begin, end, internal_buffer_size, control_buffer_begin, run_count, min_run_size);
 			if (run_count == 1)
 				break;
-			while (true) {}
 			run_count = merge_pass_forward(begin, end, internal_buffer_size, control_buffer_begin, run_count, min_run_size);
 			if (run_count == 1)
 				break;

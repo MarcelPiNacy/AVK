@@ -154,7 +154,7 @@ void main_array::sleep(double seconds) noexcept
 	{
 		using namespace std::chrono;
 		seconds *= 1000'000'000;
-		const uint64_t nanoseconds = (uint64_t)seconds;
+		const int64_t nanoseconds = (int64_t)seconds;
 		const auto start = high_resolution_clock::now();
 		while ((high_resolution_clock::now() - start).count() < nanoseconds)
 			platform::yield_cpu();
@@ -254,6 +254,11 @@ sint compare(const item& left, const item& right) noexcept
 	return r;
 }
 
+sint compare(main_array& array, uint left_index, uint right_index) noexcept
+{
+	return compare(array[left_index], array[right_index]);
+}
+
 void swap(item& left, item& right) noexcept
 {
 	scoped_highlight highlight_left(left.flags);
@@ -269,6 +274,24 @@ void swap(item& left, item& right) noexcept
 	left.color = right.color;
 	right.value = v;
 	right.color = c;
+}
+
+void swap(main_array& array, uint left_index, uint right_index) noexcept
+{
+	swap(array[left_index], array[right_index]);
+}
+
+bool compare_swap(item& left, item& right) noexcept
+{
+	const bool r = right < left;
+	if (r)
+		swap(right, left);
+	return r;
+}
+
+bool compare_swap(main_array& array, uint left_index, uint right_index) noexcept
+{
+	return compare_swap(array[left_index], array[right_index]);
 }
 
 void reverse(main_array& array, uint offset, uint size) noexcept

@@ -1,4 +1,5 @@
 #pragma once
+#include "../internal/main_array.h"
 #include "sort_config.h"
 
 void selection_sort(main_array& array);
@@ -25,10 +26,10 @@ void block_merge_monitor_sort(main_array& array);
 void wiki_sort(main_array& array);
 void gambit_insertion_sort(main_array& array);
 void stackless_quick_sort(main_array& array);
-void simple_flash_sort(main_array& array);
 void custom_radix_sort(main_array& array);
 void ska_sort(main_array& array);
 void ska_sort_copy(main_array& array);
+void another_another_sorting_network(main_array& array);
 
 
 
@@ -57,9 +58,6 @@ constexpr function_ptr<void, main_array&> sort_table[] =
 	block_merge_monitor_sort,
 	wiki_sort,
 	gambit_insertion_sort,
-	stackless_quick_sort,
-	simple_flash_sort,
-	custom_radix_sort,
 	ska_sort,
 	ska_sort_copy,
 };

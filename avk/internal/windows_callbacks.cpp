@@ -187,8 +187,8 @@ static INT_PTR CALLBACK set_radix_size_callbacks(HWND hDlg, UINT message, WPARAM
                 uint64_t k = 0;
                 if (swscanf_s(dialog_box_buffer, L"%llu", &k) == 1)
                 {
-                    sort_config::radix_size = k;
-                    if (__popcnt(k) != 1)
+                    sort_config::radix_size = (uint32_t)k;
+                    if (__popcnt64(k) != 1)
                     {
                         MessageBox(
                             nullptr,
@@ -226,7 +226,7 @@ static INT_PTR CALLBACK set_grailsort_buffer_size_callbacks(HWND hDlg, UINT mess
             {
                 uint64_t k = 0;
                 if (swscanf_s(dialog_box_buffer, L"%llu", &k) == 1)
-                    sort_config::grail_sort_buffer_size = k;
+                    sort_config::grail_sort_buffer_size = (uint32_t)k;
             }
             EndDialog(hDlg, LOWORD(wParam));
             return (INT_PTR)TRUE;
@@ -390,9 +390,6 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         case IDM_MONITOR_SORT:
             algorithm_thread::assign_body(block_merge_monitor_sort);
             break;
-        case IDM_SIMPLE_FLASH_SORT:
-            algorithm_thread::assign_body(simple_flash_sort);
-            break;
         case IDM_WIKI_SORT:
             algorithm_thread::assign_body(wiki_sort);
             break;
@@ -413,6 +410,9 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             break;
         case IDM_SKA_SORT_COPY:
             algorithm_thread::assign_body(ska_sort_copy);
+            break;
+        case IDM_ANOTHER_ANOTHER_SORTING_NETWORK:
+            algorithm_thread::assign_body(another_another_sorting_network);
             break;
         case IDM_INITIALIZE_LINEAR:
             if (algorithm_thread::is_idle())

@@ -83,7 +83,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     main_array::set_compare_delay(delay);
     main_array::set_read_delay(delay);
     main_array::set_write_delay(delay);
-    main_array::resize(1 << 10);
+    main_array::resize(1 << 12);
     
     constexpr TCHAR title_format[] = TEXT("AVK - Sorting Algorithm Visualizer - [ %u elements ]");
 

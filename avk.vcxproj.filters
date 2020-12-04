@@ -54,9 +54,6 @@
     <ClInclude Include="avk\internal\main_array.h">
       <Filter>avk\internal</Filter>
     </ClInclude>
-    <ClInclude Include="avk\avk.h">
-      <Filter>avk</Filter>
-    </ClInclude>
     <ClInclude Include="avk\internal\graphics\vulkan_state.h">
       <Filter>avk\internal\graphics</Filter>
     </ClInclude>
@@ -182,19 +179,19 @@
     <ClCompile Include="avk\algorithms\stackless_quicksort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="avk\algorithms\simple_flashsort.cpp">
-      <Filter>avk\algorithms</Filter>
-    </ClCompile>
     <ClCompile Include="avk\algorithms\monitor_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
     <ClCompile Include="avk\algorithms\custom_radix_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="avk\algorithms\another_sorting_network.cpp">
+    <ClCompile Include="avk\algorithms\ska_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="avk\algorithms\ska_sort.cpp">
+    <ClCompile Include="avk\algorithms\fold_sort_bottom_up.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\another_another_sorting_network.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
   </ItemGroup>

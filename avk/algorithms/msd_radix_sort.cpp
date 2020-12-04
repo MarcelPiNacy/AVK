@@ -4,7 +4,7 @@
 
 void msd_radix_sort_helper(item* begin, item* end, uint radix_index, uint radix_size)
 {
-	const uint size = end - begin;
+	const uint size = (uint)(end - begin);
 
 	std::vector<uint> offsets = {};
 	std::vector<uint> counts = {};

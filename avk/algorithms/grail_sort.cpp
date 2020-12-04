@@ -15,7 +15,7 @@ void grail_sort(main_array& array)
 	{
 		std::vector<item> buffer;
 		buffer.resize(sort_config::grail_sort_buffer_size);
-		grail_commonSort(array.data(), array.size(), buffer.data(), buffer.size());
+		grail_commonSort(array.data(), array.size(), buffer.data(), (int)buffer.size());
 	}
 	else
 	{

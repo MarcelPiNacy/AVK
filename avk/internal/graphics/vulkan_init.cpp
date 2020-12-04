@@ -625,7 +625,7 @@ int vulkan_on_window_resize()
 	std::scoped_lock guard(main_array_lock);
 	vkDeviceWaitIdle(device);
 
-	vkFreeCommandBuffers(device, command_pool, command_buffers.size(), command_buffers.data());
+	vkFreeCommandBuffers(device, command_pool, (uint32_t)command_buffers.size(), command_buffers.data());
 	for (auto f : framebuffers)
 		vkDestroyFramebuffer(device, f, nullptr);
 	vkDestroyPipeline(device, bar_graph_pipeline, nullptr);
