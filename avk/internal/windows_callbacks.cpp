@@ -18,18 +18,24 @@ static wchar_t dialog_box_buffer[4096 / sizeof(wchar_t)];
 enum class array_mode
 {
     LINEAR,
-    REVERSE,
+    LINEAR_REVERSE,
     ORGAN_PIPE_LINEAR,
-    REVERSE_ORGAN_PIPE_LINEAR,
-    SHUFFLED,
+    ORGAN_PIPE_LINEAR_REVERSE,
+    RANDOM_SHUFFLE,
     RANDOM_ROMUDUOJR,
+    QSORT_KILLER,
+    MIN_HEAP,
+    MAX_HEAP,
 };
 
 static array_mode last_array_mode = array_mode::LINEAR;
 
-static void array_lineal_init()
+template <array_mode>
+void modify_array();
+
+template <>
+void modify_array<array_mode::LINEAR>()
 {
-    last_array_mode = array_mode::LINEAR;
     main_array::for_each([&](item& e, uint32_t position)
     {
         item tmp;
@@ -40,9 +46,9 @@ static void array_lineal_init()
     });
 }
 
-static void array_reverse_init()
+template <>
+void modify_array<array_mode::LINEAR_REVERSE>()
 {
-    last_array_mode = array_mode::REVERSE;
     main_array::for_each([&](item& e, uint32_t position)
     {
         item tmp;
@@ -53,9 +59,9 @@ static void array_reverse_init()
     });
 }
 
-static void array_organ_pipe_lineal_init()
+template <>
+void modify_array<array_mode::ORGAN_PIPE_LINEAR>()
 {
-    last_array_mode = array_mode::ORGAN_PIPE_LINEAR;
     uint32_t k = 0;
     main_array::for_each([&](item& e, uint32_t position)
     {
@@ -71,9 +77,9 @@ static void array_organ_pipe_lineal_init()
     });
 }
 
-static void array_reverse_organ_pipe_lineal_init()
+template <>
+void modify_array<array_mode::ORGAN_PIPE_LINEAR_REVERSE>()
 {
-    last_array_mode = array_mode::ORGAN_PIPE_LINEAR;
     uint32_t k = main_array::size();
     main_array::for_each([&](item& e, uint32_t position)
     {
@@ -89,9 +95,44 @@ static void array_reverse_organ_pipe_lineal_init()
     });
 }
 
-static void array_shuffled_init()
+template <>
+void modify_array<array_mode::QSORT_KILLER>()
 {
-    last_array_mode = array_mode::SHUFFLED;
+    const uint k = main_array::size();
+    uint left = 0;
+    uint middle = k / 2;
+    uint right = middle;
+    uint step = 2;
+    uint staircase = 0;
+
+    for (uint i = 0; i < k; ++i)
+    {
+        if (i & 1)
+        {
+            swap(main_array::get(i), main_array::get(right));
+            ++right;
+        }
+        else
+        {
+            swap(main_array::get(i), main_array::get(left));
+            left += step;
+            if (left >= middle)
+            {
+                ++staircase;
+                uint nl = 1;
+                for (uint s = 0; s < staircase; ++s)
+                    nl *= left;
+                left = nl - 1;
+                step *= 2;
+            }
+        }
+    }
+    swap(main_array::get(middle - 1), main_array::get(k - 1));
+}
+
+template <>
+void modify_array<array_mode::RANDOM_SHUFFLE>()
+{
     struct romu_duo_functor
     {
         using result_type = uint64_t;
@@ -115,9 +156,9 @@ static void array_shuffled_init()
     });
 }
 
-static void array_random_romuduojr_init()
+template <>
+void modify_array<array_mode::RANDOM_ROMUDUOJR>()
 {
-    last_array_mode = array_mode::RANDOM_ROMUDUOJR;
     romu_duo_set_seed(main_array::size() ^ time(nullptr));
     main_array::for_each([](item& e, uint32_t position)
     {
@@ -129,24 +170,36 @@ static void array_random_romuduojr_init()
     });
 }
 
+template <>
+void modify_array<array_mode::MIN_HEAP>()
+{
+    std::make_heap(main_array::begin(), main_array::end(), std::greater<>());
+}
+
+template <>
+void modify_array<array_mode::MAX_HEAP>()
+{
+    std::make_heap(main_array::begin(), main_array::end(), std::less<>());
+}
+
 static void restore_last_distribution()
 {
     switch (last_array_mode)
     {
     case array_mode::LINEAR:
-        array_lineal_init();
+        modify_array<array_mode::LINEAR>();
         break;
-    case array_mode::REVERSE:
-        array_reverse_init();
+    case array_mode::LINEAR_REVERSE:
+        modify_array<array_mode::LINEAR>();
         break;
     case array_mode::ORGAN_PIPE_LINEAR:
-        array_organ_pipe_lineal_init();
+        modify_array<array_mode::LINEAR>();
         break;
-    case array_mode::SHUFFLED:
-        array_shuffled_init();
+    case array_mode::RANDOM_SHUFFLE:
+        modify_array<array_mode::LINEAR>();
         break;
     case array_mode::RANDOM_ROMUDUOJR:
-        array_random_romuduojr_init();
+        modify_array<array_mode::LINEAR>();
         break;
     default:
         break;
@@ -302,29 +355,7 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             {
                 for (auto fn : sort_table)
                 {
-                    switch (last_array_mode)
-                    {
-                    case array_mode::LINEAR:
-                        array_lineal_init();
-                        break;
-                    case array_mode::REVERSE:
-                        array_reverse_init();
-                        break;
-                    case array_mode::ORGAN_PIPE_LINEAR:
-                        array_organ_pipe_lineal_init();
-                        break;
-                    case array_mode::REVERSE_ORGAN_PIPE_LINEAR:
-                        array_reverse_organ_pipe_lineal_init();
-                        break;
-                    case array_mode::SHUFFLED:
-                        array_shuffled_init();
-                        break;
-                    case array_mode::RANDOM_ROMUDUOJR:
-                        array_random_romuduojr_init();
-                        break;
-                    default:
-                        break;
-                    }
+                    restore_last_distribution();
                     fn(array);
                     main_array::sleep(1);
                 }
@@ -421,42 +452,63 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::LINEAR;
-                algorithm_thread::assign_body([](main_array& unused) { array_lineal_init(); });
+                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::LINEAR>(); });
             }
             break;
-        case IDM_INITIALIZE_REVERSE:
+        case IDM_INITIALIZE_REVERSE_LINEAR:
             if (algorithm_thread::is_idle())
             {
-                last_array_mode = array_mode::REVERSE;
-                algorithm_thread::assign_body([](main_array& unused) { array_reverse_init(); });
+                last_array_mode = array_mode::LINEAR_REVERSE;
+                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::LINEAR_REVERSE>(); });
             }
             break;
         case IDM_INITIALIZE_ORGAN_PIPE_LINEAR:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::ORGAN_PIPE_LINEAR;
-                algorithm_thread::assign_body([](main_array& unused) { array_organ_pipe_lineal_init(); });
+                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::ORGAN_PIPE_LINEAR>(); });
             }
             break;
-        case IDM_INITIALIZE_SHUFFLED:
+        case IDM_INITIALIZE_RANDOM_SHUFFLE:
             if (algorithm_thread::is_idle())
             {
-                last_array_mode = array_mode::SHUFFLED;
-                algorithm_thread::assign_body([](main_array& unused) { array_shuffled_init(); });
+                last_array_mode = array_mode::RANDOM_SHUFFLE;
+                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::RANDOM_SHUFFLE>(); });
             }
             break;
-        case IDM_INITIALIZE_ROMUDUOJR:
+        case IDM_INITIALIZE_RANDOM_ROMU_DUO_JR:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::RANDOM_ROMUDUOJR;
-                algorithm_thread::assign_body([](main_array& unused) { array_random_romuduojr_init(); });
+                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::RANDOM_ROMUDUOJR>(); });
             }
             break;
         case IDM_INITIALIZE_REVERSE_ORGAN_PIPE_LINEAR:
             if (algorithm_thread::is_idle())
             {
-                last_array_mode = array_mode::REVERSE_ORGAN_PIPE_LINEAR;
-                algorithm_thread::assign_body([](main_array& unused) { array_reverse_organ_pipe_lineal_init(); });
+                last_array_mode = array_mode::ORGAN_PIPE_LINEAR_REVERSE;
+                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::ORGAN_PIPE_LINEAR_REVERSE>(); });
+            }
+            break;
+        case IDM_QSORT_KILLER:
+            if (algorithm_thread::is_idle())
+            {
+                last_array_mode = array_mode::QSORT_KILLER;
+                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::QSORT_KILLER>(); });
+            }
+            break;
+        case IDM_INITIALIZE_MAX_HEAP:
+            if (algorithm_thread::is_idle())
+            {
+                last_array_mode = array_mode::MAX_HEAP;
+                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::MAX_HEAP>(); });
+            }
+            break;
+        case IDM_INITIALIZE_MIN_HEAP:
+            if (algorithm_thread::is_idle())
+            {
+                last_array_mode = array_mode::MIN_HEAP;
+                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::MIN_HEAP>(); });
             }
             break;
         case IDM_SET_RADIX_SIZE:
