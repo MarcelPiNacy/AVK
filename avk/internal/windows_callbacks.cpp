@@ -99,32 +99,39 @@ template <>
 void modify_array<array_mode::QSORT_KILLER>()
 {
     const uint k = main_array::size();
+    const uint middle = k / 2;
     uint left = 0;
-    uint middle = k / 2;
     uint right = middle;
     uint step = 2;
     uint staircase = 0;
 
     for (uint i = 0; i < k; ++i)
     {
-        if (i & 1)
+        if ((i & 1) == 0)
         {
-            swap(main_array::get(i), main_array::get(right));
-            ++right;
-        }
-        else
-        {
-            swap(main_array::get(i), main_array::get(left));
+            item& e = main_array::get(left);
+            e = {};
+            e.color = item_color::white();
+            e.value = i;
+            e.original_position = left;
+
             left += step;
             if (left >= middle)
             {
                 ++staircase;
-                uint nl = 1;
-                for (uint s = 0; s < staircase; ++s)
-                    nl *= left;
-                left = nl - 1;
+                left = 1 << (uint8_t)_tzcnt_u64(staircase);
+                --left;
                 step *= 2;
             }
+        }
+        else
+        {
+            item& e = main_array::get(right);
+            e = {};
+            e.color = item_color::white();
+            e.value = i;
+            e.original_position = right;
+            ++right;
         }
     }
     swap(main_array::get(middle - 1), main_array::get(k - 1));
