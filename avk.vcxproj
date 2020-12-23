@@ -230,12 +230,14 @@
     <ClInclude Include="avk\algorithms\all.h" />
     <ClInclude Include="avk\algorithms\sort_config.h" />
     <ClInclude Include="avk\algorithms\sort_utility.h" />
+    <ClInclude Include="avk\external_dependencies\binary_quicksort\binary_quicksort.h" />
     <ClInclude Include="avk\external_dependencies\fold_sort.h" />
     <ClInclude Include="avk\external_dependencies\GrailSort.h">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
     <ClInclude Include="avk\external_dependencies\ska_sort\ska_sort.hpp" />
+    <ClInclude Include="avk\external_dependencies\SqrtSort\SqrtSort.h" />
     <ClInclude Include="avk\internal\defer.h" />
     <ClInclude Include="avk\internal\enforce.h" />
     <ClInclude Include="avk\internal\common.h" />
@@ -251,7 +253,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="avk\algorithms\american_flag_sort.cpp" />
-    <ClCompile Include="avk\algorithms\another_another_sorting_network.cpp" />
+    <ClCompile Include="avk\algorithms\binary_msd_radix_sort.cpp" />
     <ClCompile Include="avk\algorithms\fold_sort_bottom_up.cpp" />
     <ClCompile Include="avk\algorithms\binary_tree_sort.cpp" />
     <ClCompile Include="avk\algorithms\bitonic_sort.cpp" />
@@ -265,6 +267,7 @@
     <ClCompile Include="avk\algorithms\odd_even_sort.cpp" />
     <ClCompile Include="avk\algorithms\radix_tree_sort.cpp" />
     <ClCompile Include="avk\algorithms\ska_sort.cpp" />
+    <ClCompile Include="avk\algorithms\sqrt_sort.cpp" />
     <ClCompile Include="avk\algorithms\stackless_quicksort.cpp" />
     <ClCompile Include="avk\algorithms\std_inplace_merge.cpp" />
     <ClCompile Include="avk\algorithms\lsd_radix_sort.cpp" />

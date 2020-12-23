@@ -1016,18 +1016,12 @@ namespace monitor_sort
 		K run_index = done_run_index;
 		I buffer_begin = end;
 		I buffer_end = control_buffer_begin;
-		do
+		while (end > begin)
 		{
 			const I merge_end = end;
-			--run_index;
 			
-			if (run_index == 0)
-				break;
-
 			const K right_size = decode_size_backward<K>(merge_end, min_run_size);
 			MONITOR_SORT_INVARIANT(right_size != 0);
-
-			end -= right_size;
 
 			if (right_size > internal_buffer_size)
 			{
@@ -1038,7 +1032,6 @@ namespace monitor_sort
 			}
 
 			const I merge_middle = end;
-			--run_index;
 			
 			const K left_size = decode_size_backward<K>(merge_middle, min_run_size);
 			MONITOR_SORT_INVARIANT(left_size != 0);
@@ -1055,6 +1048,7 @@ namespace monitor_sort
 				continue;
 			}
 
+			--run_index;
 			hybrid_insertion_sort_stable(merge_begin, merge_middle);
 			hybrid_insertion_sort_stable(merge_middle, merge_end);
 			internal_merge_backward(merge_begin, merge_middle, merge_end, buffer_end);
@@ -1062,7 +1056,9 @@ namespace monitor_sort
 			buffer_end -= merged_size;
 			encode_size_forward(buffer_end, left_size + right_size);
 
-		} while (run_index > 0);
+			if (end == begin)
+				break;
+		}
 
 		if (run_index == 0)
 		{

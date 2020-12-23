@@ -43,6 +43,9 @@
 #define IDM_SKA_SORT                    530
 #define IDM_SKA_SORT_COPY               531
 #define IDM_ANOTHER_ANOTHER_SORTING_NETWORK 532
+#define IDM_SQRT_SORT					533
+#define IDM_BINARY_MSD_RADIX_SORT		534
+
 #define IDM_PAUSE_SIMULATION            1000
 #define IDM_RESUME_SIMULATION           1001
 #define IDM_ABORT_SIMULATION            1002

@@ -411,8 +411,11 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         case IDM_SKA_SORT_COPY:
             algorithm_thread::assign_body(ska_sort_copy);
             break;
-        case IDM_ANOTHER_ANOTHER_SORTING_NETWORK:
-            algorithm_thread::assign_body(another_another_sorting_network);
+        case IDM_SQRT_SORT:
+            algorithm_thread::assign_body(sqrt_sort);
+            break;
+        case IDM_BINARY_MSD_RADIX_SORT:
+            algorithm_thread::assign_body(binary_msd_radix_sort);
             break;
         case IDM_INITIALIZE_LINEAR:
             if (algorithm_thread::is_idle())

@@ -29,7 +29,8 @@ void stackless_quick_sort(main_array& array);
 void custom_radix_sort(main_array& array);
 void ska_sort(main_array& array);
 void ska_sort_copy(main_array& array);
-void another_another_sorting_network(main_array& array);
+void sqrt_sort(main_array& array);
+void binary_msd_radix_sort(main_array& array);
 
 
 

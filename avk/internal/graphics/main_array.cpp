@@ -144,6 +144,8 @@ void main_array::set_compare_delay(double seconds) noexcept
 
 void main_array::sleep(double seconds) noexcept
 {
+	if (seconds <= DBL_EPSILON)
+		return;
 	constexpr double sleep_threshold = 1.0 / 1000.0;
 	if (seconds > sleep_threshold)
 	{
@@ -305,6 +307,11 @@ void reverse(main_array& array, uint offset, uint size) noexcept
 		++begin;
 		--end;
 	}
+}
+
+uint8_t extract_byte(const item& value, uint byte_index) noexcept
+{
+	return extract_radix(value, byte_index);
 }
 
 uint extract_radix(const item& value, uint radix_index, uint radix) noexcept

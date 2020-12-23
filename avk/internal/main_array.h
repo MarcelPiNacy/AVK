@@ -123,6 +123,7 @@ void swap(main_array& array, uint left_index, uint right_index) noexcept;
 bool compare_swap(item& left, item& right) noexcept;
 bool compare_swap(main_array& array, uint left_index, uint right_index) noexcept;
 void reverse(main_array& array, uint offset, uint size) noexcept;
+uint8_t extract_byte(const item& value, uint byte_index) noexcept;
 uint extract_radix(const item& value, uint radix_index, uint radix = 256) noexcept;
 
 
@@ -162,6 +163,14 @@ struct main_array
 struct scoped_highlight
 {
 	uint32_t& flags;
+
+	inline scoped_highlight(item& e) noexcept
+		: flags(e.flags)
+	{
+		main_array::internal_lock();
+		flags |= 1;
+		main_array::internal_unlock();
+	}
 
 	inline scoped_highlight(uint32_t& flags) noexcept
 		: flags(flags)

@@ -84,6 +84,12 @@
     <ClInclude Include="avk\external_dependencies\ska_sort\ska_sort.hpp">
       <Filter>avk\external dependencies</Filter>
     </ClInclude>
+    <ClInclude Include="avk\external_dependencies\SqrtSort\SqrtSort.h">
+      <Filter>avk\external dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="avk\external_dependencies\binary_quicksort\binary_quicksort.h">
+      <Filter>avk\external dependencies</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="avk\internal\main.cpp">
@@ -191,7 +197,10 @@
     <ClCompile Include="avk\algorithms\fold_sort_bottom_up.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="avk\algorithms\another_another_sorting_network.cpp">
+    <ClCompile Include="avk\algorithms\sqrt_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\binary_msd_radix_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
   </ItemGroup>
