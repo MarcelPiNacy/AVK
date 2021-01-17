@@ -27,7 +27,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    constexpr TCHAR class_name[] = TEXT("ArrayVKClassName");
+    constexpr TCHAR class_name[] = TEXT("AVKClassName");
 
     WNDCLASSEXW wcex;
     wcex.cbSize = sizeof(WNDCLASSEX);
@@ -50,7 +50,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     hinstance = hInstance;
 
-    constexpr TCHAR title[] = TEXT("ArrayVK - Sorting Algorithm Visualizer");
+    constexpr TCHAR title[] = TEXT("AVK - Sorting Algorithm Visualizer");
 
     hwnd = CreateWindow(
         class_name,
@@ -79,7 +79,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     auto last = high_resolution_clock::now();
     
-    double delay = 0.0001;
+    double delay = 0.00009;
     main_array::set_compare_delay(delay);
     main_array::set_read_delay(delay);
     main_array::set_write_delay(delay);
@@ -126,6 +126,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         }
     }
 
-    algorithm_thread::terminate(); //die
+    algorithm_thread::terminate();
     return (int)msg.message;
 }

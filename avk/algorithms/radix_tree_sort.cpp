@@ -42,7 +42,7 @@ struct node
 	};
 };
 
-node_ptr build_radix_tree(main_array& array, uint radix_size)
+node_ptr build_radix_tree(main_array array, uint radix_size)
 {
 	node_ptr root = nullptr;
 	for (item& e : array)
@@ -91,7 +91,7 @@ void traverse_radix_tree(node& node, uint depth, uint max_radix, item*& out_begi
 	}
 }
 
-void radix_tree_sort(main_array& array)
+void radix_tree_sort(main_array array)
 {
 	const uint default_radix_size = 256;
 	auto root = build_radix_tree(array, default_radix_size);

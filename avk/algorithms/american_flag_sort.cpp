@@ -104,7 +104,7 @@ namespace detail::american_flag_sort
 				return;
 			--digit_index;
 
-			std::sort(std::begin(partitions), std::end(partitions));
+			std::stable_sort(std::begin(partitions), std::end(partitions));
 			const partition_info* const partitions_end = partitions + Radix;
 			for (auto p = partitions_end - active_partition_count; p < partitions_end; ++p)
 				core(p->begin, p->end, digit_index, extract_digit);
@@ -127,7 +127,7 @@ constexpr void american_flag_sort(RandomAccessIterator begin, RandomAccessIterat
 	detail::american_flag_sort::sort<RadixSize>(begin, end, MaxDigits - 1, extract_digit);
 }
 
-void american_flag_sort(main_array& array)
+void american_flag_sort(main_array array)
 {
 	const uint default_radix_size = sort_config::radix_size;
 	american_flag_sort<4>(array.begin(), array.end(), extract_byte);

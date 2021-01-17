@@ -21,7 +21,7 @@ constexpr item* binary_search(item* begin, item* end, item* target)
 	return end;
 }
 
-void gambit_insertion_sort(main_array& array)
+void gambit_insertion_sort(main_array array)
 {
 	uint offset = 1;
 	while (offset * offset < array.size())

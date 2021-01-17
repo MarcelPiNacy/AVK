@@ -358,7 +358,7 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             DestroyWindow(hWnd);
             break;
         case IDM_RUN_ALL_SORTS:
-            algorithm_thread::assign_body([](main_array& array)
+            algorithm_thread::assign_body([](main_array array)
             {
                 for (auto fn : sort_table)
                 {
@@ -395,7 +395,7 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         case IDM_ODD_EVEN_MERGE_SORT:
             algorithm_thread::assign_body(odd_even_merge_sort);
             break;
-        case IDM_BITONIC_SORT:
+        case IDM_BITONIC_SORT_SEQUENTIAL:
             algorithm_thread::assign_body(bitonic_sort);
             break;
         case IDM_FOLD_SORT_TOP_DOWN:
@@ -455,67 +455,85 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         case IDM_BINARY_MSD_RADIX_SORT:
             algorithm_thread::assign_body(binary_msd_radix_sort);
             break;
+        case IDM_GRAIL_SORT_CPP:
+            algorithm_thread::assign_body(grail_sort_cpp);
+            break;
+        case IDM_QUAD_SORT:
+            algorithm_thread::assign_body(quad_sort);
+            break;
+        case IDM_PARADIS_SORT:
+            algorithm_thread::assign_body(PARADIS_sort);
+            break;
+        case IDM_PARALLEL_MERGE_SORT:
+            algorithm_thread::assign_body(parallel_merge_sort);
+            break;
+        case IDM_BITONIC_SORT:
+            algorithm_thread::assign_body(bitonic_sort_parallel);
+            break;
+        case IDM_FOLD_SORT_PARALLEL:
+            algorithm_thread::assign_body(fold_sort_parallel);
+            break;
         case IDM_INITIALIZE_LINEAR:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::LINEAR;
-                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::LINEAR>(); });
+                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::LINEAR>(); });
             }
             break;
         case IDM_INITIALIZE_REVERSE_LINEAR:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::LINEAR_REVERSE;
-                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::LINEAR_REVERSE>(); });
+                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::LINEAR_REVERSE>(); });
             }
             break;
         case IDM_INITIALIZE_ORGAN_PIPE_LINEAR:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::ORGAN_PIPE_LINEAR;
-                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::ORGAN_PIPE_LINEAR>(); });
+                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::ORGAN_PIPE_LINEAR>(); });
             }
             break;
         case IDM_INITIALIZE_RANDOM_SHUFFLE:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::RANDOM_SHUFFLE;
-                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::RANDOM_SHUFFLE>(); });
+                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::RANDOM_SHUFFLE>(); });
             }
             break;
         case IDM_INITIALIZE_RANDOM_ROMU_DUO_JR:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::RANDOM_ROMUDUOJR;
-                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::RANDOM_ROMUDUOJR>(); });
+                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::RANDOM_ROMUDUOJR>(); });
             }
             break;
         case IDM_INITIALIZE_REVERSE_ORGAN_PIPE_LINEAR:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::ORGAN_PIPE_LINEAR_REVERSE;
-                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::ORGAN_PIPE_LINEAR_REVERSE>(); });
+                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::ORGAN_PIPE_LINEAR_REVERSE>(); });
             }
             break;
         case IDM_QSORT_KILLER:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::QSORT_KILLER;
-                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::QSORT_KILLER>(); });
+                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::QSORT_KILLER>(); });
             }
             break;
         case IDM_INITIALIZE_MAX_HEAP:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::MAX_HEAP;
-                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::MAX_HEAP>(); });
+                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::MAX_HEAP>(); });
             }
             break;
         case IDM_INITIALIZE_MIN_HEAP:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::MIN_HEAP;
-                algorithm_thread::assign_body([](main_array& unused) { modify_array<array_mode::MIN_HEAP>(); });
+                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::MIN_HEAP>(); });
             }
             break;
         case IDM_SET_RADIX_SIZE:

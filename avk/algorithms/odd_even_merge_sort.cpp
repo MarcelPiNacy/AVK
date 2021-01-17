@@ -1,6 +1,6 @@
 #include "all.h"
 
-void odd_even_merge_sort(main_array& array)
+void odd_even_merge_sort(main_array array)
 {
 	for (uint p = 1; p < array.size(); p *= 2)
 	{

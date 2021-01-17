@@ -90,6 +90,9 @@
     <ClInclude Include="avk\external_dependencies\binary_quicksort\binary_quicksort.h">
       <Filter>avk\external dependencies</Filter>
     </ClInclude>
+    <ClInclude Include="avk\external_dependencies\quadsort.h">
+      <Filter>avk\external dependencies</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="avk\internal\main.cpp">
@@ -201,6 +204,24 @@
       <Filter>avk\algorithms</Filter>
     </ClCompile>
     <ClCompile Include="avk\algorithms\binary_msd_radix_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\grailsort_cpp.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\quadsort_cpp.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\PARADIS_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\parallel_merge_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\bitonic_sort_parallel.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\fold_sort_parallel.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
   </ItemGroup>

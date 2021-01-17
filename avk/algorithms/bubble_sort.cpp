@@ -1,20 +1,26 @@
 #include "all.h"
+#include <iterator>
 
-void bubble_sort(main_array& array)
+template <typename I>
+constexpr void bubble_sort(I begin, I end)
 {
-	uint max = array.size();
-	bool flag;
-	do
+	while (true)
 	{
-		flag = false;
-		for (uint i = 1; i < max; ++i)
+		bool loop = false;
+		for (I i = begin + 1; i != end; ++i)
 		{
-			if (array[i - 1] > array[i])
-			{
-				swap(array[i - 1], array[i]);
-				flag = true;
-			}
+			bool flag = *(i - 1) > *i;
+			if (flag)
+				std::iter_swap(i - 1, i);
+			if (flag)
+				loop = true;
 		}
-		--max;
-	} while (flag);
+		if (!loop)
+			break;
+	}
+}
+
+void bubble_sort(main_array array)
+{
+	bubble_sort(array.begin(), array.end());
 }

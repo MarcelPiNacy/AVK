@@ -3,7 +3,7 @@
 
 
 
-void binary_tree_sort(main_array& array)
+void binary_tree_sort(main_array array)
 {
 	std::multiset<item> tree;
 	for (item& e : array)

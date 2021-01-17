@@ -2,7 +2,7 @@
 #include <vector>
 #include <array>
 
-void lsd_radix_sort(main_array& array)
+void lsd_radix_sort(main_array array)
 {
 	const uint radix_size = sort_config::radix_size;
 

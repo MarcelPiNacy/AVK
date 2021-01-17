@@ -67,15 +67,8 @@ constexpr I partition(I begin, I end)
 
 	while (true)
 	{
-		do
-		{
-			++i;
-		} while (i < end && *i < *begin);
-
-		do
-		{
-			--j;
-		} while (j >= begin && *j > *begin);
+		do { ++i; } while (i < end && *i < *begin);
+		do { --j; } while (j >= begin && *j > *begin);
 
 		if (i < j)
 		{
@@ -137,7 +130,7 @@ constexpr void iterative_quicksort(I begin, I end)
 
 }
 
-void stackless_quick_sort(main_array& array)
+void stackless_quick_sort(main_array array)
 {
 	iterative_quicksort(array.begin(), array.end());
 }

@@ -1,7 +1,7 @@
 #include "all.h"
 #include <vector>
 
-void counting_sort(main_array& array)
+void counting_sort(main_array array)
 {
 	std::vector<uint> counts;
 	std::vector<item> buffer;

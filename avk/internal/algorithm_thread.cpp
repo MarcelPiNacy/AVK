@@ -20,7 +20,6 @@ static std::atomic<uint32_t> tail;	//Same
 
 static DWORD WINAPI thread_entry_point(void* unused) noexcept
 {
-	auto& main_array = *(::main_array*)nullptr;
 	while (should_continue_global.load(std::memory_order_acquire))
 	{
 		auto h = head.load(std::memory_order_acquire);
@@ -29,7 +28,7 @@ static DWORD WINAPI thread_entry_point(void* unused) noexcept
 			break;
 		if (sort_function == nullptr)
 			continue;
-		sort_function(main_array);
+		sort_function({});
 		sort_stats::clear();
 		sort_function = nullptr;
 		(void)tail.fetch_add(1, std::memory_order_release);

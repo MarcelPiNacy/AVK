@@ -76,7 +76,7 @@ constexpr void binary_quicksort(I begin, I end, size_t max_bit, F&& extract_bit)
 
 
 
-void binary_msd_radix_sort(main_array& array)
+void binary_msd_radix_sort(main_array array)
 {
 	return binary_quicksort(array.begin(), array.end(), item::max_radix(2) - 1, [](const item& e, size_t bit_index) { return ((e.value >> bit_index) & 1) != 0; });
 }

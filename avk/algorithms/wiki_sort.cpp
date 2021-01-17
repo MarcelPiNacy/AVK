@@ -1069,7 +1069,7 @@ void Verify(Iterator start, Iterator end, const Comparison compare, const string
 
 
 
-void wiki_sort(main_array& array)
+void wiki_sort(main_array array)
 {
     Wiki::Sort(array.begin(), array.end(), [](const item& l, const item& r) { return l < r; });
 }

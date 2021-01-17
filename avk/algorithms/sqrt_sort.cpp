@@ -8,7 +8,7 @@ static int ss_cmp(item* l, item* r)
 #define SORT_TYPE item
 #include "../external_dependencies/SqrtSort/SqrtSort.h"
 
-void sqrt_sort(main_array& array)
+void sqrt_sort(main_array array)
 {
 	SqrtSort(array.data(), array.size());
 }

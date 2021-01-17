@@ -5,108 +5,108 @@
 #include <cassert>
 #include <bitset>
 
-namespace stripe_sort
+namespace stackless_american_flag_sort
 {
 	template <typename I, typename F>
-	struct detail
+	struct helper_type
 	{
-		static constexpr auto radix_size = 256;
+		using difference_type = typename std::iterator_traits<I>::difference_type;
+		using size_type = std::make_unsigned_t<difference_type>;
 
-		struct partition_info
+		enum : uint_fast16_t
 		{
-			I begin;
-			I end;
-
-			constexpr auto size() const
-			{
-				return std::distance(begin, end);
-			}
-
-			constexpr bool operator < (partition_info other) const
-			{
-				return size() < other.size();
-			}
+			radix_size = 256,
+			radix_size_mask = (uint_fast8_t)(radix_size - 1),
+			radix_size_log2 = 8
 		};
 
-		static void core(I begin, I end, size_t digit_index, F& extract_digit)
+		inline static thread_local size_type counts[radix_size];
+		inline static thread_local size_type offsets[radix_size];
+		inline static thread_local size_type next_free[radix_size];
+
+		static constexpr size_type shift(size_type value, size_type count)
 		{
-			uint_fast16_t active_partition_count;
-			partition_info partitions[256];
-			static thread_local std::bitset<256> presence;
-			static thread_local size_t counts[256];
-			static thread_local I next_begin[256];
+			for (; count != 0; --count)
+				value >>= radix_size_log2;
+			return value;
+		}
 
-			while (true)
+		static constexpr void entry_point(I begin, I end, F& extract_digit, size_t digit_count)
+		{
+			size_t digit_index = digit_count - 1;
+			I local_end = end;
+			size_type m = 0;
+
+			std::fill(std::begin(counts), std::end(counts), 0);
+			std::fill(std::begin(offsets), std::end(offsets), 0);
+
+			while (begin != end)
 			{
-				memset(counts, 0, sizeof(counts));
-				presence.reset();
-				for (I i = begin; i < end; ++i)
+				I next_end = begin;
+				if (std::distance(begin, local_end) > 1)
 				{
-					const auto digit = extract_digit(*i, digit_index);
-					++counts[digit];
-					presence.set(digit, true);
-				}
-
-				active_partition_count = presence.count();
-				if (active_partition_count > 1)
-				{
-					I i = begin;
-					for (uint_fast16_t p = 0; p < 256; ++p)
+					for (uint_fast16_t i = 1; i != radix_size; ++i)
 					{
-						partitions[p].begin = i;
-						i += counts[p];
-						partitions[p].end = i;
+						const size_t previous = counts[i - 1];
+						counts[i] += previous;
+						offsets[i] = previous;
 					}
-					break;
+
+					std::copy(std::begin(offsets), std::end(offsets), std::begin(next_free));
+
+					I i = begin;
+					for (uint_fast8_t p = 0; p != radix_size_mask;)
+					{
+						uint_fast8_t next_p = p + 1;
+						if (i >= begin + offsets[next_p])
+						{
+							p = next_p;
+							continue;
+						}
+						const auto digit = extract_digit(*i, digit_index);
+						if (digit == p)
+						{
+							++i;
+							continue;
+						}
+						const I target = begin + next_free[digit];
+						std::iter_swap(i, target);
+						++next_free[digit];
+					}
+
+					next_end = begin + offsets[1];
+					std::fill(std::begin(counts), std::end(counts), 0);
+					std::fill(std::begin(offsets), std::end(offsets), 0);
 				}
 
 				if (digit_index == 0)
-					return;
-				--digit_index;
-			}
-
-			for (uint_fast16_t p = 0; p < 256; ++p)
-				next_begin[p] = partitions[p].begin;
-
-			I i = begin;
-			for (uint_fast16_t p = 0; p < 255;)
-			{
-				uint_fast16_t q = p + 1;
-				if (!presence.test(p) || i >= partitions[q].begin)
 				{
-					p = q;
-					continue;
+					m += radix_size;
+					for (size_type t = m >> radix_size_log2; (t & radix_size_mask) == 0; t >>= radix_size_log2)
+						++digit_index;
+					begin = local_end;
+					for (; local_end != end && shift(local_end->value - m, digit_index + 1) == 0; ++local_end)
+						++counts[extract_digit(*local_end, digit_index)];
 				}
-				const auto digit = extract_digit(*i, digit_index);
-				assert(presence.test(digit));
-				if (digit == p)
+				else
 				{
-					++i;
-					continue;
+					local_end = next_end;
+					--digit_index;
+					for (I i = begin; i != local_end; ++i)
+						++counts[extract_digit(*i, digit_index)];
 				}
-				std::iter_swap(i, next_begin[digit]);
-				++next_begin[digit];
 			}
-
-			if (digit_index == 0)
-				return;
-			--digit_index;
-
-			std::sort(std::begin(partitions), std::end(partitions));
-			const auto partitions_end = partitions + 256;
-			for (auto p = partitions_end - active_partition_count; p < partitions_end; ++p)
-				core(p->begin, p->end, digit_index, extract_digit);
 		}
 	};
 
 	template <typename I, typename F>
-	void sort(I begin, I end, size_t last_digit, F&& function)
+	void sort(I begin, I end, F&& function, size_t digit_count)
 	{
-		detail<I, F>::core(begin, end, last_digit, function);
+		helper_type<I, F>::entry_point(begin, end, function, digit_count);
 	}
 }
 
-void custom_radix_sort(main_array& array)
+void custom_radix_sort(main_array array)
 {
-	stripe_sort::sort(array.begin(), array.end(), item::max_radix() - 1, extract_byte);
+	stackless_american_flag_sort::sort(array.begin(), array.end(), extract_byte, item::max_radix());
 }

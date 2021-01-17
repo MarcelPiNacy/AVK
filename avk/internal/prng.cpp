@@ -12,7 +12,7 @@ void romu_duo_set_seed(uint64_t seed) noexcept
 uint64_t romu_duo_get() noexcept
 {
 	const uint64_t result = rmdx;
-	rmdx = 15241094284759029579u * rmdy;
+	rmdx = 15241094284759029579 * rmdy;
 	rmdy = rmdy - result;
 	rmdy = _rotl64(rmdy, 27);
 	return result;

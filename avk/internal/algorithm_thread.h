@@ -2,7 +2,7 @@
 #include <cstdint>
 #include "main_array.h"
 
-using sort_function_pointer = void(*)(main_array& main_array);
+using sort_function_pointer = void(*)(main_array main_array);
 
 namespace algorithm_thread
 {

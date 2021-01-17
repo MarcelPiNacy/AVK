@@ -1,6 +1,6 @@
 #include "all.h"
 
-void insertion_sort(main_array& array)
+void insertion_sort(main_array array)
 {
 	for (sint i = 1; i < (sint)array.size(); ++i)
 	{

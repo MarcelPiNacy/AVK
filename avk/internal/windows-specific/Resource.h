@@ -11,10 +11,12 @@
 #define IDD_CREDITSBOX								106
 #define IDM_EXIT									107
 #define IDC_MYICON									108
+
 #define IDD_SET_RADIX_SIZE_BOX						109
 #define IDD_SET_GRAILSORT_BUFFER_SIZE_BOX			110
 #define IDD_SET_ARRAY_SIZE_BOX						111
 #define IDM_RUN_ALL_SORTS							500
+
 #define IDM_SELECTION_SORT							501
 #define IDM_INSERTION_SORT							502
 #define IDM_BUBBLE_SORT								503
@@ -22,7 +24,8 @@
 #define IDM_STD_STABLE_SORT							505
 #define IDM_STD_SORT								506
 #define IDM_GRAIL_SORT								507
-#define IDM_BITONIC_SORT							510
+#define IDM_GRAIL_SORT_CPP							508
+#define IDM_BITONIC_SORT_SEQUENTIAL					510
 #define IDM_ODD_EVEN_MERGE_SORT						511
 #define IDM_FOLD_SORT_TOP_DOWN						512
 #define IDM_STD_INPLACE_MERGE_SORT					513
@@ -45,6 +48,11 @@
 #define IDM_ANOTHER_ANOTHER_SORTING_NETWORK			532
 #define IDM_SQRT_SORT								533
 #define IDM_BINARY_MSD_RADIX_SORT					534
+#define IDM_QUAD_SORT								535
+#define IDM_PARALLEL_MERGE_SORT						536
+#define IDM_PARADIS_SORT							537
+#define IDM_BITONIC_SORT							538
+#define IDM_FOLD_SORT_PARALLEL						539
 
 #define IDM_PAUSE_SIMULATION						1000
 #define IDM_RESUME_SIMULATION						1001

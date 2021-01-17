@@ -9,7 +9,7 @@ static int gs_cmp(item* l, item* r)
 #include "../external_dependencies/GrailSort.h"
 #include <vector>
 
-void grail_sort(main_array& array)
+void grail_sort(main_array array)
 {
 	if (sort_config::grail_sort_buffer_size != 0)
 	{

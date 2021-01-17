@@ -1,6 +1,6 @@
 #include "all.h"
 
-void odd_even_sort(main_array& array)
+void odd_even_sort(main_array array)
 {
 	bool flag;
 	do

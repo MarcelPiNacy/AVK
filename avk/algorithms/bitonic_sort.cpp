@@ -1,6 +1,6 @@
 #include "all.h"
 
-void bitonic_sort(main_array& array)
+void bitonic_sort(main_array array)
 {
 	for (uint k = 2; k <= array.size(); k *= 2)
 	{

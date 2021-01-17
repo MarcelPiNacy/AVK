@@ -2,6 +2,7 @@
 #include <vulkan/vulkan.h>
 #include <vector>
 #include <chrono>
+#include <thread>
 #include "..\main_array.h"
 #include <cassert>
 #include "../enforce.h"
@@ -146,18 +147,30 @@ void main_array::sleep(double seconds) noexcept
 {
 	if (seconds <= DBL_EPSILON)
 		return;
+	
 	constexpr double sleep_threshold = 1.0 / 1000.0;
+	constexpr double yield_threshold = 1.0 / 1000.0;
+
 	if (seconds > sleep_threshold)
 	{
 		seconds *= 1000.0;
 		Sleep((DWORD)seconds);
+		return;
+	}
+	
+
+	using namespace std::chrono;
+	seconds *= 1000'000'000;
+	const int64_t nanoseconds = (int64_t)seconds;
+	const auto start = high_resolution_clock::now();
+
+	if (seconds > yield_threshold)
+	{
+		while ((high_resolution_clock::now() - start).count() < nanoseconds)
+			std::this_thread::yield();
 	}
 	else
 	{
-		using namespace std::chrono;
-		seconds *= 1000'000'000;
-		const int64_t nanoseconds = (int64_t)seconds;
-		const auto start = high_resolution_clock::now();
 		while ((high_resolution_clock::now() - start).count() < nanoseconds)
 			platform::yield_cpu();
 	}
@@ -256,7 +269,7 @@ sint compare(const item& left, const item& right) noexcept
 	return r;
 }
 
-sint compare(main_array& array, uint left_index, uint right_index) noexcept
+sint compare(main_array array, uint left_index, uint right_index) noexcept
 {
 	return compare(array[left_index], array[right_index]);
 }
@@ -278,7 +291,7 @@ void swap(item& left, item& right) noexcept
 	right.color = c;
 }
 
-void swap(main_array& array, uint left_index, uint right_index) noexcept
+void swap(main_array array, uint left_index, uint right_index) noexcept
 {
 	swap(array[left_index], array[right_index]);
 }
@@ -291,12 +304,12 @@ bool compare_swap(item& left, item& right) noexcept
 	return r;
 }
 
-bool compare_swap(main_array& array, uint left_index, uint right_index) noexcept
+bool compare_swap(main_array array, uint left_index, uint right_index) noexcept
 {
 	return compare_swap(array[left_index], array[right_index]);
 }
 
-void reverse(main_array& array, uint offset, uint size) noexcept
+void reverse(main_array array, uint offset, uint size) noexcept
 {
 	sort_stats::add_reversal(1);
 	uint begin = offset;

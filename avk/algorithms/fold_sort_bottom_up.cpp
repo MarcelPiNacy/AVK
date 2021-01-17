@@ -1,7 +1,7 @@
 #include "all.h"
 #include "sort_utility.h"
 
-static void halver(main_array& array, uint low, uint high)
+static void halver(main_array array, uint low, uint high)
 {
 	while (low < high)
 	{
@@ -11,7 +11,7 @@ static void halver(main_array& array, uint low, uint high)
 	}
 }
 
-void fold_sort_bottom_up(main_array& array)
+void fold_sort_bottom_up(main_array array)
 {
 	uint size = array.size();
 	uint log2 = fast_log2(size);

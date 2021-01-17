@@ -185,72 +185,6 @@ namespace monitor_sort
 		std::swap(left, right);
 	}
 
-	template <typename I>
-	constexpr void indirect_swap(I left, I right)
-	{
-		swap(*left, *right);
-	}
-
-	template <typename I>
-	constexpr bool indirect_cmpeq(I left, I right)
-	{
-		return *left == *right;
-	}
-
-	template <typename I>
-	constexpr bool indirect_cmplt(I left, I right)
-	{
-		return (*left) < (*right);
-	}
-
-	template <typename I>
-	constexpr bool indirect_cmpgt(I left, I right)
-	{
-		return (*left) > (*right);
-	}
-
-	template <typename I>
-	constexpr bool indirect_cmple(I left, I right)
-	{
-		return !indirect_cmpgt(left, right);
-	}
-
-	template <typename I>
-	constexpr bool indirect_cmpge(I left, I right)
-	{
-		return !indirect_cmplt(left, right);
-	}
-
-	template <typename I, typename T>
-	constexpr bool indirect_cmpeq(I left, T& right)
-	{
-		return *left == right;
-	}
-
-	template <typename I, typename T>
-	constexpr bool indirect_cmplt(I left, T& right)
-	{
-		return (*left) < right;
-	}
-
-	template <typename I, typename T>
-	constexpr bool indirect_cmpgt(I left, T& right)
-	{
-		return (*left) > right;
-	}
-
-	template <typename I, typename T>
-	constexpr bool indirect_cmple(I left, T& right)
-	{
-		return !indirect_cmpgt(left, right);
-	}
-
-	template <typename I, typename T>
-	constexpr bool indirect_cmpge(I left, T& right)
-	{
-		return !indirect_cmplt(left, right);
-	}
-
 	template <typename T>
 	constexpr void move(T& left, T& right)
 	{
@@ -288,7 +222,7 @@ namespace monitor_sort
 	{
 		while (left_begin != left_end)
 		{
-			indirect_swap(left_begin, right_begin);
+			std::iter_swap(left_begin, right_begin);
 			++left_begin;
 			++right_begin;
 		}
@@ -301,7 +235,7 @@ namespace monitor_sort
 		{
 			--left_end;
 			--right_end;
-			indirect_swap(left_end, right_end);
+			std::iter_swap(left_end, right_end);
 		} while (left_end >= left_begin);
 	}
 
@@ -313,7 +247,7 @@ namespace monitor_sort
 		--end;
 		while (begin < end)
 		{
-			indirect_swap(begin, end);
+			std::iter_swap(begin, end);
 			--end;
 			++begin;
 		}
@@ -328,9 +262,9 @@ namespace monitor_sort
 
 		while (begin < end)
 		{
-			if (indirect_cmpeq(begin, end))
+			if (*begin == *end)
 				break;
-			indirect_swap(begin, end);
+			std::iter_swap(begin, end);
 			--end;
 			++begin;
 		}
@@ -340,7 +274,7 @@ namespace monitor_sort
 
 		while (begin < end)
 		{
-			indirect_swap(begin, end);
+			std::iter_swap(begin, end);
 			--end;
 			++begin;
 		}
@@ -359,7 +293,7 @@ namespace monitor_sort
 		I i = begin + 1;
 		while (begin != end)
 		{
-			while (i != end && indirect_cmpeq(begin, i))
+			while (i != end && *begin == *i)
 				++i;
 			reverse(begin, i);
 			begin = i;
@@ -508,9 +442,9 @@ namespace monitor_sort
 		MONITOR_SORT_INVARIANT(begin <= end);
 		
 		if constexpr (Forward)
-			return hybrid_search_forward(begin, end, target, indirect_cmplt<I>);
+			return hybrid_search_forward(begin, end, target, [](I left, I right) { return *left < *right; });
 		else
-			return hybrid_search_backward(begin, end, target, indirect_cmpge<I>);
+			return hybrid_search_backward(begin, end, target, [](I left, I right) { return *left >= *right; });
 	}
 
 	template <bool Forward = true, typename I>
@@ -519,9 +453,9 @@ namespace monitor_sort
 		MONITOR_SORT_INVARIANT(begin <= end);
 
 		if constexpr (Forward)
-			return hybrid_search_forward(begin, end, target, indirect_cmple<I>);
+			return hybrid_search_forward(begin, end, target, [](I left, I right) { return *left <= *right; });
 		else
-			return hybrid_search_backward(begin, end, target, indirect_cmpgt<I>);
+			return hybrid_search_backward(begin, end, target, [](I left, I right) { return *left > *right; });
 	}
 
 	template <typename I>
@@ -533,7 +467,7 @@ namespace monitor_sort
 		{
 			auto tmp = std::move(*i);
 			I j = i - 1;
-			for (; j >= begin && indirect_cmpgt(j, tmp); --j)
+			for (; j >= begin && *j > tmp; --j)
 				indirect_move(j + 1, j);
 			indirect_move(j + 1, tmp);
 		}
@@ -545,7 +479,7 @@ namespace monitor_sort
 		for (I i = end - 2; i >= begin; --i)
 		{
 			auto tmp = std::move(*i);
-			for (I j = i; j < end - 1 && indirect_cmple(j - 1, tmp); ++j)
+			for (I j = i; j < end - 1 && *(j - 1) <= tmp; ++j)
 				indirect_move(j, j + 1);
 			indirect_move(i, tmp);
 		}
@@ -559,7 +493,7 @@ namespace monitor_sort
 		{
 			--from;
 			indirect_move(from + 1, from);
-		} while (indirect_cmpgt(from, tmp));
+		} while (*from > tmp);
 		indirect_move(from + 1, tmp);
 	}
 
@@ -570,7 +504,7 @@ namespace monitor_sort
 
 		I min = begin;
 		for (I i = min + 1; i < end; ++i)
-			if (indirect_cmplt(i, min))
+			if (*i < *min)
 				min = i;
 		auto tmp = std::move(*min);
 		for (I i = min; i > begin; --i)
@@ -600,7 +534,7 @@ namespace monitor_sort
 		for (I i = begin + 1; i < end; ++i)
 		{
 			if (indirect_cmplt(i, begin))
-				indirect_swap(i, begin);
+				std::iter_swap(i, begin);
 			unguarded_insert(i);
 		}
 	}
@@ -673,7 +607,7 @@ namespace monitor_sort
 		do
 		{
 			++begin;
-		} while (begin < end && indirect_cmpge(begin - 1, begin));
+		} while (begin < end && *(begin - 1) >= *begin);
 		return begin;
 	}
 	
@@ -686,7 +620,7 @@ namespace monitor_sort
 		do
 		{
 			--end;
-		} while (end >= begin && indirect_cmpgt(end, target));
+		} while (end >= begin && *end > *target);
 		return end + 1;
 	}
 
@@ -744,7 +678,7 @@ namespace monitor_sort
 
 			if (*left != *right)
 			{
-				indirect_swap(left, right);
+				std::iter_swap(left, right);
 			}
 			else
 			{
@@ -776,7 +710,7 @@ namespace monitor_sort
 
 			if (*left != *right)
 			{
-				indirect_swap(left, right);
+				std::iter_swap(left, right);
 			}
 			else
 			{
@@ -818,7 +752,7 @@ namespace monitor_sort
 			--end;
 			I left = end;
 
-			if (indirect_cmpgt(left, right))
+			if (*left > *right)
 				r |= mask;
 		}
 		return r;
@@ -839,7 +773,7 @@ namespace monitor_sort
 			return end;
 		}
 
-		if (indirect_cmpgt(begin, begin + 1))
+		if (*begin > *(begin + 1))
 		{
 			const I run_end = find_reverse_end(begin, end);
 			if (unsigned_distance(begin, run_end) >= min_run_size)
@@ -852,7 +786,7 @@ namespace monitor_sort
 		for (I i = begin + 1; i < end; ++i)
 		{
 			const I previous = i - 1;
-			if (indirect_cmplt(previous, i))
+			if (*previous < *i)
 				continue;
 			if (i >= min_end)
 				return i;
@@ -901,7 +835,7 @@ namespace monitor_sort
 		for (I i = found_begin - 1; i >= begin && found_begin != desired_found_begin; --i)
 		{
 			const I target = lower_bound(found_begin, end, i) - 1;
-			if (!indirect_cmpeq(target, i))
+			if (*target != *i)
 			{
 				insert_forward(i, target);
 				--found_begin;
@@ -925,12 +859,12 @@ namespace monitor_sort
 		{
 			if (left == middle || indirect_cmpgt(left, right))
 			{
-				indirect_swap(buffer, right);
+				std::iter_swap(buffer, right);
 				++right;
 			}
 			else
 			{
-				indirect_swap(buffer, left);
+				std::iter_swap(buffer, left);
 				++left;
 			}
 			++buffer;
@@ -953,14 +887,14 @@ namespace monitor_sort
 
 		while (left >= begin)
 		{
-			if (right < middle || indirect_cmpgt(left, right))
+			if (right < middle || *left > *right)
 			{
-				indirect_swap(buffer, left);
+				std::iter_swap(buffer, left);
 				--left;
 			}
 			else
 			{
-				indirect_swap(buffer, right);
+				std::iter_swap(buffer, right);
 				--right;
 			}
 			--buffer;
@@ -970,7 +904,7 @@ namespace monitor_sort
 		{
 			while (right >= middle)
 			{
-				indirect_swap(buffer, right);
+				std::iter_swap(buffer, right);
 				--buffer;
 				--right;
 			}
@@ -1173,7 +1107,7 @@ namespace monitor_sort
 
 
 
-void block_merge_monitor_sort(main_array& array)
+void block_merge_monitor_sort(main_array array)
 {
 	monitor_sort::sort(array.begin(), array.end());
 }

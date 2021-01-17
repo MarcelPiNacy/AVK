@@ -1,6 +1,6 @@
 #include "all.h"
 
-void selection_sort(main_array& array)
+void selection_sort(main_array array)
 {
 	for (uint i = 0; i < array.size() - 1; ++i)
 	{

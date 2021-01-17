@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <vector>
 
-void std_merge_sort(main_array& array)
+void std_merge_sort(main_array array)
 {
 	std::vector<item> buffer;
 	buffer.resize(array.size());
