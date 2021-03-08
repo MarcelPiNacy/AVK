@@ -8,7 +8,7 @@ struct defer_state
 {
 	F callback;
 
-	constexpr defer_state(F&& function) noexcept
+	constexpr defer_state(F&& function)
 		: callback(std::forward<F>(function))
 	{
 	}

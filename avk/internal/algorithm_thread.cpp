@@ -1,5 +1,5 @@
 #include "algorithm_thread.h"
-#include "enforce.h"
+#include "common.h"
 #include <Windows.h>
 #include <atomic>
 #include <new>
@@ -14,11 +14,11 @@ static sort_function_pointer sort_function;
 static HANDLE thread_handle;
 
 static bool is_run_all;
-static std::atomic<bool> paused;	//Rarely modified: cache line segreggation isn't required.
-static std::atomic<uint32_t> head;	//Same
-static std::atomic<uint32_t> tail;	//Same
+static std::atomic<bool> paused;
+static std::atomic<uint32_t> head;
+static std::atomic<uint32_t> tail;
 
-static DWORD WINAPI thread_entry_point(void* unused) noexcept
+static DWORD WINAPI thread_entry_point(void* unused)
 {
 	while (should_continue_global.load(std::memory_order_acquire))
 	{
@@ -39,48 +39,59 @@ static DWORD WINAPI thread_entry_point(void* unused) noexcept
 
 namespace algorithm_thread
 {
-	void assign_body(sort_function_pointer sort) noexcept
+	void assign_body(sort_function_pointer sort)
 	{
 		await();
 		sort_function = sort;
 		signal();
 	}
 
-	void launch() noexcept
+	void launch()
 	{
 		thread_handle = CreateThread(nullptr, 1 << 21, thread_entry_point, nullptr, 0, nullptr);
-		enforce(thread_handle != nullptr);
+		AVK_ASSERT(thread_handle != nullptr);
 	}
 
-	bool is_paused() noexcept
+	bool is_paused()
 	{
 		return paused.load(std::memory_order_acquire);
 	}
 
-	bool is_idle() noexcept
+	bool is_idle()
 	{
 		return head.load(std::memory_order_acquire) == tail.load(std::memory_order_acquire);
 	}
 
-	void pause() noexcept
+	void pause()
 	{
-		SuspendThread(thread_handle);
 		paused.store(true, std::memory_order_release);
+		SuspendThread(thread_handle);
+		if (cmts_lib_is_initialized())
+			cmts_lib_pause();
 	}
 
-	void resume() noexcept
+	void resume()
 	{
+		if (cmts_lib_is_initialized())
+			AVK_ASSERT(cmts_lib_resume() == CMTS_OK);
 		ResumeThread(thread_handle);
+#ifdef DEBUG
+		bool prior = paused.exchange(false, std::memory_order_release);
+		AVK_ASSERT(prior);
+#else
 		paused.store(false, std::memory_order_release);
+#endif
 	}
 
-	void abort_sort() noexcept
+	void abort_sort()
 	{
+		if (cmts_lib_is_initialized())
+			cmts_lib_terminate(nullptr);
 		should_exit_algorithm.store(true, std::memory_order_release);
 		(void)head.fetch_add(1, std::memory_order_release);
 		(void)WakeByAddressSingle(&head);
 		if (WaitForSingleObject(thread_handle, 10) == WAIT_TIMEOUT)
-			TerminateThread(thread_handle, 0); //Return 0, nothing happened here :^)
+			TerminateThread(thread_handle, MAXDWORD);
 		sort_function = nullptr;
 		non_atomic_store(should_exit_algorithm, false);
 		non_atomic_store(paused, false);
@@ -89,13 +100,13 @@ namespace algorithm_thread
 		launch();
 	}
 
-	void signal() noexcept
+	void signal()
 	{
 		(void)head.fetch_add(1, std::memory_order_acquire);
 		WakeByAddressSingle(&head);
 	}
 
-	void await(uint32_t timeout_ms) noexcept
+	void await(uint32_t timeout_ms)
 	{
 		if (is_idle())
 			return;
@@ -103,7 +114,7 @@ namespace algorithm_thread
 		(void)WaitOnAddress(&tail, &desired, sizeof(desired), timeout_ms == UINT32_MAX ? INFINITE : timeout_ms);
 	}
 
-	void terminate() noexcept
+	void terminate()
 	{
 		(void)TerminateThread(thread_handle, 0);
 	}

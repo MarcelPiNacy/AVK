@@ -36,7 +36,7 @@ namespace sorting::networks
 			while (low < high)
 			{
 				if (*high < *low)
-					std::swap(*high, *low);
+					std::iter_swap(high, low);
 				++low;
 				--high;
 			}
@@ -48,7 +48,7 @@ namespace sorting::networks
 	/// Comparissons: O(N * log^2(N)) best case, O(N * log^2(N)) worst case.
 	/// Swaps: O(1) best case (0 swaps), O(N * log^2(N)) worst case.
 	/// </summary>
-	/// <typeparam name="Iterator">A bidirectional iterator type.</typeparam>
+	/// <typeparam name="Iterator">The iterator type.</typeparam>
 	/// <param name="begin">An iterator to the start of the collection.</param>
 	/// <param name="end">An iterator to the end of the collection.</param>
 	template <typename Iterator>
@@ -61,7 +61,7 @@ namespace sorting::networks
 			{
 				for (auto low = begin; low < end;)
 				{
-					auto high = low + j;
+					auto high = std::next(low, j);
 					detail::halver(low, high - 1);
 					low = high;
 				}

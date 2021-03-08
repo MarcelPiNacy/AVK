@@ -41,19 +41,22 @@ static void halver(main_array array, uint low, uint high)
 
 void fold_sort_parallel(main_array array)
 {
-	uint size = array.size();
-	for (uint i = size / 2; i > 0; i /= 2)
+	run_as_parallel([=]()
 	{
-		for (uint j = size; j >= i; j /= 2)
+		uint size = array.size();
+		for (uint i = size / 2; i > 0; i /= 2)
 		{
-			vector<thread> threads;
-			threads.reserve(size / j);
+			for (uint j = size; j >= i; j /= 2)
+			{
+				vector<thread> threads;
+				threads.reserve(size / j);
 
-			for (uint i = 0; i < size; i += j)
-				threads.push_back(thread(halver, array, i, i + j - 1));
+				for (uint i = 0; i < size; i += j)
+					threads.push_back(thread(halver, array, i, i + j - 1));
 
-			for (thread& t : threads)
-				t.join();
+				for (thread& t : threads)
+					t.join();
+			}
 		}
-	}
+	});
 }

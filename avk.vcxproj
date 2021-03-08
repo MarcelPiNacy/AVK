@@ -74,35 +74,39 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)build\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)intermediate\$(Configuration)_$(Platform)\</IntDir>
+    <IntDir>$(SolutionDir)intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)build\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)intermediate\$(Configuration)_$(Platform)\</IntDir>
+    <IntDir>$(SolutionDir)intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)build\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)intermediate\$(Configuration)_$(Platform)\</IntDir>
+    <IntDir>$(SolutionDir)intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)build\$(Configuration)_$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)intermediate\$(Configuration)_$(Platform)\</IntDir>
+    <IntDir>$(SolutionDir)intermediate\$(Configuration)_$(Platform)\$(ProjectName)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING; WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING; WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\avk\external_dependencies\vulkan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\avk\external_dependencies\vulkan;$(SolutionDir)\avk\external_dependencies\cmts;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <CallingConvention>FastCall</CallingConvention>
+      <ExceptionHandling>false</ExceptionHandling>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <LanguageStandard_C>Default</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -115,8 +119,7 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>$(OutDir)pre_build_cmd.exe $(SolutionDir)</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -125,15 +128,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING; WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING; WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\avk\external_dependencies\vulkan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\avk\external_dependencies\vulkan;$(SolutionDir)\avk\external_dependencies\cmts;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExceptionHandling>false</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
@@ -141,6 +144,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <CallingConvention>FastCall</CallingConvention>
+      <LanguageStandard_C>Default</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -155,22 +159,25 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>$(OutDir)pre_build_cmd.exe $(SolutionDir)</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING; _DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING; _DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\avk\external_dependencies\vulkan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\avk\external_dependencies\vulkan;$(SolutionDir)\avk\external_dependencies\cmts;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <CallingConvention>FastCall</CallingConvention>
+      <ExceptionHandling>false</ExceptionHandling>
+      <ControlFlowGuard>false</ControlFlowGuard>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <LanguageStandard_C>Default</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -183,8 +190,7 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>$(OutDir)pre_build_cmd.exe $(SolutionDir)</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -193,15 +199,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING; NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING; NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\avk\external_dependencies\vulkan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\avk\external_dependencies\vulkan;$(SolutionDir)\avk\external_dependencies\cmts;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <ExceptionHandling>Sync</ExceptionHandling>
+      <ExceptionHandling>false</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
@@ -209,6 +215,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <CallingConvention>FastCall</CallingConvention>
+      <LanguageStandard_C>Default</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -223,8 +230,7 @@
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>$(OutDir)pre_build_cmd.exe $(SolutionDir)</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -243,8 +249,8 @@
     <ClInclude Include="avk\external_dependencies\quadsort.h" />
     <ClInclude Include="avk\external_dependencies\ska_sort\ska_sort.hpp" />
     <ClInclude Include="avk\external_dependencies\SqrtSort\SqrtSort.h" />
+    <ClInclude Include="avk\internal\debug.h" />
     <ClInclude Include="avk\internal\defer.h" />
-    <ClInclude Include="avk\internal\enforce.h" />
     <ClInclude Include="avk\internal\common.h" />
     <ClInclude Include="avk\internal\graphics\vulkan_state.h" />
     <ClInclude Include="avk\internal\main_array.h" />
@@ -260,8 +266,12 @@
     <ClCompile Include="avk\algorithms\american_flag_sort.cpp" />
     <ClCompile Include="avk\algorithms\binary_msd_radix_sort.cpp" />
     <ClCompile Include="avk\algorithms\bitonic_sort_parallel.cpp" />
+    <ClCompile Include="avk\algorithms\bose_nelson_network.cpp" />
+    <ClCompile Include="avk\algorithms\bose_nelson_network_parallel.cpp" />
     <ClCompile Include="avk\algorithms\fold_sort_parallel.cpp" />
-    <ClCompile Include="avk\algorithms\PARADIS_sort.cpp" />
+    <ClCompile Include="avk\algorithms\odd_even_merge_sort_parallel.cpp" />
+    <ClCompile Include="avk\algorithms\pairwise_sorting_network.cpp" />
+    <ClCompile Include="avk\algorithms\pairwise_sorting_network_parallel.cpp" />
     <ClCompile Include="avk\algorithms\fold_sort_bottom_up.cpp" />
     <ClCompile Include="avk\algorithms\binary_tree_sort.cpp" />
     <ClCompile Include="avk\algorithms\bitonic_sort.cpp" />
@@ -278,28 +288,34 @@
     <ClCompile Include="avk\algorithms\quadsort_cpp.cpp" />
     <ClCompile Include="avk\algorithms\radix_tree_sort.cpp" />
     <ClCompile Include="avk\algorithms\ska_sort.cpp" />
+    <ClCompile Include="avk\algorithms\ska_sort_copy.cpp" />
     <ClCompile Include="avk\algorithms\sqrt_sort.cpp" />
     <ClCompile Include="avk\algorithms\stackless_quicksort.cpp" />
-    <ClCompile Include="avk\algorithms\std_inplace_merge.cpp" />
+    <ClCompile Include="avk\algorithms\merge_sort_bottom_up.cpp" />
     <ClCompile Include="avk\algorithms\lsd_radix_sort.cpp" />
     <ClCompile Include="avk\algorithms\msd_radix_sort.cpp" />
     <ClCompile Include="avk\algorithms\odd_even_merge_sort.cpp" />
-    <ClCompile Include="avk\algorithms\std_merge_sort.cpp" />
     <ClCompile Include="avk\algorithms\std_sort.cpp" />
-    <ClCompile Include="avk\algorithms\std_sort_heap.cpp" />
+    <ClCompile Include="avk\algorithms\max_heap_sort.cpp" />
     <ClCompile Include="avk\algorithms\insertion_sort.cpp" />
     <ClCompile Include="avk\algorithms\selection_sort.cpp" />
     <ClCompile Include="avk\algorithms\std_stable_sort.cpp" />
+    <ClCompile Include="avk\algorithms\weave_sorting_network.cpp" />
+    <ClCompile Include="avk\algorithms\weave_sorting_network_parallel.cpp" />
     <ClCompile Include="avk\algorithms\wiki_sort.cpp" />
+    <ClCompile Include="avk\internal\cmts_include.cpp" />
+    <ClCompile Include="avk\internal\common.cpp" />
+    <ClCompile Include="avk\internal\debug.cpp" />
     <ClCompile Include="avk\internal\graphics\main_array.cpp" />
     <ClCompile Include="avk\internal\graphics\vulkan_draw.cpp" />
     <ClCompile Include="avk\internal\graphics\vulkan_init.cpp" />
+    <ClCompile Include="avk\internal\locks.cpp" />
     <ClCompile Include="avk\internal\main.cpp" />
     <ClCompile Include="avk\internal\platform.cpp" />
     <ClCompile Include="avk\internal\prng.cpp" />
     <ClCompile Include="avk\internal\stats.cpp" />
     <ClCompile Include="avk\internal\algorithm_thread.cpp" />
-    <ClCompile Include="avk\internal\windows_callbacks.cpp" />
+    <ClCompile Include="avk\internal\windows-specific\callbacks.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitattributes" />

@@ -1,4 +1,6 @@
+#include "../external_dependencies/cmts/include/cmts.h"
 #include "algorithm_thread.h"
+#include "graphics/vulkan_state.h"
 #include "windows-specific/framework.h"
 #include "windows-specific/Resource.h"
 #include <atomic>
@@ -22,10 +24,68 @@ extern LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam,
 extern int init_vulkan();
 extern void draw_main_array();
 
+
+
+namespace cmts_checks
+{
+    const int count = 65536;
+
+    alignas(64) std::atomic_int counter_a;
+    alignas(64) std::atomic_int counter_b;
+
+    static void count_test_task_a(void* unused)
+    {
+        counter_a.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    static void count_test_task_b(void* unused)
+    {
+        counter_b.fetch_add(1, std::memory_order_relaxed);
+    }
+
+    static void count_test()
+    {
+        cmts_init_options_t options = {};
+        options.task_stack_size = cmts_default_task_stack_size();
+        options.max_tasks = count;
+        options.thread_count = cmts_processor_count();
+        auto code = cmts_lib_init(&options);
+        assert(code == CMTS_OK);
+        code = cmts_dispatch([](void* unused)
+        {
+            cmts_counter_t ca, cb;
+            cmts_counter_init(&ca, count);
+            cmts_counter_init(&cb, count);
+            cmts_dispatch_options_t options = {};
+            options.flags = CMTS_DISPATCH_FLAGS_FORCE;
+            options.sync_type = CMTS_SYNC_TYPE_COUNTER;
+            options.sync_object = &ca;
+            for (int i = 0; i != count; ++i)
+                cmts_dispatch(count_test_task_a, &options);
+            options.sync_object = &cb;
+            for (int i = 0; i != count; ++i)
+                cmts_dispatch(count_test_task_b, &options);
+            cmts_counter_await(&ca);
+            cmts_counter_await(&cb);
+            cmts_lib_exit_signal();
+        }, nullptr);
+        assert(code == CMTS_OK);
+        code = cmts_lib_exit_await(nullptr);
+        assert(code == CMTS_OK);
+    }
+
+    static void run()
+    {
+        count_test();
+    }
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
+
+    //cmts_checks::run();
 
     constexpr TCHAR class_name[] = TEXT("AVKClassName");
 
@@ -79,11 +139,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     auto last = high_resolution_clock::now();
     
-    double delay = 0.00009;
+    auto delay = std::chrono::milliseconds(1);
     main_array::set_compare_delay(delay);
     main_array::set_read_delay(delay);
     main_array::set_write_delay(delay);
-    main_array::resize(1 << 12);
+    main_array::resize(1 << 8);
     
     constexpr TCHAR title_format[] = TEXT("AVK - Sorting Algorithm Visualizer - [ %u elements ]");
 
@@ -102,7 +162,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         e.color = item_color::white();
     });
 
-    constexpr auto framerrate = duration<long double>(1.0 / 120.0);
+    constexpr auto framerrate = duration<long double>(1.0 / 60.0);
 
     auto last_draw = high_resolution_clock::now();
 

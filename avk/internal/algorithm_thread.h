@@ -6,14 +6,14 @@ using sort_function_pointer = void(*)(main_array main_array);
 
 namespace algorithm_thread
 {
-	void assign_body(sort_function_pointer sort) noexcept;
-	void launch() noexcept;
-	bool is_paused() noexcept;
-	bool is_idle() noexcept;
-	void pause() noexcept;
-	void resume() noexcept;
-	void abort_sort() noexcept;
-	void signal() noexcept;
-	void await(uint32_t timeout_ms = UINT32_MAX) noexcept;
-	void terminate() noexcept;
+	void assign_body(sort_function_pointer sort);
+	void launch();
+	bool is_paused();
+	bool is_idle();
+	void pause();
+	void resume();
+	void abort_sort();
+	void signal();
+	void await(uint32_t timeout_ms = UINT32_MAX);
+	void terminate();
 }

@@ -637,7 +637,7 @@ namespace Wiki {
                     for (last = A.start, count = 1; count < find; last = index, ++count) {
                         index = FindLastForward(last + 1, A.end, *last, compare, find - count);
                         if (index == A.end) break;
-                        assert(index < A.end);
+                        AVK_ASSERT(index < A.end);
                     }
                     index = last;
 
@@ -686,7 +686,7 @@ namespace Wiki {
                     for (last = B.end - 1, count = 1; count < find; last = index - 1, ++count) {
                         index = FindFirstBackward(B.start, last, *last, compare, find - count);
                         if (index == B.start) break;
-                        assert(index > B.start);
+                        AVK_ASSERT(index > B.start);
                     }
                     index = last;
 
@@ -773,7 +773,7 @@ namespace Wiki {
 
                 // the first buffer NEEDS to be large enough to tag each of the evenly sized A blocks,
                 // so this was originally here to test the math for adjusting block_size above
-                //assert((iterator.length() + 1)/block_size <= buffer_size);
+                //AVK_ASSERT((iterator.length() + 1)/block_size <= buffer_size);
 
                 // now that the two internal buffers have been created, it's time to merge each A+B combination at this level of the merge sort!
                 iterator.begin();
@@ -1061,7 +1061,7 @@ void Verify(Iterator start, Iterator end, const Comparison compare, const string
             //    cout << it2->value << " (" << it2->index << ") ";
 
             cout << endl << "failed with message: " << msg << endl;
-            assert(false);
+            AVK_ASSERT(false);
         }
     }
 }

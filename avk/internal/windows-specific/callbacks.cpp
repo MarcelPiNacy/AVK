@@ -1,8 +1,9 @@
-#include "algorithm_thread.h"
-#include "windows-specific/framework.h"
-#include "windows-specific/Resource.h"
-#include "../algorithms/all.h"
-#include "prng.h"
+#include "../algorithm_thread.h"
+#include "../windows-specific/framework.h"
+#include "../windows-specific/Resource.h"
+#include "../../algorithms/sort_config.h"
+#include "../../algorithms/all.h"
+#include "../prng.h"
 #include <ctime>
 #include <algorithm>
 
@@ -147,7 +148,7 @@ void modify_array<array_mode::RANDOM_SHUFFLE>()
         static constexpr auto min() { return 0; }
         static constexpr auto max() { return UINT64_MAX; }
 
-        inline auto operator()() noexcept
+        inline auto operator()()
         {
             return romu_duo_get();
         }
@@ -357,122 +358,7 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
         case IDM_EXIT:
             DestroyWindow(hWnd);
             break;
-        case IDM_RUN_ALL_SORTS:
-            algorithm_thread::assign_body([](main_array array)
-            {
-                for (auto fn : sort_table)
-                {
-                    restore_last_distribution();
-                    fn(array);
-                    main_array::sleep(1);
-                }
-            });
-            break;
-        case IDM_SELECTION_SORT:
-            algorithm_thread::assign_body(selection_sort);
-            break;
-        case IDM_INSERTION_SORT:
-            algorithm_thread::assign_body(insertion_sort);
-            break;
-        case IDM_BUBBLE_SORT:
-            algorithm_thread::assign_body(bubble_sort);
-            break;
-        case IDM_ODD_EVEN_SORT:
-            algorithm_thread::assign_body(odd_even_sort);
-            break;
-        case IDM_STD_SORT_HEAP:
-            algorithm_thread::assign_body(std_sort_heap);
-            break;
-        case IDM_STD_STABLE_SORT:
-            algorithm_thread::assign_body(std_stable_sort);
-            break;
-        case IDM_STD_SORT:
-            algorithm_thread::assign_body(std_sort);
-            break;
-        case IDM_GRAIL_SORT:
-            algorithm_thread::assign_body(grail_sort);
-            break;
-        case IDM_ODD_EVEN_MERGE_SORT:
-            algorithm_thread::assign_body(odd_even_merge_sort);
-            break;
-        case IDM_BITONIC_SORT_SEQUENTIAL:
-            algorithm_thread::assign_body(bitonic_sort);
-            break;
-        case IDM_FOLD_SORT_TOP_DOWN:
-            algorithm_thread::assign_body(fold_sort);
-            break;
-        case IDM_STD_MERGE_SORT:
-            algorithm_thread::assign_body(std_merge_sort);
-            break;
-        case IDM_STD_INPLACE_MERGE_SORT:
-            algorithm_thread::assign_body(std_inplace_merge_sort);
-            break;
-        case IDM_MSD_RADIX_SORT:
-            algorithm_thread::assign_body(msd_radix_sort);
-            break;
-        case IDM_LSD_RADIX_SORT:
-            algorithm_thread::assign_body(lsd_radix_sort);
-            break;
-        case IDM_AMERICAN_FLAG_SORT:
-            algorithm_thread::assign_body(american_flag_sort);
-            break;
-        case IDM_RADIX_TREE_SORT:
-            algorithm_thread::assign_body(radix_tree_sort);
-            break;
-        case IDM_COUNTING_SORT:
-            algorithm_thread::assign_body(radix_tree_sort);
-            break;
-        case IDM_BINARY_TREE_SORT:
-            algorithm_thread::assign_body(binary_tree_sort);
-            break;
-        case IDM_MONITOR_SORT:
-            algorithm_thread::assign_body(block_merge_monitor_sort);
-            break;
-        case IDM_WIKI_SORT:
-            algorithm_thread::assign_body(wiki_sort);
-            break;
-        case IDM_GAMBIT_INSERTION_SORT:
-            algorithm_thread::assign_body(gambit_insertion_sort);
-            break;
-        case IDM_STACKLESS_QUICK_SORT:
-            algorithm_thread::assign_body(stackless_quick_sort);
-            break;
-        case IDM_FOLD_SORT_BOTTOM_UP:
-            algorithm_thread::assign_body(fold_sort_bottom_up);
-            break;
-        case IDM_CUSTOM_RADIX_SORT:
-            algorithm_thread::assign_body(custom_radix_sort);
-            break;
-        case IDM_SKA_SORT:
-            algorithm_thread::assign_body(ska_sort);
-            break;
-        case IDM_SKA_SORT_COPY:
-            algorithm_thread::assign_body(ska_sort_copy);
-            break;
-        case IDM_SQRT_SORT:
-            algorithm_thread::assign_body(sqrt_sort);
-            break;
-        case IDM_BINARY_MSD_RADIX_SORT:
-            algorithm_thread::assign_body(binary_msd_radix_sort);
-            break;
-        case IDM_GRAIL_SORT_CPP:
-            algorithm_thread::assign_body(grail_sort_cpp);
-            break;
-        case IDM_QUAD_SORT:
-            algorithm_thread::assign_body(quad_sort);
-            break;
-        case IDM_PARADIS_SORT:
-            algorithm_thread::assign_body(PARADIS_sort);
-            break;
-        case IDM_PARALLEL_MERGE_SORT:
-            algorithm_thread::assign_body(parallel_merge_sort);
-            break;
-        case IDM_BITONIC_SORT:
-            algorithm_thread::assign_body(bitonic_sort_parallel);
-            break;
-        case IDM_FOLD_SORT_PARALLEL:
-            algorithm_thread::assign_body(fold_sort_parallel);
-            break;
+#include "sort_callbacks.inl"
         case IDM_INITIALIZE_LINEAR:
             if (algorithm_thread::is_idle())
             {

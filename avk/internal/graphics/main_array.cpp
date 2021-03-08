@@ -5,15 +5,15 @@
 #include <thread>
 #include "..\main_array.h"
 #include <cassert>
-#include "../enforce.h"
 #include "vulkan_state.h"
 #include "../defer.h"
-#include <mutex>
-using std::scoped_lock;
+#include <shared_mutex>
+using std::chrono::duration_cast;
 
-static double read_delay;
-static double write_delay;
-static double compare_delay;
+using clock_type = std::chrono::steady_clock;
+static std::chrono::nanoseconds read_delay;
+static std::chrono::nanoseconds write_delay;
+static std::chrono::nanoseconds compare_delay;
 
 static uint32_t find_buffer_memory_type(VkBuffer buffer, VkMemoryPropertyFlags flags)
 {
@@ -24,40 +24,17 @@ static uint32_t find_buffer_memory_type(VkBuffer buffer, VkMemoryPropertyFlags f
 	{
 		const bool a = (physical_device_properties.memoryTypes[i].propertyFlags & flags) == flags;
 		const bool b = req.memoryTypeBits & (1 << i);
-		if (a & b)
+		if (a && b)
 			return i;
 	}
 	return UINT32_MAX;
 }
 
-static uint8_t fast_log2(size_t value)
+bool main_array::resize(uint32_t size)
 {
-#if UINTPTR_MAX == UINT32_MAX
-	return (uint8_t)_tzcnt_u32(value);
-#else
-	return (uint8_t)_tzcnt_u64(value);
-#endif
-}
+	algorithm_thread::pause();
+	DEFER{ algorithm_thread::resume(); };
 
-static uint32_t round_pow2(size_t value)
-{
-	auto log2 = fast_log2(value);
-	return 1 << log2;
-}
-
-void main_array::internal_lock() noexcept
-{
-	main_array_lock.lock();
-}
-
-void main_array::internal_unlock() noexcept
-{
-	main_array_lock.unlock();
-}
-
-bool main_array::resize(uint32_t size) noexcept
-{
-	scoped_lock guard(main_array_lock);
 	if (main_array_buffer != VK_NULL_HANDLE)
 	{
 		finalize();
@@ -85,7 +62,7 @@ bool main_array::resize(uint32_t size) noexcept
 	return true;
 }
 
-void main_array::finalize() noexcept
+void main_array::finalize()
 {
 	vkUnmapMemory(device, main_array_memory);
 	main_array_mapping = nullptr;
@@ -94,173 +71,185 @@ void main_array::finalize() noexcept
 	main_array_buffer = nullptr;
 }
 
-item& main_array::get(uint index) noexcept
+item& main_array::get(uint index)
 {
-	enforce(main_array_mapping != nullptr);
-	enforce(index < size());
+	AVK_ASSERT(main_array_mapping != nullptr);
+	AVK_ASSERT(index < size());
 	return main_array_mapping[index];
 }
 
-item& main_array::operator[](uint index) noexcept
+item& main_array::operator[](uint index) const
 {
-	enforce(main_array_mapping != nullptr);
-	enforce(index < size());
+	AVK_ASSERT(main_array_mapping != nullptr);
+	AVK_ASSERT(index < size());
 	return main_array_mapping[index];
 }
 
-uint main_array::size() noexcept
+uint main_array::size()
 {
 	return main_array_size;
 }
 
-item* main_array::begin() noexcept
+item* main_array::begin()
 {
 	return main_array_mapping;
 }
 
-item* main_array::end() noexcept
+item* main_array::end()
 {
 	return main_array_mapping + size();
 }
 
-item* main_array::data() noexcept
+item* main_array::data()
 {
 	return main_array_mapping;
 }
 
-void main_array::set_read_delay(double seconds) noexcept
+void main_array::set_read_delay(int64_t ns)
 {
-	read_delay = seconds;
+	read_delay = std::chrono::nanoseconds(ns);
 }
 
-void main_array::set_write_delay(double seconds) noexcept
+void main_array::set_read_delay(nanoseconds ns)
 {
-	write_delay = seconds;
+	read_delay = ns;
 }
 
-void main_array::set_compare_delay(double seconds) noexcept
+void main_array::set_write_delay(int64_t ns)
 {
-	compare_delay = seconds;
+	write_delay = std::chrono::nanoseconds(ns);
 }
 
-void main_array::sleep(double seconds) noexcept
+void main_array::set_write_delay(nanoseconds ns)
 {
-	if (seconds <= DBL_EPSILON)
-		return;
-	
-	constexpr double sleep_threshold = 1.0 / 1000.0;
-	constexpr double yield_threshold = 1.0 / 1000.0;
+	write_delay = ns;
+}
 
-	if (seconds > sleep_threshold)
-	{
-		seconds *= 1000.0;
-		Sleep((DWORD)seconds);
-		return;
-	}
-	
+void main_array::set_compare_delay(int64_t ns)
+{
+	compare_delay = std::chrono::nanoseconds(ns);
+}
 
+void main_array::set_compare_delay(nanoseconds ns)
+{
+	compare_delay = ns;
+}
+
+void main_array::sleep(int64_t ns)
+{
+	sleep(nanoseconds(ns));
+}
+
+void main_array::sleep(nanoseconds duration)
+{
 	using namespace std::chrono;
-	seconds *= 1000'000'000;
-	const int64_t nanoseconds = (int64_t)seconds;
-	const auto start = high_resolution_clock::now();
 
-	if (seconds > yield_threshold)
+	constexpr auto sleep_threshold = milliseconds(1);
+	auto ns = duration_cast<nanoseconds>(duration);
+	auto start = clock_type::now();
+
+	if (cmts_is_task())
 	{
-		while ((high_resolution_clock::now() - start).count() < nanoseconds)
-			std::this_thread::yield();
+		auto yield = platform::yield_cpu;
+		if (duration > nanoseconds(100))
+			yield = cmts_yield;
+		while (clock_type::now() - start < duration)
+			yield();
 	}
 	else
 	{
-		while ((high_resolution_clock::now() - start).count() < nanoseconds)
-			platform::yield_cpu();
+		if (duration >= sleep_threshold)
+		{
+			SleepEx(duration_cast<milliseconds>(duration).count(), false);
+		}
+		else
+		{
+			auto yield = platform::yield_cpu;
+			if (duration > nanoseconds(100))
+				yield = platform::yield_thread;
+			while (clock_type::now() - start < duration)
+				yield();
+		}
 	}
 }
 
-item& item::operator=(const item& other) noexcept
+item& item::operator=(const item& other)
 {
 	scoped_highlight highlight(flags);
-	main_array::sleep(read_delay + write_delay);
+	main_array::sleep(duration_cast<std::chrono::nanoseconds>(read_delay + write_delay));
 	sort_stats::add_read();
 	sort_stats::add_write();
-	scoped_lock guard(main_array_lock);
 	value = other.value;
 	color = other.color;
 	return *this;
 }
 
-bool item::operator==(const item& other) const noexcept
+bool item::operator==(const item& other) const
 {
 	scoped_highlight highlight(flags);
-	main_array::sleep(read_delay * 2);
+	main_array::sleep(duration_cast<std::chrono::nanoseconds>(read_delay * 2));
 	sort_stats::add_comparisson();
 	sort_stats::add_read(2);
-	scoped_lock guard(main_array_lock);
 	return value == other.value;
 }
 
-bool item::operator!=(const item& other) const noexcept
+bool item::operator!=(const item& other) const
 {
 	scoped_highlight highlight(flags);
-	main_array::sleep(read_delay * 2);
+	main_array::sleep(duration_cast<std::chrono::nanoseconds>(read_delay * 2));
 	sort_stats::add_comparisson();
 	sort_stats::add_read(2);
-	scoped_lock guard(main_array_lock);
 	return value != other.value;
 }
 
-bool item::operator<(const item& other) const noexcept
+bool item::operator<(const item& other) const
 {
 	scoped_highlight highlight(flags);
-	main_array::sleep(read_delay * 2);
+	main_array::sleep(duration_cast<std::chrono::nanoseconds>(read_delay * 2));
 	sort_stats::add_comparisson();
 	sort_stats::add_read(2);
-	scoped_lock guard(main_array_lock);
 	return value < other.value;
 }
 
-bool item::operator>(const item& other) const noexcept
+bool item::operator>(const item& other) const
 {
 	scoped_highlight highlight(flags);
-	main_array::sleep(read_delay * 2);
+	main_array::sleep(duration_cast<std::chrono::nanoseconds>(read_delay * 2));
 	sort_stats::add_comparisson();
 	sort_stats::add_read(2);
-	scoped_lock guard(main_array_lock);
 	return value > other.value;
 }
 
-bool item::operator<=(const item& other) const noexcept
+bool item::operator<=(const item& other) const
 {
 	scoped_highlight highlight(flags);
-	main_array::sleep(read_delay * 2);
+	main_array::sleep(duration_cast<std::chrono::nanoseconds>(read_delay * 2));
 	sort_stats::add_comparisson();
 	sort_stats::add_read(2);
-	scoped_lock guard(main_array_lock);
 	return value <= other.value;
 }
 
-bool item::operator>=(const item& other) const noexcept
+bool item::operator>=(const item& other) const
 {
 	scoped_highlight highlight(flags);
-	main_array::sleep(read_delay * 2);
+	main_array::sleep(duration_cast<std::chrono::nanoseconds>(read_delay * 2));
 	sort_stats::add_comparisson();
 	sort_stats::add_read(2);
-	scoped_lock guard(main_array_lock);
 	return value >= other.value;
 }
 
-uint item::max_radix(uint radix) noexcept
+uint item::max_radix(uint radix)
 {
 	return 32 / fast_log2(radix);
 }
 
-sint compare(const item& left, const item& right) noexcept
+sint compare(const item& left, const item& right)
 {
 	scoped_highlight highlight_left(left.flags);
 	scoped_highlight highlight_right(right.flags);
-	main_array::sleep(read_delay * 2);
+	main_array::sleep(duration_cast<std::chrono::nanoseconds>(read_delay * 2));
 	sort_stats::add_comparisson();
 	sort_stats::add_read(2);
-	scoped_lock guard(main_array_lock);
 	if (left.value == right.value)
 		return 0;
 	sint r = 1;
@@ -269,20 +258,19 @@ sint compare(const item& left, const item& right) noexcept
 	return r;
 }
 
-sint compare(main_array array, uint left_index, uint right_index) noexcept
+sint compare(main_array array, uint left_index, uint right_index)
 {
 	return compare(array[left_index], array[right_index]);
 }
 
-void swap(item& left, item& right) noexcept
+void swap(item& left, item& right)
 {
 	scoped_highlight highlight_left(left.flags);
 	scoped_highlight highlight_right(right.flags);
-	main_array::sleep(read_delay * 2 + write_delay * 2);
+	main_array::sleep(duration_cast<std::chrono::nanoseconds>(read_delay * 2 + write_delay * 2));
 	sort_stats::add_swap();
 	sort_stats::add_read(2);
 	sort_stats::add_write(2);
-	scoped_lock guard(main_array_lock);
 	const auto v = left.value;
 	const auto c = left.color;
 	left.value = right.value;
@@ -291,12 +279,12 @@ void swap(item& left, item& right) noexcept
 	right.color = c;
 }
 
-void swap(main_array array, uint left_index, uint right_index) noexcept
+void swap(main_array array, uint left_index, uint right_index)
 {
 	swap(array[left_index], array[right_index]);
 }
 
-bool compare_swap(item& left, item& right) noexcept
+bool compare_swap(item& left, item& right)
 {
 	const bool r = right < left;
 	if (r)
@@ -304,12 +292,12 @@ bool compare_swap(item& left, item& right) noexcept
 	return r;
 }
 
-bool compare_swap(main_array array, uint left_index, uint right_index) noexcept
+bool compare_swap(main_array array, uint left_index, uint right_index)
 {
 	return compare_swap(array[left_index], array[right_index]);
 }
 
-void reverse(main_array array, uint offset, uint size) noexcept
+void reverse(main_array array, uint offset, uint size)
 {
 	sort_stats::add_reversal(1);
 	uint begin = offset;
@@ -322,22 +310,39 @@ void reverse(main_array array, uint offset, uint size) noexcept
 	}
 }
 
-uint8_t extract_byte(const item& value, uint byte_index) noexcept
+uint8_t extract_byte(const item& value, uint byte_index)
 {
 	return extract_radix(value, byte_index);
 }
 
-uint extract_radix(const item& value, uint radix_index, uint radix) noexcept
+uint extract_radix(const item& value, uint radix_index, uint radix)
 {
 	scoped_highlight highlight(value.flags);
-	main_array::sleep(read_delay);
-	assert(__popcnt(radix) == 1);
+	main_array::sleep(duration_cast<std::chrono::nanoseconds>(read_delay));
+	AVK_ASSERT(__popcnt(radix) == 1);
 	const uint log2 = fast_log2(radix);
 	const uint mask = radix - 1;
 	return (value.value >> (radix_index * log2)) & mask;
 }
 
-item& item_iterator::operator*() const noexcept
+item& item_iterator::operator*() const
 {
 	return main_array::get(index);
+}
+
+scoped_highlight::scoped_highlight(item& e)
+	: flags(e.flags)
+{
+	flags |= 1;
+}
+
+scoped_highlight::scoped_highlight(uint32_t& flags)
+	: flags(flags)
+{
+	flags |= 1;
+}
+
+scoped_highlight::~scoped_highlight()
+{
+	flags &= ~1U;
 }

@@ -48,7 +48,7 @@ namespace detail::binary_quicksort
 				left_size = std::distance(begin, middle);
 				right_size = std::distance(middle, end);
 				const bool is_right_tiny = right_size < 2;
-				if (!left_size < 2 || is_right_tiny)
+				if (!(left_size < 2) || is_right_tiny)
 					break;
 				begin = is_right_tiny ? begin : middle;
 				end = is_right_tiny ? middle : end;

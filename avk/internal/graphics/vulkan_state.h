@@ -13,9 +13,6 @@ struct item;
 
 
 
-alignas (std::hardware_destructive_interference_size)
-inline spin_lock main_array_lock;
-
 inline VkInstance instance;
 #ifdef DEBUG
 inline VkDebugUtilsMessengerEXT debugger;

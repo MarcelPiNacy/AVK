@@ -6,7 +6,7 @@
 template <typename T>
 T fast_log2(T value)
 {
-	assert(value != 0);
+	AVK_ASSERT(value != 0);
 	return (T)_tzcnt_u64(value);
 }
 

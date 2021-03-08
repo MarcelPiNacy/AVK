@@ -2086,7 +2086,7 @@ void quadsort(void *array, size_t nmemb, size_t size, CMPFUNC *cmp)
 	}
 	else
 	{
-		assert(size == sizeof(int) || size == sizeof(long long));
+		AVK_ASSERT(size == sizeof(int) || size == sizeof(long long));
 	}
 }
 

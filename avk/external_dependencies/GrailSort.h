@@ -29,17 +29,68 @@ inline void grail_swap1(SORT_TYPE *a,SORT_TYPE *b){
 	*a=*b;
 	*b=c;
 }
-inline void grail_swapN(SORT_TYPE *a,SORT_TYPE *b,int n){
-	while(n--) grail_swap1(a++,b++);
+inline void grail_swapN(SORT_TYPE* a, SORT_TYPE* b, int n)
+{
+	while (n--)
+		grail_swap1(a++, b++);
 }
-static void grail_rotate(SORT_TYPE *a,int l1,int l2){
-	while(l1 && l2){
-		if(l1<=l2){
-			grail_swapN(a,a+l1,l1);
-			a+=l1; l2-=l1;
-		} else{
-			grail_swapN(a+(l1-l2),a+l1,l2);
-			l1-=l2;
+
+static void grail_rotate(SORT_TYPE* a, int l1, int l2)
+{
+	SORT_TYPE swap;
+
+	SORT_TYPE* pta = a;
+	SORT_TYPE* ptb = a + l1 - 1;
+	SORT_TYPE* ptc = a + l1;
+	SORT_TYPE* ptd = a + l1 + l2 - 1;
+
+	while (pta < ptb && ptc < ptd)
+	{
+		swap = *ptb;
+		*ptb-- = *pta;
+		*pta++ = *ptc;
+		*ptc++ = *ptd;
+		*ptd-- = swap;
+	}
+
+	while (pta < ptb)
+	{
+		swap = *ptb;
+		*ptb-- = *pta;
+		*pta++ = *ptd;
+		*ptd-- = swap;
+	}
+
+	while (ptc < ptd)
+	{
+		swap = *ptc;
+		*ptc++ = *ptd;
+		*ptd-- = *pta;
+		*pta++ = swap;
+	}
+
+	while (pta < ptd)
+	{
+		swap = *pta;
+		*pta++ = *ptd;
+		*ptd-- = swap;
+	}
+}
+
+static void grail_rotate_prior(SORT_TYPE* a, int l1, int l2)
+{
+	while (l1 && l2)
+	{
+		if (l1 <= l2)
+		{
+			grail_swapN(a, a + l1, l1);
+			a += l1;
+			l2 -= l1;
+		}
+		else
+		{
+			grail_swapN(a + (l1 - l2), a + l1, l2);
+			l1 -= l2;
 		}
 	}
 }

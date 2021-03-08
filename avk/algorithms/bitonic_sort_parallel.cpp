@@ -1,68 +1,80 @@
 #include "all.h"
-#include <vector>
-#include <thread>
-
-using std::vector;
-using std::thread;
 
 constexpr auto BITONIC_SORT_SEQUENTIAL_THRESHOLD = 128;
 
-void bitonic_sort_merge(item* begin, item* end, bool ascending)
+void bitonic_sort_merge(main_array array, uint begin, uint end, bool ascending)
 {
 	if (end - begin < 2)
 		return;
-    uint size = end - begin;
+    uint size = (uint)(end - begin);
+    AVK_ASSERT(size <= array.size());
     uint k = size / 2;
+    AVK_ASSERT(k <= array.size() / 2);
     if (size < BITONIC_SORT_SEQUENTIAL_THRESHOLD)
     {
-        for (item* i = begin; i != begin + k; ++i)
-            if (ascending == (*i > *(i + k)))
-                swap(*i, *(i + k));
-        bitonic_sort_merge(begin, begin + k, ascending);
-        bitonic_sort_merge(begin + k, end, ascending);
+        for (uint i = begin; i < begin + k; ++i)
+            if (ascending == (array[i] > array[i + k]))
+                swap(array, i, i + k);
+
+        bitonic_sort_merge(array, begin, begin + k, ascending);
+        bitonic_sort_merge(array, begin + k, end, ascending);
     }
     else
     {
-        for (item* i = begin; i != begin + k; ++i)
-            if (ascending == (*i > *(i + k)))
-                swap(*i, *(i + k));
-        thread threads[] =
+        parallel_for(begin, begin + k, [&](uint i)
         {
-            thread(bitonic_sort_merge, begin, begin + k, ascending),
-            thread(bitonic_sort_merge, begin + k, end, ascending)
-        };
-        for (thread& t : threads)
-            t.join();
+            if (ascending == (array[i] > array[i + k]))
+                swap(array, i, i + k);
+        });
+        
+        parallel_for(0, 2, [&](int i)
+        {
+            uint b = begin;
+            uint e = begin + k;
+            if (i != 0)
+                b += k;
+            if (i != 0)
+                e += k;
+            bitonic_sort_merge(array, b, e, ascending);
+        });
     }
 }
 
-void bitonic_sort_kernel(item* begin, item* end, bool ascending)
+void bitonic_sort_kernel(main_array array, uint begin, uint end, bool ascending)
 {
+    uint size = (uint)(end - begin);
+    AVK_ASSERT(size <= array.size());
+
     if (end - begin < 2)
         return;
 
-    uint k = (end - begin) / 2;
+    uint k = size / 2;
+    AVK_ASSERT(k <= array.size() / 2);
 
     if (end - begin < BITONIC_SORT_SEQUENTIAL_THRESHOLD)
     {
-        bitonic_sort_kernel(begin, begin + k, true);
-        bitonic_sort_kernel(begin + k, end, false);
-        bitonic_sort_merge(begin, end, ascending);
+        bitonic_sort_kernel(array, begin, begin + k, true);
+        bitonic_sort_kernel(array, begin + k, end, false);
+        bitonic_sort_merge(array, begin, end, ascending);
     }
     else
     {
-        thread threads[] =
+        parallel_for(0, 2, [&](int i)
         {
-            thread(bitonic_sort_kernel, begin, begin + k, true),
-            thread(bitonic_sort_kernel, begin + k, end, false)
-        };
-        for (thread& t : threads)
-            t.join();
-        bitonic_sort_merge(begin, end, ascending);
+            uint b = begin;
+            uint e = begin + k;
+            if (i != 0)
+                b += k;
+            if (i != 0)
+                e += k;
+            bitonic_sort_kernel(array, b, e, i == 0);
+        });
+
+        bitonic_sort_merge(array, begin, end, ascending);
     }
 }
 
 void bitonic_sort_parallel(main_array array)
 {
-    bitonic_sort_kernel(array.begin(), array.end(), true);
+    run_as_parallel([&]() { bitonic_sort_kernel(array, 0, array.size(), true); });
 }

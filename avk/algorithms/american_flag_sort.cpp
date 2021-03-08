@@ -1,4 +1,5 @@
 #include "all.h"
+#include "sort_config.h"
 #include <vector>
 
 #include <algorithm>
@@ -57,12 +58,12 @@ namespace detail::american_flag_sort
 
 				for (I i = begin; i < end; ++i)
 				{
-					const radix_index_type digit = extract_digit(*i, digit_index);
+					const radix_index_type digit = (radix_index_type)extract_digit(*i, digit_index);
 					++counts[digit];
 					presence.set(digit, true);
 				}
 
-				active_partition_count = presence.count();
+				active_partition_count = (radix_index_type)presence.count();
 
 				if (active_partition_count > 1)
 					break;

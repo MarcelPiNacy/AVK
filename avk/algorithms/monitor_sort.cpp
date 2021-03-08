@@ -45,14 +45,14 @@
 
 #ifdef MONITOR_SORT_DEBUG
 #include <cassert>
-#define MONITOR_SORT_INVARIANT(...) assert(__VA_ARGS__)
+#define MONITOR_SORT_INVARIANT(...) AVK_ASSERT(__VA_ARGS__)
 #else
 #define MONITOR_SORT_INVARIANT(...) MONITOR_SORT_ASSUME(__VA_ARGS__)
 #endif
 
 
 
-namespace monitor_sort
+namespace detal::monitor_sort
 {
 	namespace platform
 	{
@@ -1107,7 +1107,7 @@ namespace monitor_sort
 
 
 
-void block_merge_monitor_sort(main_array array)
+void monitor_sort(main_array array)
 {
-	monitor_sort::sort(array.begin(), array.end());
+	detal::monitor_sort::sort(array.begin(), array.end());
 }

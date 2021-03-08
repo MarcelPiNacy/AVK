@@ -1,7 +1,6 @@
 #include "vulkan_state.h"
 #include "../algorithm_thread.h"
 #include "../defer.h"
-#include "../enforce.h"
 
 static uint32_t frame_index;
 
@@ -41,8 +40,8 @@ bool build_commands(uint32_t index)
 
 void draw_main_array()
 {
-	main_array_lock.lock();
-	DEFER{ main_array_lock.unlock(); };
+	algorithm_thread::pause();
+	DEFER{ algorithm_thread::resume(); };
 
 	if (main_array_size == 0)
 		return;
@@ -55,7 +54,7 @@ void draw_main_array()
 
 	if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 	{
-		BREAKPOINT;
+		AVK_BREAKPOINT;
 		return;
 	}
 
@@ -75,7 +74,7 @@ void draw_main_array()
 	result = vkQueueSubmit(graphics_queue, 1, &submit_info, VK_NULL_HANDLE);
 	if (result != VK_SUCCESS)
 	{
-		BREAKPOINT;
+		AVK_BREAKPOINT;
 		return;
 	}
 
@@ -92,7 +91,7 @@ void draw_main_array()
 	{
 		if (result == VK_ERROR_OUT_OF_DATE_KHR)
 			return;
-		BREAKPOINT;
+		AVK_BREAKPOINT;
 		return;
 	}
 

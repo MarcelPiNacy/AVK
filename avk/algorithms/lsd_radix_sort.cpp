@@ -1,6 +1,7 @@
 #include "all.h"
 #include <vector>
 #include <array>
+#include "sort_config.h"
 
 void lsd_radix_sort(main_array array)
 {

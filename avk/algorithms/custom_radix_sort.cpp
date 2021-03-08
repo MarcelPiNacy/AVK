@@ -1,5 +1,4 @@
 #include "all.h"
-#include "../internal/enforce.h"
 #include <algorithm>
 #include <iterator>
 #include <cassert>

@@ -26,7 +26,7 @@
 */
 
 /*
-	This file contains a C++17 implementation of Andrei Astrelin's GrailSort, a block merge sorting algorithm, with some changes/optimizations.
+	This file contains a C++17 implementation of Andrei Astrelin's GrailSort, a block merge sorting algorithm, with some major optimizations.
 */
 
 #include <new>
@@ -41,9 +41,9 @@
 
 #ifdef GRAILSORT_DEBUG
 #include <cassert>
-#define GRAILSORT_INVARIANT(...) assert(__VA_ARGS__)
+#define GRAILSORT_INVARIANT(expression) assert(expression)
 #else
-#define GRAILSORT_INVARIANT(...)
+#define GRAILSORT_INVARIANT(expression)
 #endif
 
 namespace grailsort
@@ -68,7 +68,9 @@ namespace grailsort
 		{
 		};
 
-		template <typename I, typename J>
+		template <
+			typename I, // RandomAccessIterator
+			typename J> // BufferIterator
 		struct grail_sort_helper : grail_sort_external_buffer_helper_type<J>
 		{
 			using iterator_traits = std::iterator_traits<I>;
@@ -77,8 +79,9 @@ namespace grailsort
 			using size_type = std::make_unsigned_t<difference_type>;
 
 			static constexpr bool using_external_buffer = !std::is_void<J>::value;
+			static constexpr bool iterator_cmovable = sizeof(I) <= sizeof(void*) && std::is_trivially_copyable<I>::value;
 
-			static constexpr uint_fast8_t log2_of(size_t size) noexcept
+			static constexpr uint_fast8_t log2_of(size_t size)
 			{
 				uint_fast8_t r = 0;
 				for (; (size & 1) == 0; size >>= 1)
@@ -94,6 +97,14 @@ namespace grailsort
 				return r;
 			}
 
+			static constexpr bool is_even(size_type size)
+			{
+				if constexpr (std::is_fundamental<size_type>::value && std::is_integral<size_type>::value)
+					return (size & 1) == 0;
+				else
+					return (size % 2) == 0;
+			}
+
 			static constexpr bool is_pow2(size_type size)
 			{
 				while (size != 0)
@@ -101,26 +112,19 @@ namespace grailsort
 				return (size & 1) != 0;
 			}
 
-			static constexpr bool is_pow4(size_type size)
-			{
-				return (log2_of(size) & 1) != 0;
-			}
-
-			struct internal
+			struct checked_thresholds
 			{
 				static constexpr size_t
 					CACHE_LINE_SIZE					= std::hardware_constructive_interference_size,
 					SMALL_SORT_THRESHOLD			= std::max<size_t>(CACHE_LINE_SIZE / sizeof(value_type), 8),
-					SMALL_SORT_THRESHOLD_SQRT		= sqrt_of(SMALL_SORT_THRESHOLD),
 					SMALL_SORT_THRESHOLD_LOG2		= log2_of(SMALL_SORT_THRESHOLD),
 					MEDIUM_SORT_THRESHOLD			= SMALL_SORT_THRESHOLD * 4,
 					LINEAR_SEARCH_THRESHOLD			= SMALL_SORT_THRESHOLD,
-					BASIC_INSERTION_SORT_THRESHOLD	= 4,
-					GATHER_UNIQUE_BASIC_THRESHOLD	= CACHE_LINE_SIZE;
+					BASIC_INSERTION_SORT_THRESHOLD	= 6,
+					GATHER_UNIQUE_BASIC_THRESHOLD	= CACHE_LINE_SIZE / sizeof(value_type);
 
 				static_assert(CACHE_LINE_SIZE <= std::numeric_limits<size_type>::max());
 				static_assert(SMALL_SORT_THRESHOLD <= std::numeric_limits<size_type>::max());
-				static_assert(SMALL_SORT_THRESHOLD_SQRT <= std::numeric_limits<size_type>::max());
 				static_assert(SMALL_SORT_THRESHOLD_LOG2 <= std::numeric_limits<size_type>::max());
 				static_assert(MEDIUM_SORT_THRESHOLD <= std::numeric_limits<size_type>::max());
 				static_assert(LINEAR_SEARCH_THRESHOLD <= std::numeric_limits<size_type>::max());
@@ -129,14 +133,13 @@ namespace grailsort
 			};
 
 			static constexpr size_type
-				CACHE_LINE_SIZE					= static_cast<size_type>(internal::CACHE_LINE_SIZE),
-				SMALL_SORT_THRESHOLD			= static_cast<size_type>(internal::SMALL_SORT_THRESHOLD),
-				SMALL_SORT_THRESHOLD_SQRT		= static_cast<size_type>(internal::SMALL_SORT_THRESHOLD_SQRT),
-				SMALL_SORT_THRESHOLD_LOG2		= static_cast<size_type>(internal::SMALL_SORT_THRESHOLD_SQRT),
-				MEDIUM_SORT_THRESHOLD			= static_cast<size_type>(internal::MEDIUM_SORT_THRESHOLD),
-				LINEAR_SEARCH_THRESHOLD			= static_cast<size_type>(internal::LINEAR_SEARCH_THRESHOLD),
-				BASIC_INSERTION_SORT_THRESHOLD	= static_cast<size_type>(internal::BASIC_INSERTION_SORT_THRESHOLD),
-				GATHER_UNIQUE_BASIC_THRESHOLD	= static_cast<size_type>(internal::GATHER_UNIQUE_BASIC_THRESHOLD);
+				CACHE_LINE_SIZE					= static_cast<size_type>(checked_thresholds::CACHE_LINE_SIZE),
+				SMALL_SORT_THRESHOLD			= static_cast<size_type>(checked_thresholds::SMALL_SORT_THRESHOLD),
+				SMALL_SORT_THRESHOLD_LOG2		= static_cast<size_type>(checked_thresholds::SMALL_SORT_THRESHOLD_LOG2),
+				MEDIUM_SORT_THRESHOLD			= static_cast<size_type>(checked_thresholds::MEDIUM_SORT_THRESHOLD),
+				LINEAR_SEARCH_THRESHOLD			= static_cast<size_type>(checked_thresholds::LINEAR_SEARCH_THRESHOLD),
+				BASIC_INSERTION_SORT_THRESHOLD	= static_cast<size_type>(checked_thresholds::BASIC_INSERTION_SORT_THRESHOLD),
+				GATHER_UNIQUE_BASIC_THRESHOLD	= static_cast<size_type>(checked_thresholds::GATHER_UNIQUE_BASIC_THRESHOLD);
 
 			static constexpr size_type distance(I begin, I end)
 			{
@@ -198,6 +201,31 @@ namespace grailsort
 				iter_move(target, tmp);
 			}
 
+			static constexpr void rotate_original(I begin, I new_begin, I end)
+			{
+				GRAILSORT_INVARIANT(begin <= end);
+				GRAILSORT_INVARIANT(new_begin <= end);
+				GRAILSORT_INVARIANT(begin <= new_begin);
+
+				size_type left_size = distance(begin, new_begin);
+				size_type right_size = distance(new_begin, end);
+				while (left_size != 0 && right_size != 0)
+				{
+					const I middle = std::next(begin, left_size);
+					if (left_size <= right_size)
+					{
+						swap_range(begin, middle, middle);
+						begin = middle;
+						right_size -= left_size;
+					}
+					else
+					{
+						swap_range(std::next(begin, left_size - right_size), middle, middle);
+						left_size -= right_size;
+					}
+				}
+			}
+
 			static constexpr void rotate(I begin, I new_begin, I end)
 			{
 				GRAILSORT_INVARIANT(begin <= end);
@@ -208,17 +236,27 @@ namespace grailsort
 				size_type right_size = distance(new_begin, end);
 				while (left_size != 0 && right_size != 0)
 				{
-					if (left_size <= right_size)
+					const I middle = std::next(begin, left_size);
+
+					bool flag = left_size > right_size;
+					size_type offset = left_size - right_size;
+					I from_begin = begin + offset;
+					if (!flag) //whether this is branchless depends on the iterator type
+						from_begin = begin;
+					I to_begin = middle;
+					do
 					{
-						swap_range(begin, begin + left_size, begin + left_size);
-						begin += left_size;
-						right_size -= left_size;
-					}
-					else
-					{
-						swap_range(begin + (left_size - right_size), begin + left_size, begin + left_size);
-						left_size -= right_size;
-					}
+						iter_swap(from_begin, to_begin);
+						++from_begin;
+						++to_begin;
+					} while (from_begin != middle);
+					size_type new_right = right_size - left_size;
+					if (!flag)
+						begin = middle;
+					if (!flag)
+						right_size = new_right;
+					if (flag)
+						left_size = offset;
 				}
 			}
 
@@ -230,35 +268,30 @@ namespace grailsort
 				return begin;
 			}
 
-			using hybrid_search_options = uint_fast8_t;
+			using hybrid_search_flags = uint_fast8_t;
 			static constexpr uint_fast8_t
 				HYBRID_SEARCH_OPTIONS_ALL_UNIQUE_BIT = 1,
 				HYBRID_SEARCH_OPTIONS_BACKWARD_BIT = 2;
 
-			template <hybrid_search_options Options, typename P>
+			template <hybrid_search_flags Flags, typename P>
 			static constexpr I hybrid_search(I begin, I end, I key, P&& compare)
 			{
-				constexpr bool all_unique = (Options & HYBRID_SEARCH_OPTIONS_ALL_UNIQUE_BIT) != 0;
-				constexpr bool backward = (Options & HYBRID_SEARCH_OPTIONS_BACKWARD_BIT) != 0;
+				constexpr bool all_unique = (Flags & HYBRID_SEARCH_OPTIONS_ALL_UNIQUE_BIT) != 0;
+				constexpr bool backward = (Flags & HYBRID_SEARCH_OPTIONS_BACKWARD_BIT) != 0;
 
 				if (distance(begin, end) <= LINEAR_SEARCH_THRESHOLD)
 					return linear_search_forward(begin, end, key, compare);
 
 				I i = begin;
 				begin += LINEAR_SEARCH_THRESHOLD;
-				while (i != begin)
-				{
+				for (; i != begin; ++i)
 					if (!compare(i, key))
 						return i;
-					++i;
-				}
 
 				if (begin == end)
 					return begin;
 
-				i = begin;
-				size_type increment = 1;
-				while (i < end)
+				for (size_type increment = 1; i < end; increment += increment)
 				{
 					if constexpr (all_unique)
 					{
@@ -267,8 +300,7 @@ namespace grailsort
 					}
 					if (!compare(i, key))
 						break;
-					i += increment;
-					increment += increment;
+					i = std::next(i, increment);
 				}
 
 				if (i > end)
@@ -286,7 +318,7 @@ namespace grailsort
 					if (d <= LINEAR_SEARCH_THRESHOLD)
 						break;
 					if (compare(i, key))
-						begin = i + 1;
+						begin = std::next(i, 1);
 					else
 						end = i;
 				}
@@ -294,19 +326,19 @@ namespace grailsort
 				return linear_search_forward(begin, end, key, compare);
 			}
 
-			template <hybrid_search_options Options = 0>
+			template <hybrid_search_flags Flags = 0>
 			static constexpr I lower_bound(I begin, I end, I key)
 			{
-				return hybrid_search<Options>(begin, end, key, [](I left, I right)
+				return hybrid_search<Flags>(begin, end, key, [](I left, I right)
 				{
 					return *left < *right;
 				});
 			}
 
-			template <hybrid_search_options Options = 0>
+			template <hybrid_search_flags Flags = 0>
 			static constexpr I upper_bound(I begin, I end, I key)
 			{
-				return hybrid_search<Options>(begin, end, key, [](I left, I right)
+				return hybrid_search<Flags>(begin, end, key, [](I left, I right)
 				{
 					return !(*left > *right);
 				});
@@ -343,48 +375,48 @@ namespace grailsort
 				I internal_buffer_begin = begin;
 				I internal_buffer_end = begin + unique_count;
 
+				constexpr auto options =
+					HYBRID_SEARCH_OPTIONS_ALL_UNIQUE_BIT |
+					HYBRID_SEARCH_OPTIONS_BACKWARD_BIT;
+
 				for (I i = internal_buffer_end; unique_count != expected_unique_count && i != end; ++i)
 				{
-					constexpr auto options =
-						HYBRID_SEARCH_OPTIONS_ALL_UNIQUE_BIT |
-						HYBRID_SEARCH_OPTIONS_BACKWARD_BIT;
-
 					I target = lower_bound<options>(internal_buffer_begin, internal_buffer_end, i);
 					if (target == internal_buffer_end || *i != *target)
 					{
 						const size_type offset = (i - unique_count) - internal_buffer_begin;
-						rotate(internal_buffer_begin, internal_buffer_end, i);
-						internal_buffer_begin += offset;
-						internal_buffer_end += offset;
-						target += offset;
+						if (i != internal_buffer_end)
+							rotate(internal_buffer_begin, internal_buffer_end, i);
+						internal_buffer_begin = std::next(internal_buffer_begin, offset);
+						internal_buffer_end = std::next(internal_buffer_end, offset);
+						target = std::next(target, offset);
 						insert_backward(target, i);
 						++internal_buffer_end;
 						++unique_count;
 					}
 				}
 
-				rotate(begin, internal_buffer_begin, internal_buffer_end);
+				if (internal_buffer_begin != begin)
+					rotate(begin, internal_buffer_begin, internal_buffer_end);
 				return unique_count;
 			}
 
 			static constexpr void internal_merge_forward(I begin, I middle, I end, I buffer_begin)
 			{
+				if (*std::prev(middle, 1) <= *middle)
+					return;
+
 				I left = begin;
 				I right = middle;
 				I buffer = buffer_begin;
 
+				//Note: attempt to unroll this?
 				while (right < end)
 				{
-					if (left == middle || *left > *right)
-					{
-						std::iter_swap(buffer, right);
-						++right;
-					}
-					else
-					{
-						std::iter_swap(buffer, left);
-						++left;
-					}
+					bool flag = left == middle || *left > *right;
+					I& target = flag ? right : left;
+					std::iter_swap(buffer, target);
+					++target;
 					++buffer;
 				}
 
@@ -394,22 +426,19 @@ namespace grailsort
 
 			static constexpr void internal_merge_backward(I begin, I middle, I end, I buffer_end)
 			{
+				if (*std::prev(middle, 1) <= *middle)
+					return;
+
 				I buffer = buffer_end - 1;
 				I right = end - 1;
 				I left = middle - 1;
 
 				while (left >= begin)
 				{
-					if (right < middle || *left > *right)
-					{
-						std::iter_swap(buffer, left);
-						--left;
-					}
-					else
-					{
-						std::iter_swap(buffer, right);
-						--right;
-					}
+					bool flag = right < middle || *left > *right;
+					I& target = flag ? left : right;
+					std::iter_swap(buffer, target);
+					--target;
 					--buffer;
 				}
 
@@ -422,10 +451,6 @@ namespace grailsort
 					--buffer;
 					--right;
 				}
-			}
-
-			static constexpr void external_merge_forward(I begin, I middle, I end)
-			{
 			}
 
 			static constexpr void insertion_sort_basic(I begin, I end)
@@ -487,16 +512,30 @@ namespace grailsort
 				insertion_sort_unstable(begin, end);
 			}
 
-			static constexpr void build_small_runs(I internal_buffer_end, I end)
+			static constexpr void sort_tag_buffer(I begin, I end, I median)
 			{
+				I lesser = begin;
+				I greater = end;
+
+			}
+
+			static constexpr size_type build_small_runs(I internal_buffer_end, I end)
+			{
+				size_type run_count = 0;
 				while (true)
 				{
+					++run_count;
 					const I next = internal_buffer_end + SMALL_SORT_THRESHOLD;
 					if (next > end)
-						return insertion_sort_stable(internal_buffer_end, end);
+					{
+						if (next != end)
+							insertion_sort_stable(internal_buffer_end, end);
+						break;
+					}
 					insertion_sort_stable(internal_buffer_end, next);
 					internal_buffer_end = next;
 				}
+				return run_count;
 			}
 
 			static constexpr void lazy_merge(I begin, I middle, I end)
@@ -546,8 +585,10 @@ namespace grailsort
 						return;
 					const I merge_end = merge_middle + run_size;
 					if (merge_end > end)
-						return lazy_merge_last(begin, merge_middle, end);
-					lazy_merge(begin, merge_middle, merge_end);
+						if (*std::prev(merge_middle, 1) > *merge_end)
+							return lazy_merge_last(begin, merge_middle, end);
+					if (*std::prev(merge_middle, 1) > *merge_end)
+						lazy_merge(begin, merge_middle, merge_end);
 					begin = merge_end;
 				}
 			}
@@ -557,6 +598,46 @@ namespace grailsort
 				build_small_runs(begin, end);
 				for (size_type run_size = SMALL_SORT_THRESHOLD; run_size < distance(begin, end); run_size *= 2)
 					lazy_merge_pass(begin, end, run_size);
+			}
+
+			static constexpr void encode_zero(I begin, uint8_t bits)
+			{
+				insertion_sort_unstable(begin, std::next(begin, bits));
+			}
+
+			static constexpr void encode_value(I begin, uint8_t bits, size_type value)
+			{
+				while (value != 0)
+				{
+					if (value & 1)
+						iter_swap(begin, std::next(begin, 1));
+					value >>= 1;
+					begin = std::next(begin, 2);
+				}
+			}
+
+			static constexpr size_type decode_value(I begin, uint8_t bits)
+			{
+				size_type r = 0;
+				for (uint8_t i = 0; i != bits; ++i)
+					if (*begin > *std::next(begin, 1))
+						r |= (1 << i);
+				return r;
+			}
+
+			static constexpr void fallback_sort(I begin, I end, size_type unique_count)
+			{
+				auto prior_begin = begin;
+				uint8_t desired = 2 * log2_of(distance(begin, end));
+				uint8_t n = 1;
+				begin += unique_count;
+				while (n != unique_count)
+				{
+					size_type found = gather_unique(begin, end, desired);
+					if (found < desired)
+						return lazy_merge_sort(prior_begin, end);
+					begin += desired;
+				}
 			}
 
 			static constexpr void internal_merge_pass_forward(I working_buffer, I begin, I end, size_type run_size)
@@ -579,6 +660,28 @@ namespace grailsort
 				}
 			}
 
+			static constexpr size_type internal_merge_pass_forward(I working_buffer, I begin, I end, size_type run_size, size_type run_count)
+			{
+				GRAILSORT_INVARIANT(working_buffer < begin);
+				GRAILSORT_INVARIANT(begin < end);
+
+				while (true)
+				{
+					//const I merge_begin = begin; //IMPLICIT
+					const I merge_middle = begin + run_size;
+					if (merge_middle >= end)
+						break;
+					I merge_end = merge_middle + run_size;
+					if (merge_end > end)
+						merge_end = end;
+					internal_merge_forward(begin, merge_middle, merge_end, working_buffer);
+					--run_count;
+					working_buffer = merge_middle;
+					begin = merge_end;
+				}
+				return run_count;
+			}
+
 			static constexpr void internal_merge_pass_backward(I begin, I end, I working_buffer_end, size_type run_size)
 			{
 				while (true)
@@ -599,28 +702,51 @@ namespace grailsort
 				}
 			}
 
-			static constexpr void build_large_runs(I begin, I internal_buffer_end, I end, size_type internal_buffer_size)
+			static constexpr size_type internal_merge_pass_backward(I begin, I end, I working_buffer_end, size_type run_size, size_type run_count)
 			{
+				while (true)
+				{
+					const I merge_middle = end - run_size;
+					if (merge_middle <= begin)
+					{
+						if (merge_middle == begin)
+							rotate(begin, end, working_buffer_end);
+						break;
+					}
+					I merge_begin = merge_middle - run_size;
+					if (merge_begin < begin)
+						merge_begin = begin;
+					internal_merge_backward(merge_begin, merge_middle, end, working_buffer_end);
+					--run_count;
+					working_buffer_end = merge_middle;
+					end = merge_begin;
+				}
+				return run_count;
+			}
+
+			static constexpr size_type build_large_runs(I begin, I internal_buffer_end, I end, size_type internal_buffer_size, size_type run_count)
+			{
+				// BUILD RUNS USING INTERNAL BUFFER
+
 				size_type rotated_count = 0;
 				size_type run_size = SMALL_SORT_THRESHOLD;
-
-				const I original_end = end;
+				I array_end = end;
 				I internal_buffer_end_tmp = internal_buffer_end;
 
-				while (true)
+				do
 				{
 					const size_type next_run_size = run_size * 2;
 					internal_buffer_end_tmp -= run_size;
-					internal_merge_pass_forward(internal_buffer_end_tmp, internal_buffer_end, end, run_size);
+					run_count = internal_merge_pass_forward(internal_buffer_end_tmp, internal_buffer_end, end, run_size, run_count);
 					end -= run_size;
 					internal_buffer_end -= run_size;
 					rotated_count += run_size;
 					run_size = next_run_size;
-					if (run_size >= internal_buffer_size)
-						break;
-				}
+				} while (run_size < internal_buffer_size);
 
-				size_type remaining = internal_buffer_size - rotated_count;
+				// BRING REMAINING INTERNAL BUFFER ELEMENTS TO THE END
+
+				const size_type remaining = internal_buffer_size - rotated_count;
 				if (remaining != 0)
 				{
 					const I tmp = internal_buffer_end - remaining;
@@ -629,53 +755,100 @@ namespace grailsort
 					end -= remaining;
 				}
 
-				internal_merge_pass_backward(begin, end, original_end, run_size);
-			}
-
-			static constexpr void tagged_swap(I from_tag, I to_tag, I from_begin, I from_end, I to_begin)
-			{
-				iter_swap(from_tag, to_tag);
-				swap_range(from_begin, from_end, to_begin);
-			}
-
-			static constexpr void block_merge(I tag_buffer, I working_buffer, I begin, I end, size_type block_size)
-			{
-				size_type block_size_log2 = log2_of(block_size);
-
-				sort_tag_buffer(tag_buffer, working_buffer);
-
-				const I middle = begin + distance(begin, end) / 2;
-				const I original_begin = begin;
-
-				while (true)
+				if (is_even(run_count))
 				{
-					if (begin == middle)
-						return;
-					if (*begin > *middle)
-						break;
-					++tag_buffer;
-					begin += block_size;
+					// ADJUST INTERNAL BUFFER POSITION
+
+					I new_end = end - run_size;
+					swap_range(end, array_end, new_end);
+					end = new_end;
+					array_end -= run_size;
 				}
 
-				while (begin != end)
+				// PERFORM FINAL BACKWARDS MERGE PASS
+
+				run_count = internal_merge_pass_backward(begin, end, array_end, run_size, run_count);
+
+				// RUN SIZE IS NOW 4*SQRT(N)
+				return run_count;
+			}
+
+			static constexpr I block_merge_forward(I tag_buffer, I working_buffer, I begin, I middle, I end, size_type block_size)
+			{
+				GRAILSORT_INVARIANT(working_buffer < begin);
+				GRAILSORT_INVARIANT(begin - block_size == working_buffer);
+				GRAILSORT_INVARIANT(begin < end);
+
+				I median_tag = std::next(tag_buffer, distance(tag_buffer, working_buffer) / 2);
+				I this_block = begin;
+				I this_tag = tag_buffer;
+				do
 				{
-					I min = begin;
-					I i = begin;
-					do
+					I min_block = this_block;
+					I min_tag = this_tag;
+					I next_block = std::next(min_block, block_size);
+					I next_tag = std::next(min_tag);
+					I target_block = next_block;
+					I target_tag = next_tag;
+
+					while (target_block < end)
 					{
-						i += block_size;
-						if (*i < *min)
-							min = i;
-					} while (i != end);
-					tagged_swap(tag_buffer, tag_buffer + (distance(begin, min) >> block_size_log2), begin, begin + block_size, min);
-					++tag_buffer;
-					begin += block_size;
-				}
+						bool flag = *target_block < *min_block;
+						if (!flag)
+							flag = *target_block == *min_block;
+						if (!flag)
+							flag = *target_tag < *min_tag;
+						if (flag)
+						{
+							min_tag = target_tag;
+							min_block = target_block;
+						}
+						target_block = std::next(target_block, block_size);
+						target_tag = std::next(target_tag);
+					}
 
+					if (min_block != this_block)
+					{
+						swap_range(this_block, next_block, min_block);
+						iter_swap(this_tag, min_tag);
+						if (median_tag == this_tag)
+							median_tag = min_tag;
+						else if (median_tag == min_tag)
+							median_tag = this_tag;
+					}
+
+					this_block = next_block;
+					this_tag = next_tag;
+				} while (this_block < end);
+
+				internal_merge_pass_forward(working_buffer, begin, end, block_size);
+				return median_tag;
+			}
+
+			static constexpr void block_merge_backward(I tag_buffer, I working_buffer, I begin, I middle, I end, size_type block_size)
+			{
 				internal_merge_pass_forward(working_buffer, begin, end, block_size);
 			}
 
-			static constexpr void block_merge_sort(I tag_buffer, I working_buffer, I begin, I end, size_type block_size)
+			static constexpr void block_merge_pass_forward(I tag_buffer, I working_buffer, I begin, I end, size_type block_size, size_type run_size)
+			{
+				while (true)
+				{
+					const I merge_begin = begin;
+					const I merge_middle = begin + run_size;
+					if (merge_middle > end)
+						break;
+					I merge_end = merge_middle + run_size;
+					if (merge_end > end)
+						merge_end = end;
+					sort_tag_buffer(tag_buffer, tag_buffer + block_size);
+					block_merge_forward(tag_buffer, working_buffer, merge_begin, merge_middle, merge_end, block_size);
+					working_buffer += run_size * 2;
+					begin = working_buffer + block_size;
+				}
+			}
+
+			static constexpr void block_merge_pass_backward(I tag_buffer, I working_buffer, I begin, I end, size_type block_size, size_type run_size)
 			{
 			}
 
@@ -691,15 +864,16 @@ namespace grailsort
 				const size_type size_sqrt = sqrt_of(size);
 				const size_type internal_buffer_size = size_sqrt * 2;
 				const size_type unique_count = gather_unique(begin, end, internal_buffer_size);
+				if (unique_count == 1)
+					return; // ??????????????
 				if (unique_count != internal_buffer_size)
-					return lazy_merge_sort(begin, end);
+					return fallback_sort(begin, end, unique_count);
 				const I tag_buffer = begin;
-				const I working_buffer = begin + size_sqrt;
+				const I working_buffer = std::next(begin, size_sqrt);
 				const I internal_buffer_end = begin + internal_buffer_size;
-				build_small_runs(internal_buffer_end, end);
-				build_large_runs(begin, internal_buffer_end, end, internal_buffer_size);
-				return;
-				block_merge(tag_buffer, working_buffer, internal_buffer_end, internal_buffer_end + 2 * internal_buffer_size, sqrt_of(internal_buffer_size));
+				const size_type run_count = build_small_runs(internal_buffer_end, end);
+				build_large_runs(begin, internal_buffer_end, end, internal_buffer_size, run_count);
+				block_merge_pass_forward(tag_buffer, working_buffer, internal_buffer_end, end, size_sqrt, 4 * size_sqrt);
 			}
 		};
 	}
@@ -722,7 +896,7 @@ namespace grailsort
 	}
 }
 
-void grail_sort_cpp(main_array array)
+void grailsort_cpp(main_array array)
 {
 	grailsort::sort(array.begin(), array.end());
 }

@@ -2,7 +2,6 @@
 #include "vulkan_state.h"
 #include "../main_array.h"
 #include "../defer.h"
-#include "../enforce.h"
 #include <mutex>
 
 using std::vector;
@@ -43,7 +42,7 @@ static VkBool32 VKAPI_CALL debugger_callback(VkDebugUtilsMessageSeverityFlagBits
 
 
 
-static vector<char> read_file(const char* path) noexcept //TODO: IMPROVE THIS. USE MAPPED FILE?
+static vector<char> read_file(const char* path) //TODO: IMPROVE THIS. USE MAPPED FILE?
 {
 	vector<char> r;
 	FILE* f = nullptr;
@@ -95,7 +94,7 @@ int init_vulkan()
 		result = vkCreateInstance(&info, nullptr, &instance);
 		if (result != VK_SUCCESS)
 		{
-			BREAKPOINT;
+			AVK_BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
 	}
@@ -134,7 +133,7 @@ int init_vulkan()
 		result = vkCreateWin32SurfaceKHR(instance, &info, nullptr, &surface);
 		if (result != VK_SUCCESS)
 		{
-			BREAKPOINT;
+			AVK_BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
 	}
@@ -217,7 +216,7 @@ int init_vulkan()
 
 		if (vkCreateDevice(physical_device, &info, nullptr, &device) != VK_SUCCESS)
 		{
-			BREAKPOINT;
+			AVK_BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
 
@@ -262,7 +261,7 @@ int init_vulkan()
 		{
 			if (capabilities.currentExtent.height == UINT32_MAX)
 			{
-				BREAKPOINT;
+				AVK_BREAKPOINT;
 				return -(__COUNTER__ - base_counter);
 			}
 
@@ -309,7 +308,7 @@ int init_vulkan()
 
 		if (vkCreateSwapchainKHR(device, &info, nullptr, &swapchain) != VK_SUCCESS)
 		{
-			BREAKPOINT;
+			AVK_BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
 
@@ -337,7 +336,7 @@ int init_vulkan()
 			result = vkCreateImageView(device, &info, nullptr, &swapchain_image_views[i]);
 			if (result != VK_SUCCESS)
 			{
-				BREAKPOINT;
+				AVK_BREAKPOINT;
 				return -(__COUNTER__ - base_counter);
 			}
 		}
@@ -384,7 +383,7 @@ int init_vulkan()
 		result = vkCreateRenderPass(device, &info, nullptr, &renderpass);
 		if (result != VK_SUCCESS)
 		{
-			BREAKPOINT;
+			AVK_BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
 	}
@@ -403,7 +402,7 @@ int init_vulkan()
 			result = vkCreateFramebuffer(device, &info, nullptr, &framebuffers[i]);
 			if (result != VK_SUCCESS)
 			{
-				BREAKPOINT;
+				AVK_BREAKPOINT;
 				return -(__COUNTER__ - base_counter);
 			}
 		}
@@ -416,7 +415,7 @@ int init_vulkan()
 		result = vkCreateCommandPool(device, &info, nullptr, &command_pool);
 		if (result != VK_SUCCESS)
 		{
-			BREAKPOINT;
+			AVK_BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
 	}
@@ -430,7 +429,7 @@ int init_vulkan()
 		result = vkAllocateCommandBuffers(device, &info, command_buffers.data());
 		if (result != VK_SUCCESS)
 		{
-			BREAKPOINT;
+			AVK_BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
 
@@ -438,7 +437,7 @@ int init_vulkan()
 		result = vkAllocateCommandBuffers(device, &info, &array_command_buffer);
 		if (result != VK_SUCCESS)
 		{
-			BREAKPOINT;
+			AVK_BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
 	}
@@ -451,7 +450,7 @@ int init_vulkan()
 			result = vkCreateSemaphore(device, &info, nullptr, &begin_render_semaphore[i]);
 			if (result != VK_SUCCESS)
 			{
-				BREAKPOINT;
+				AVK_BREAKPOINT;
 				return -(__COUNTER__ - base_counter);
 			}
 		}
@@ -460,7 +459,7 @@ int init_vulkan()
 			result = vkCreateSemaphore(device, &info, nullptr, &end_render_semaphore[i]);
 			if (result != VK_SUCCESS)
 			{
-				BREAKPOINT;
+				AVK_BREAKPOINT;
 				return -(__COUNTER__ - base_counter);
 			}
 		}
@@ -478,7 +477,7 @@ int init_vulkan()
 		result = vkCreatePipelineLayout(device, &info, nullptr, &bar_graph_pipeline_layout);
 		if (result != VK_SUCCESS)
 		{
-			BREAKPOINT;
+			AVK_BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
 	}
@@ -496,7 +495,7 @@ int init_vulkan()
 
 		{
 			auto code = read_file("bar_graph_vs.spv");
-			enforce(code.size() != 0);
+			AVK_ASSERT(code.size() != 0);
 			VkShaderModuleCreateInfo info = {};
 			info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 			info.codeSize = code.size();
@@ -504,17 +503,17 @@ int init_vulkan()
 			result = vkCreateShaderModule(device, &info, nullptr, &vertex_shader);
 			if (result != VK_SUCCESS)
 			{
-				BREAKPOINT;
+				AVK_BREAKPOINT;
 				return -(__COUNTER__ - base_counter);
 			}
 			code = read_file("bar_graph_fs.spv");
-			enforce(code.size() != 0);
+			AVK_ASSERT(code.size() != 0);
 			info.codeSize = code.size();
 			info.pCode = (const uint32_t*)code.data();
 			result = vkCreateShaderModule(device, &info, nullptr, &fragment_shader);
 			if (result != VK_SUCCESS)
 			{
-				BREAKPOINT;
+				AVK_BREAKPOINT;
 				return -(__COUNTER__ - base_counter);
 			}
 		}
@@ -607,7 +606,7 @@ int init_vulkan()
 		result = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &info, nullptr, &bar_graph_pipeline);
 		if (result != VK_SUCCESS)
 		{
-			BREAKPOINT;
+			AVK_BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
 	}
@@ -622,7 +621,15 @@ int vulkan_on_window_resize()
 	if (instance == VK_NULL_HANDLE)
 		return 0;
 
-	std::scoped_lock guard(main_array_lock);
+	if (cmts_lib_is_initialized())
+		AVK_ASSERT(cmts_lib_resume() == CMTS_OK);
+	algorithm_thread::pause();
+	DEFER
+	{
+		algorithm_thread::resume();
+		if (cmts_lib_is_initialized())
+			AVK_ASSERT(cmts_lib_resume() == CMTS_OK);
+	};
 	vkDeviceWaitIdle(device);
 
 	vkFreeCommandBuffers(device, command_pool, (uint32_t)command_buffers.size(), command_buffers.data());
@@ -675,7 +682,7 @@ int vulkan_on_window_resize()
 		{
 			if (capabilities.currentExtent.height == UINT32_MAX)
 			{
-				BREAKPOINT;
+				AVK_BREAKPOINT;
 				return -(__COUNTER__ - base_counter);
 			}
 
@@ -722,7 +729,7 @@ int vulkan_on_window_resize()
 
 		if (vkCreateSwapchainKHR(device, &info, nullptr, &swapchain) != VK_SUCCESS)
 		{
-			BREAKPOINT;
+			AVK_BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
 
@@ -760,7 +767,7 @@ int vulkan_on_window_resize()
 			result = vkCreateImageView(device, &info, nullptr, &swapchain_image_views[i]);
 			if (result != VK_SUCCESS)
 			{
-				BREAKPOINT;
+				AVK_BREAKPOINT;
 				return -(__COUNTER__ - base_counter);
 			}
 		}
@@ -807,7 +814,7 @@ int vulkan_on_window_resize()
 		result = vkCreateRenderPass(device, &info, nullptr, &renderpass);
 		if (result != VK_SUCCESS)
 		{
-			BREAKPOINT;
+			AVK_BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
 	}
@@ -826,7 +833,7 @@ int vulkan_on_window_resize()
 			result = vkCreateFramebuffer(device, &info, nullptr, &framebuffers[i]);
 			if (result != VK_SUCCESS)
 			{
-				BREAKPOINT;
+				AVK_BREAKPOINT;
 				return -(__COUNTER__ - base_counter);
 			}
 		}
@@ -841,7 +848,7 @@ int vulkan_on_window_resize()
 		result = vkAllocateCommandBuffers(device, &info, command_buffers.data());
 		if (result != VK_SUCCESS)
 		{
-			BREAKPOINT;
+			AVK_BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
 
@@ -849,7 +856,7 @@ int vulkan_on_window_resize()
 		result = vkAllocateCommandBuffers(device, &info, &array_command_buffer);
 		if (result != VK_SUCCESS)
 		{
-			BREAKPOINT;
+			AVK_BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
 	}
@@ -863,7 +870,7 @@ int vulkan_on_window_resize()
 			result = vkCreateSemaphore(device, &info, nullptr, &begin_render_semaphore[i]);
 			if (result != VK_SUCCESS)
 			{
-				BREAKPOINT;
+				AVK_BREAKPOINT;
 				return -(__COUNTER__ - base_counter);
 			}
 		}
@@ -872,7 +879,7 @@ int vulkan_on_window_resize()
 			result = vkCreateSemaphore(device, &info, nullptr, &end_render_semaphore[i]);
 			if (result != VK_SUCCESS)
 			{
-				BREAKPOINT;
+				AVK_BREAKPOINT;
 				return -(__COUNTER__ - base_counter);
 			}
 		}
@@ -890,7 +897,7 @@ int vulkan_on_window_resize()
 		result = vkCreatePipelineLayout(device, &info, nullptr, &bar_graph_pipeline_layout);
 		if (result != VK_SUCCESS)
 		{
-			BREAKPOINT;
+			AVK_BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
 	}
@@ -908,7 +915,7 @@ int vulkan_on_window_resize()
 
 		{
 			auto code = read_file("bar_graph_vs.spv");
-			enforce(code.size() != 0);
+			AVK_ASSERT(code.size() != 0);
 			VkShaderModuleCreateInfo info = {};
 			info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 			info.codeSize = code.size();
@@ -916,17 +923,17 @@ int vulkan_on_window_resize()
 			result = vkCreateShaderModule(device, &info, nullptr, &vertex_shader);
 			if (result != VK_SUCCESS)
 			{
-				BREAKPOINT;
+				AVK_BREAKPOINT;
 				return -(__COUNTER__ - base_counter);
 			}
 			code = read_file("bar_graph_fs.spv");
-			enforce(code.size() != 0);
+			AVK_ASSERT(code.size() != 0);
 			info.codeSize = code.size();
 			info.pCode = (const uint32_t*)code.data();
 			result = vkCreateShaderModule(device, &info, nullptr, &fragment_shader);
 			if (result != VK_SUCCESS)
 			{
-				BREAKPOINT;
+				AVK_BREAKPOINT;
 				return -(__COUNTER__ - base_counter);
 			}
 		}
@@ -1019,7 +1026,7 @@ int vulkan_on_window_resize()
 		result = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &info, nullptr, &bar_graph_pipeline);
 		if (result != VK_SUCCESS)
 		{
-			BREAKPOINT;
+			AVK_BREAKPOINT;
 			return -(__COUNTER__ - base_counter);
 		}
 	}

@@ -45,9 +45,6 @@
     <ClInclude Include="avk\internal\platform.h">
       <Filter>avk\internal</Filter>
     </ClInclude>
-    <ClInclude Include="avk\internal\enforce.h">
-      <Filter>avk\internal</Filter>
-    </ClInclude>
     <ClInclude Include="avk\internal\algorithm_thread.h">
       <Filter>avk\internal</Filter>
     </ClInclude>
@@ -93,6 +90,9 @@
     <ClInclude Include="avk\external_dependencies\quadsort.h">
       <Filter>avk\external dependencies</Filter>
     </ClInclude>
+    <ClInclude Include="avk\internal\debug.h">
+      <Filter>avk\internal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="avk\internal\main.cpp">
@@ -113,9 +113,6 @@
     <ClCompile Include="avk\internal\platform.cpp">
       <Filter>avk\internal</Filter>
     </ClCompile>
-    <ClCompile Include="avk\internal\windows_callbacks.cpp">
-      <Filter>avk\internal</Filter>
-    </ClCompile>
     <ClCompile Include="avk\algorithms\selection_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
@@ -126,9 +123,6 @@
       <Filter>avk\algorithms</Filter>
     </ClCompile>
     <ClCompile Include="avk\algorithms\std_sort.cpp">
-      <Filter>avk\algorithms</Filter>
-    </ClCompile>
-    <ClCompile Include="avk\algorithms\std_sort_heap.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
     <ClCompile Include="avk\algorithms\std_stable_sort.cpp">
@@ -159,12 +153,6 @@
       <Filter>avk\algorithms</Filter>
     </ClCompile>
     <ClCompile Include="avk\algorithms\msd_radix_sort.cpp">
-      <Filter>avk\algorithms</Filter>
-    </ClCompile>
-    <ClCompile Include="avk\algorithms\std_inplace_merge.cpp">
-      <Filter>avk\algorithms</Filter>
-    </ClCompile>
-    <ClCompile Include="avk\algorithms\std_merge_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
     <ClCompile Include="avk\algorithms\odd_even_sort.cpp">
@@ -212,9 +200,6 @@
     <ClCompile Include="avk\algorithms\quadsort_cpp.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="avk\algorithms\PARADIS_sort.cpp">
-      <Filter>avk\algorithms</Filter>
-    </ClCompile>
     <ClCompile Include="avk\algorithms\parallel_merge_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
@@ -223,6 +208,51 @@
     </ClCompile>
     <ClCompile Include="avk\algorithms\fold_sort_parallel.cpp">
       <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\weave_sorting_network.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\weave_sorting_network_parallel.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\bose_nelson_network.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\bose_nelson_network_parallel.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\pairwise_sorting_network.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\pairwise_sorting_network_parallel.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\odd_even_merge_sort_parallel.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\internal\locks.cpp">
+      <Filter>avk\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\internal\common.cpp">
+      <Filter>avk\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\internal\debug.cpp">
+      <Filter>avk\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\internal\cmts_include.cpp">
+      <Filter>avk\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\max_heap_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\merge_sort_bottom_up.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\ska_sort_copy.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\internal\windows-specific\callbacks.cpp">
+      <Filter>avk\internal\windows-specific</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,4 +1,5 @@
 #include "all.h"
+#include "sort_config.h"
 
 static int gs_cmp(item* l, item* r)
 {

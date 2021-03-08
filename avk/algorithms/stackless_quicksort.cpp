@@ -130,7 +130,7 @@ constexpr void iterative_quicksort(I begin, I end)
 
 }
 
-void stackless_quick_sort(main_array array)
+void stackless_quicksort(main_array array)
 {
 	iterative_quicksort(array.begin(), array.end());
 }

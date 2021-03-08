@@ -1,6 +1,7 @@
 #include "all.h"
 #include <vector>
 #include <array>
+#include "sort_config.h"
 
 void msd_radix_sort_helper(item* begin, item* end, uint radix_index, uint radix_size)
 {

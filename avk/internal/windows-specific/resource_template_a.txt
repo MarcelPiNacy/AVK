@@ -1,0 +1,17 @@
+//{{NO_DEPENDENCIES}}
+// Microsoft Visual C++ generated include file.
+// Used by array_vk.rc
+//
+#define IDR_MAINFRAME								100
+#define IDC_MAIN_MENU								101
+#define IDI_SMALL									102
+#define IDI_ARRAYVK									103
+#define IDD_ARRAYVK_DIALOG							104
+#define IDM_CREDITS									105
+#define IDD_CREDITSBOX								106
+#define IDM_EXIT									107
+#define IDC_MYICON									108
+
+#define IDD_SET_RADIX_SIZE_BOX						109
+#define IDD_SET_GRAILSORT_BUFFER_SIZE_BOX			110
+#define IDD_SET_ARRAY_SIZE_BOX						111

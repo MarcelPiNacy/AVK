@@ -1,7 +1,7 @@
 #include "all.h"
 #include <algorithm>
 
-void std_inplace_merge_sort(main_array array)
+void merge_sort_bottom_up(main_array array)
 {
 	for (uint i = 0; i < array.size(); i += 2)
 		if (array[i] > array[i + 1])
