@@ -28,6 +28,12 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="LICENSE" />
+    <Text Include="avk\internal\windows-specific\resource_template_a.txt">
+      <Filter>avk\internal\windows-specific</Filter>
+    </Text>
+    <Text Include="avk\internal\windows-specific\resource_template_b.txt">
+      <Filter>avk\internal\windows-specific</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="avk\internal\common.h">
@@ -253,6 +259,18 @@
     </ClCompile>
     <ClCompile Include="avk\internal\windows-specific\callbacks.cpp">
       <Filter>avk\internal\windows-specific</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\fold_sort_randomized.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\fold_sort_recursive.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\breadth_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\triangle_fold_sort.cpp">
+      <Filter>avk\algorithms</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

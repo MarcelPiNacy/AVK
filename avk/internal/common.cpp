@@ -1,6 +1,6 @@
 #include "common.h"
 #include <cstdio>
-#include <include/cmts.h>
+#include <cmts.h>
 
 void avk_assertion_handler(const wchar_t* expression)
 {

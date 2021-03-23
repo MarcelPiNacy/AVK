@@ -1,5 +1,376 @@
-#ifndef CMTS_IMPLEMENTATION_INCLUDED
-#define CMTS_IMPLEMENTATION_INCLUDED
+#ifndef CMTS_INCLUDED
+#define CMTS_INCLUDED
+#include <stdint.h>
+
+#define CMTS_MAX_TASKS UINT32_MAX
+
+#ifndef CMTS_CALL
+#define CMTS_CALL
+#endif
+
+#ifndef CMTS_ATTR
+#define CMTS_ATTR
+#endif
+
+#ifndef CMTS_PTR
+#define CMTS_PTR
+#endif
+
+#ifndef CMTS_NODISCARD
+#define CMTS_NODISCARD
+#ifdef __cplusplus
+#if __has_cpp_attribute(nodiscard)
+#undef CMTS_NODISCARD
+#define CMTS_NODISCARD [[nodiscard]]
+#endif
+#endif
+#endif
+
+#ifndef CMTS_NORETURN
+#define CMTS_NORETURN
+#ifdef __cplusplus
+#if __has_cpp_attribute(noreturn)
+#undef CMTS_NORETURN
+#define CMTS_NORETURN [[noreturn]]
+#endif
+#endif
+#endif
+
+#ifndef CMTS_NORETURN
+#define CMTS_NORETURN
+#ifdef __cplusplus
+#if __has_cpp_attribute(noreturn)
+#undef CMTS_NORETURN
+#define CMTS_NORETURN [[noreturn]]
+#endif
+#endif
+#endif
+
+#ifndef CMTS_MAX_PRIORITY
+#define CMTS_MAX_PRIORITY 3
+#endif
+
+#if CMTS_MAX_PRIORITY >= 256
+#error "Error, CMTS_MAX_PRIORITY must not exceed 256"
+#endif
+
+#ifndef CMTS_DEFAULT_TASKS_PER_PROCESSOR
+#define CMTS_DEFAULT_TASKS_PER_PROCESSOR 256
+#endif
+
+#ifndef CMTS_SPIN_THRESHOLD
+#define CMTS_SPIN_THRESHOLD 16
+#endif
+
+#ifndef CMTS_THREAD_WAIT_PAUSE_CHECK_TIMEOUT_MS
+#define CMTS_THREAD_WAIT_PAUSE_CHECK_TIMEOUT_MS 8
+#endif
+
+#define CMTS_BARRIER_DATA_SIZE 4
+
+#define CMTS_EVENT_DATA_SIZE 16
+
+#define CMTS_COUNTER_DATA_SIZE 32
+
+#define CMTS_MUTEX_DATA_SIZE 8
+
+#define CMTS_RWLOCK_DATA_SIZE 32
+
+#define CMTS_RWLOCK_MAX_READERS ((1U << 31U) - 1U)
+
+#ifndef CMTS_CHAR
+#define CMTS_CHAR char
+#endif
+
+#ifndef CMTS_TEXT
+#define CMTS_TEXT(string_literal) string_literal
+#endif
+
+#ifndef CMTS_EXTERN_C_BEGIN
+#define CMTS_EXTERN_C_BEGIN extern "C" {
+#endif
+
+#ifndef CMTS_EXTERN_C_END
+#define CMTS_EXTERN_C_END }
+#endif
+
+
+
+
+
+
+CMTS_EXTERN_C_BEGIN
+
+#ifdef __cplusplus
+typedef bool cmts_bool_t;
+#else
+typedef _Bool cmts_boolean_t;
+#endif
+
+typedef uint64_t cmts_task_id_t;
+typedef uint32_t cmts_tss_id_t;
+
+typedef void(CMTS_PTR* cmts_task_function_pointer_t)(void* parameter);
+typedef void* (CMTS_PTR* cmts_allocate_function_pointer_t)(size_t size);
+typedef cmts_bool_t(CMTS_PTR* cmts_deallocate_function_pointer_t)(void* memory, size_t size);
+typedef void(CMTS_PTR* cmts_destructor_function_pointer_t)(void* object);
+
+typedef enum cmts_result_t
+{
+	CMTS_OK = 0,
+	CMTS_SYNC_OBJECT_EXPIRED = 1,
+	CMTS_NOT_READY = 2,
+	CMTS_ALREADY_INITIALIZED = 3,
+	CMTS_ALREADY_PAUSED = 4,
+	CMTS_ALREADY_RESUMED = 5,
+	CMTS_NOT_PAUSED = 6,
+	CMTS_NOT_RESUMED = 7,
+
+	CMTS_ERROR_MEMORY_ALLOCATION = -1,
+	CMTS_ERROR_MEMORY_DEALLOCATION = -2,
+	CMTS_ERROR_WORKER_THREAD_CREATION = -3,
+	CMTS_ERROR_THREAD_AFFINITY_FAILURE = -4,
+	CMTS_ERROR_RESUME_WORKER_THREAD = -5,
+	CMTS_ERROR_SUSPEND_WORKER_THREAD = -6,
+	CMTS_ERROR_WORKER_THREAD_TERMINATION = -7,
+	CMTS_ERROR_AWAIT_WORKER_THREAD = -8,
+	CMTS_ERROR_TASK_POOL_CAPACITY = -9,
+	CMTS_ERROR_AFFINITY = -10,
+	CMTS_ERROR_TASK_ALLOCATION = -11,
+	CMTS_ERROR_FUTEX = -12,
+	CMTS_ERROR_LIBRARY_UNINITIALIZED = -13,
+	CMTS_ERROR_OS_INIT = -14,
+
+	CMTS_RESULT_MIN_ENUM = CMTS_ERROR_OS_INIT,
+	CMTS_RESULT_MAX_ENUM = CMTS_NOT_RESUMED,
+} cmts_result_t;
+
+typedef enum cmts_sync_type_t
+{
+	CMTS_SYNC_TYPE_NONE,
+	CMTS_SYNC_TYPE_EVENT,
+	CMTS_SYNC_TYPE_COUNTER,
+
+	CMTS_SYNC_TYPE_MIN_ENUM = CMTS_SYNC_TYPE_NONE,
+	CMTS_SYNC_TYPE_MAX_ENUM = CMTS_SYNC_TYPE_COUNTER,
+} cmts_sync_type_t;
+
+typedef enum cmts_dispatch_flag_bits_t
+{
+	CMTS_DISPATCH_FLAGS_FORCE = 1,
+} cmts_dispatch_flag_bits_t;
+typedef uint64_t cmts_dispatch_flags_t;
+
+typedef enum cmts_init_flag_bits_t
+{
+	CMTS_INIT_FLAGS_USE_AFFINITY = 1,
+} cmts_init_flag_bits_t;
+typedef uint64_t cmts_init_flags_t;
+
+typedef enum cmts_ext_type_t
+{
+	CMTS_EXT_TYPE_TASK_NAME,
+	CMTS_EXT_TYPE_DEBUGGER,
+
+	CMTS_EXT_TYPE_MIN_ENUM = CMTS_EXT_TYPE_TASK_NAME,
+	CMTS_EXT_TYPE_MAX_ENUM = CMTS_EXT_TYPE_DEBUGGER,
+} cmts_ext_type_t;
+
+typedef struct cmts_init_options_t
+{
+	cmts_allocate_function_pointer_t allocate_function;
+	size_t task_stack_size;
+	cmts_init_flags_t flags;
+	uint32_t thread_count;
+	uint32_t max_tasks;
+	uint32_t enabled_extension_count;
+	const cmts_ext_type_t* enabled_extensions;
+	const void* ext;
+} cmts_init_options_t;
+
+typedef struct cmts_dispatch_options_t
+{
+	cmts_dispatch_flags_t flags;
+	cmts_task_id_t* out_task_id;
+	void* parameter;
+	void* sync_object;
+	cmts_sync_type_t sync_type;
+	uint8_t priority;
+	const void* ext;
+} cmts_dispatch_options_t;
+
+typedef struct cmts_barrier_t
+{
+	uint8_t data[CMTS_BARRIER_DATA_SIZE];
+} cmts_barrier_t;
+
+typedef struct cmts_event_t
+{
+	uint8_t data[CMTS_EVENT_DATA_SIZE];
+} cmts_event_t;
+
+typedef struct cmts_counter_t
+{
+	uint8_t data[CMTS_COUNTER_DATA_SIZE];
+} cmts_counter_t;
+
+typedef struct cmts_mutex_t
+{
+	uint8_t data[CMTS_MUTEX_DATA_SIZE];
+} cmts_mutex_t;
+
+typedef struct cmts_rwlock_t
+{
+	uint8_t data[CMTS_RWLOCK_DATA_SIZE];
+} cmts_rwlock_t;
+
+typedef struct cmts_minimize_options_t
+{
+	const void* ext;
+	uint64_t timeout_nanoseconds;
+} cmts_minimize_options_t;
+
+// EXTENSION-ONLY TYPES:
+// EXT - DEBUGGER TYPES:
+
+typedef enum cmts_ext_debugger_message_severity_t
+{
+	CMTS_EXT_DEBUGGER_MESSAGE_SEVERITY_INFO,
+	CMTS_EXT_DEBUGGER_MESSAGE_SEVERITY_WARNING,
+	CMTS_EXT_DEBUGGER_MESSAGE_SEVERITY_ERROR,
+} cmts_ext_debugger_message_severity_t;
+
+typedef struct cmts_ext_debugger_message_t
+{
+	const void* ext;
+	const CMTS_CHAR* message;
+	size_t message_length;
+	cmts_ext_debugger_message_severity_t severity;
+} cmts_ext_debugger_message_t;
+
+typedef void(CMTS_CALL* cmts_ext_debugger_message_callback_t)(void* context, const cmts_ext_debugger_message_t* message);
+
+typedef struct cmts_ext_debugger_init_options_t
+{
+	const void* next;
+	cmts_ext_type_t ext_type; //Must be set to CMTS_EXT_TYPE_DEBUGGER.
+	void* context;
+	cmts_ext_debugger_message_callback_t message_callback;
+} cmts_ext_debugger_init_options_t;
+
+// EXT - TASK NAME TYPES:
+
+typedef struct cmts_ext_task_name_t
+{
+	const void* next;
+	cmts_ext_type_t ext_type;
+	uint32_t length;
+	const char* name;
+} cmts_ext_task_name_t;
+
+
+
+CMTS_ATTR cmts_result_t CMTS_CALL cmts_lib_init(const cmts_init_options_t* options);
+CMTS_ATTR cmts_result_t CMTS_CALL cmts_lib_pause();
+CMTS_ATTR cmts_result_t CMTS_CALL cmts_lib_resume();
+CMTS_ATTR void CMTS_CALL cmts_lib_exit_signal();
+CMTS_ATTR cmts_result_t CMTS_CALL cmts_lib_exit_await(cmts_deallocate_function_pointer_t deallocate);
+CMTS_ATTR cmts_result_t CMTS_CALL cmts_lib_terminate(cmts_deallocate_function_pointer_t deallocate);
+CMTS_ATTR cmts_bool_t CMTS_CALL cmts_lib_is_initialized();
+CMTS_ATTR cmts_bool_t CMTS_CALL cmts_lib_is_online();
+CMTS_ATTR cmts_bool_t CMTS_CALL cmts_lib_is_paused();
+CMTS_ATTR cmts_result_t CMTS_CALL cmts_lib_minimize(const cmts_minimize_options_t* options);
+
+CMTS_ATTR cmts_result_t CMTS_CALL cmts_dispatch(cmts_task_function_pointer_t entry_point, cmts_dispatch_options_t* options);
+CMTS_ATTR void CMTS_CALL cmts_yield();
+CMTS_NORETURN CMTS_ATTR void CMTS_CALL cmts_exit();
+CMTS_ATTR cmts_bool_t CMTS_CALL cmts_is_task();
+CMTS_ATTR cmts_task_id_t CMTS_CALL cmts_this_task_id();
+
+CMTS_ATTR cmts_tss_id_t CMTS_CALL cmts_tss_new(cmts_destructor_function_pointer_t destructor);
+CMTS_ATTR void* CMTS_CALL cmts_tss_get(cmts_tss_id_t id);
+CMTS_ATTR void CMTS_CALL cmts_tss_set(cmts_tss_id_t id, void* ptr);
+CMTS_ATTR void CMTS_CALL cmts_tss_delete(cmts_tss_id_t id);
+
+CMTS_NODISCARD CMTS_ATTR cmts_task_id_t CMTS_CALL cmts_task_new();
+CMTS_ATTR uint8_t CMTS_CALL cmts_task_get_priority(cmts_task_id_t task_id);
+CMTS_ATTR void CMTS_CALL cmts_task_set_priority(cmts_task_id_t task_id, uint8_t priority);
+CMTS_ATTR void CMTS_CALL cmts_task_set_parameter(cmts_task_id_t task_id, void* parameter);
+CMTS_ATTR void CMTS_CALL cmts_task_set_function(cmts_task_id_t task_id, cmts_task_function_pointer_t function);
+CMTS_ATTR cmts_task_function_pointer_t CMTS_CALL cmts_task_get_function(cmts_task_id_t task_id);
+CMTS_ATTR void* CMTS_CALL cmts_task_get_parameter(cmts_task_id_t task_id);
+CMTS_ATTR void CMTS_CALL cmts_task_attach_event(cmts_task_id_t task_id, cmts_event_t* event);
+CMTS_ATTR void CMTS_CALL cmts_task_attach_counter(cmts_task_id_t task_id, cmts_counter_t* counter);
+CMTS_ATTR void CMTS_CALL cmts_task_sleep(cmts_task_id_t task_id);
+CMTS_ATTR void CMTS_CALL cmts_task_wake(cmts_task_id_t task_id);
+CMTS_ATTR cmts_bool_t CMTS_CALL cmts_task_is_valid(cmts_task_id_t task_id);
+CMTS_ATTR cmts_bool_t CMTS_CALL cmts_task_is_sleeping(cmts_task_id_t task_id);
+CMTS_ATTR cmts_bool_t CMTS_CALL cmts_task_is_running(cmts_task_id_t task_id);
+CMTS_ATTR void CMTS_CALL cmts_task_dispatch(cmts_task_id_t task_id);
+CMTS_ATTR void CMTS_CALL cmts_task_delete(cmts_task_id_t task_id);
+
+CMTS_ATTR void CMTS_CALL cmts_barrier_init(cmts_barrier_t* barrier);
+CMTS_ATTR void CMTS_CALL cmts_barrier_signal(cmts_barrier_t* barrier);
+CMTS_ATTR void CMTS_CALL cmts_barrier_await(cmts_barrier_t* barrier);
+CMTS_ATTR void CMTS_CALL cmts_barrier_reset(cmts_barrier_t* barrier);
+
+CMTS_ATTR void CMTS_CALL cmts_event_init(cmts_event_t* event);
+CMTS_ATTR cmts_result_t CMTS_CALL cmts_event_signal(cmts_event_t* event);
+CMTS_ATTR cmts_result_t CMTS_CALL cmts_event_await(cmts_event_t* event);
+CMTS_ATTR cmts_result_t CMTS_CALL cmts_event_reset(cmts_event_t* event);
+
+CMTS_ATTR void CMTS_CALL cmts_counter_init(cmts_counter_t* counter, size_t start_value);
+CMTS_ATTR size_t CMTS_CALL cmts_counter_query(const cmts_counter_t* counter);
+CMTS_ATTR cmts_result_t CMTS_CALL cmts_counter_increment(cmts_counter_t* counter);
+CMTS_ATTR cmts_result_t CMTS_CALL cmts_counter_decrement(cmts_counter_t* counter);
+CMTS_ATTR cmts_result_t CMTS_CALL cmts_counter_await(cmts_counter_t* counter);
+CMTS_ATTR cmts_result_t CMTS_CALL cmts_counter_reset(cmts_counter_t* counter, size_t new_start_value);
+
+CMTS_ATTR void CMTS_CALL cmts_mutex_init(cmts_mutex_t* mutex);
+CMTS_ATTR cmts_bool_t CMTS_CALL cmts_mutex_is_locked(const cmts_mutex_t* mutex);
+CMTS_ATTR cmts_bool_t CMTS_CALL cmts_mutex_try_lock(cmts_mutex_t* mutex);
+CMTS_ATTR void CMTS_CALL cmts_mutex_lock(cmts_mutex_t* mutex);
+CMTS_ATTR void CMTS_CALL cmts_mutex_unlock(cmts_mutex_t* mutex);
+
+CMTS_ATTR void CMTS_CALL cmts_rwlock_init(cmts_rwlock_t* rwlock);
+CMTS_ATTR cmts_bool_t CMTS_CALL cmts_rwlock_is_locked(const cmts_rwlock_t* rwlock);
+CMTS_ATTR cmts_bool_t CMTS_CALL cmts_rwlock_is_locked_exclusive(const cmts_rwlock_t* rwlock);
+CMTS_ATTR size_t CMTS_CALL cmts_rwlock_shared_count(const cmts_rwlock_t* rwlock);
+CMTS_ATTR cmts_bool_t CMTS_CALL cmts_rwlock_try_lock(cmts_rwlock_t* rwlock);
+CMTS_ATTR void CMTS_CALL cmts_rwlock_lock(cmts_rwlock_t* rwlock);
+CMTS_ATTR void CMTS_CALL cmts_rwlock_unlock(cmts_rwlock_t* rwlock);
+CMTS_ATTR cmts_bool_t CMTS_CALL cmts_rwlock_try_lock_exclusive(cmts_rwlock_t* rwlock);
+CMTS_ATTR void CMTS_CALL cmts_rwlock_lock_exclusive(cmts_rwlock_t* rwlock);
+CMTS_ATTR void CMTS_CALL cmts_rwlock_unlock_exclusive(cmts_rwlock_t* rwlock);
+CMTS_ATTR void CMTS_CALL cmts_rwlock_switch_to_exclusive(cmts_rwlock_t* rwlock);
+CMTS_ATTR void CMTS_CALL cmts_rwlock_switch_to_shared(cmts_rwlock_t* rwlock);
+
+CMTS_ATTR size_t CMTS_CALL cmts_this_worker_thread_index();
+CMTS_ATTR size_t CMTS_CALL cmts_worker_thread_count();
+CMTS_ATTR size_t CMTS_CALL cmts_processor_count();
+CMTS_ATTR size_t CMTS_CALL cmts_this_processor_index();
+CMTS_ATTR size_t CMTS_CALL cmts_default_task_stack_size();
+
+CMTS_ATTR void CMTS_CALL cmts_enable_yield_trap();
+CMTS_ATTR void CMTS_CALL cmts_disable_yield_trap();
+
+CMTS_ATTR cmts_bool_t CMTS_ATTR cmts_ext_debugger_enabled();
+
+CMTS_ATTR void CMTS_ATTR cmts_ext_task_name_set(cmts_task_id_t id, const CMTS_CHAR* name, size_t length);
+CMTS_ATTR void CMTS_ATTR cmts_ext_task_name_swap(cmts_task_id_t id, const CMTS_CHAR* name, size_t length, const CMTS_CHAR** out_old_name, size_t* out_old_length);
+CMTS_ATTR void CMTS_ATTR cmts_ext_task_name_get(cmts_task_id_t id, const CMTS_CHAR** out_name, size_t* out_length);
+CMTS_ATTR void CMTS_ATTR cmts_ext_task_name_remove(cmts_task_id_t id);
+CMTS_ATTR cmts_bool_t cmts_ext_task_name_enabled();
+
+CMTS_EXTERN_C_END
+
+
+
+
+
+
+//#define CMTS_IMPLEMENTATION
+#ifdef CMTS_IMPLEMENTATION
 #include <atomic>
 #include <cstdint>
 #include <new>
@@ -214,7 +585,6 @@ namespace os
 {
 	using thread_return_type = DWORD;
 	using thread_parameter_type = void*;
-
 #ifdef CMTS_NO_BUSY_WAIT
 	using WaitOnAddress_t = decltype(WaitOnAddress)*;
 	using WakeByAddressSingle_t = decltype(WakeByAddressSingle)*;
@@ -230,8 +600,8 @@ namespace os
 		sync_library = GetModuleHandle(TEXT("Synchronization.lib"));
 		CMTS_UNLIKELY_IF(sync_library == nullptr)
 		{
+			CMTS_REPORT_WARNING("\"GetModuleHandle(\"Synchronization.lib\")\" returned NULL. Retrying with \"API-MS-Win-Core-Synch-l1-2-0.dll\".");
 			sync_library = GetModuleHandle(TEXT("API-MS-Win-Core-Synch-l1-2-0.dll"));
-			CMTS_REPORT_WARNING("\"GetModuleHandle(\"Synchronization.lib\")\" returned NULL. Attempting the same with \"API-MS-Win-Core-Synch-l1-2-0.dll\".");
 			CMTS_UNLIKELY_IF(sync_library == nullptr)
 			{
 				CMTS_REPORT_ERROR("\"GetModuleHandle(\"API-MS-Win-Core-Synch-l1-2-0.dll\")\" returned NULL. Library initialization failed.");
@@ -240,14 +610,34 @@ namespace os
 
 			wait_on_address = (WaitOnAddress_t)GetProcAddress(sync_library, "WaitOnAddress");
 			CMTS_UNLIKELY_IF(wait_on_address == nullptr)
+			{
+				CMTS_REPORT_ERROR("\"GetProcAddress(sync_library, \"WaitOnAddress\")\" returned NULL. Library initialization failed.");
 				return false;
+			}
 
 			wake_by_address_single = (WakeByAddressSingle_t)GetProcAddress(sync_library, "WakeByAddressSingle");
 			CMTS_UNLIKELY_IF(wake_by_address_single == nullptr)
+			{
+				CMTS_REPORT_ERROR("\"GetProcAddress(sync_library, \"WakeByAddressSingle\")\" returned NULL. Library initialization failed.");
 				return false;
+			}
 		}
 #endif
 		return true;
+	}
+
+	CMTS_INLINE_ALWAYS static void queue_signal(std::atomic<uint32>& counter)
+	{
+#ifdef CMTS_NO_BUSY_WAIT
+		wake_by_address_single(&counter);
+#endif
+	}
+
+	CMTS_INLINE_ALWAYS static void queue_await(std::atomic<uint32>& counter, uint32& last_value)
+	{
+#ifdef CMTS_NO_BUSY_WAIT
+		(void)wait_on_address((volatile void*)&counter, &last_value, sizeof(uint32), INFINITE);
+#endif
 	}
 
 	CMTS_INLINE_ALWAYS static void* allocate(ufastptr size)
@@ -285,7 +675,16 @@ namespace os
 
 	CMTS_INLINE_ALWAYS static bool await_threads(HANDLE* threads, DWORD count)
 	{
-		return WaitForMultipleObjects(count, threads, true, INFINITE) == WAIT_OBJECT_0;
+		while (true)
+		{
+			DWORD result = WaitForMultipleObjects(count, threads, true, CMTS_THREAD_WAIT_PAUSE_CHECK_TIMEOUT_MS);
+			if (result == WAIT_OBJECT_0)
+				return true;
+			if (result != WAIT_TIMEOUT)
+				return false;
+			if (cmts_lib_is_paused())
+				cmts_lib_resume();
+		}
 	}
 
 	CMTS_INLINE_ALWAYS static bool suspend_threads(HANDLE* threads, DWORD count)
@@ -340,20 +739,6 @@ namespace os
 	CMTS_INLINE_ALWAYS static void yield_thread()
 	{
 		(void)SwitchToThread();
-	}
-
-	CMTS_INLINE_ALWAYS static void queue_signal(std::atomic<uint32>& counter)
-	{
-#ifdef CMTS_NO_BUSY_WAIT
-		wake_by_address_single(&counter);
-#endif
-	}
-
-	CMTS_INLINE_ALWAYS static void queue_await(std::atomic<uint32>& counter, uint32& last_value)
-	{
-#ifdef CMTS_NO_BUSY_WAIT
-		(void)wait_on_address((volatile void*)&counter, &last_value, sizeof(uint32), INFINITE);
-#endif
 	}
 }
 
@@ -428,9 +813,17 @@ struct library_guard
 	}
 };
 
-CMTS_SHARED_ATTR static std::atomic_bool library_exit_flag;
-CMTS_SHARED_ATTR static std::atomic_bool library_is_initialized;
-CMTS_SHARED_ATTR static std::atomic_bool library_is_paused;
+enum class scheduler_state : uint8
+{
+	UNINITIALIZED,
+	SWITCHING_TO_LIVE,
+	LIVE,
+	SWITCHING_TO_UNINITIALIZED,
+	PAUSED,
+	SWITCHING_TO_PAUSED,
+};
+
+CMTS_SHARED_ATTR static std::atomic<scheduler_state> library_state;
 
 struct CMTS_SHARED_ATTR shared_queue
 {
@@ -536,7 +929,7 @@ CMTS_INLINE_NEVER static void finalize_check_inner()
 
 CMTS_INLINE_ALWAYS static void finalize_check()
 {
-	CMTS_UNLIKELY_IF(library_exit_flag.load(std::memory_order_acquire))
+	CMTS_UNLIKELY_IF(library_state.load(std::memory_order_acquire) == scheduler_state::SWITCHING_TO_UNINITIALIZED)
 		finalize_check_inner();
 }
 
@@ -750,7 +1143,7 @@ CMTS_INLINE_ALWAYS static void await_queue_entry_free(std::atomic<uint32>& value
 	{
 		for (ufast8 i = 0; i != CMTS_SPIN_THRESHOLD; ++i)
 			CMTS_LIKELY_IF(value.load(std::memory_order_acquire) == NIL_INDEX)
-				return;
+			return;
 		CMTS_REPORT_WARNING("A thread is taking too long to submit a task. It's possible that a worker thread was killed while it was trying to pop a task from its queue. If that's not the case, you should consider changing the value of CMTS_SPIN_THRESHOLD.");
 	}
 }
@@ -761,7 +1154,7 @@ CMTS_INLINE_ALWAYS static void await_queue_entry_used(std::atomic<uint32>& value
 	{
 		for (ufast8 i = 0; i != CMTS_SPIN_THRESHOLD; ++i)
 			CMTS_LIKELY_IF(value.load(std::memory_order_acquire) != NIL_INDEX)
-				return;
+			return;
 		CMTS_REPORT_WARNING("One of the worker threads is taking too long to fetch a task from its queue. It's possible that a thread was killed while it was trying to submit a task. If that's not the case, you should consider changing the value of CMTS_SPIN_THRESHOLD.");
 	}
 }
@@ -1260,50 +1653,74 @@ extern "C"
 {
 	CMTS_ATTR cmts_result_t CMTS_CALL cmts_lib_init(const cmts_init_options_t* options)
 	{
+		scheduler_state expected = scheduler_state::UNINITIALIZED;
+		CMTS_UNLIKELY_IF(!library_state.compare_exchange_strong(expected, scheduler_state::SWITCHING_TO_LIVE, std::memory_order_acquire, std::memory_order_relaxed))
+			return CMTS_ALREADY_INITIALIZED;
 		cmts_result_t result;
-		CMTS_INVARIANT(!library_is_initialized.load(std::memory_order_acquire));
-		library_guard guard;
-		CMTS_UNLIKELY_IF(!os::initialize())
-			return CMTS_ERROR_OS_INIT;
-		if (options == nullptr)
-			result = default_library_init();
-		else
-			result = custom_library_init(*options);
-		CMTS_UNLIKELY_IF(result < 0)
-			return result;
-		non_atomic_store(library_exit_flag, false);
-		library_is_initialized.store(true, std::memory_order_release);
+		{
+			library_guard guard;
+			CMTS_UNLIKELY_IF(!os::initialize())
+				return CMTS_ERROR_OS_INIT;
+			if (options == nullptr)
+				result = default_library_init();
+			else
+				result = custom_library_init(*options);
+			CMTS_UNLIKELY_IF(result < 0)
+				return result;
+		}
+		library_state.store(scheduler_state::LIVE, std::memory_order_release);
 		return result;
 	}
 
 	CMTS_ATTR cmts_result_t CMTS_CALL cmts_lib_pause()
 	{
-		CMTS_UNLIKELY_IF(library_is_paused.exchange(true, std::memory_order_acquire))
-			return CMTS_OK;
-		CMTS_UNLIKELY_IF(!library_is_initialized.load(std::memory_order_acquire))
-			return CMTS_ERROR_LIBRARY_UNINITIALIZED;
-		library_guard guard;
-		CMTS_UNLIKELY_IF(!os::suspend_threads(worker_threads, worker_thread_count))
-			return CMTS_ERROR_SUSPEND_WORKER_THREAD;
+		for (;; CMTS_SPIN_WAIT())
+		{
+			scheduler_state prior = library_state.load(std::memory_order_acquire);
+			if (prior == scheduler_state::UNINITIALIZED)
+				return CMTS_ERROR_LIBRARY_UNINITIALIZED;
+			CMTS_LIKELY_IF(prior == scheduler_state::LIVE && library_state.compare_exchange_weak(prior, scheduler_state::SWITCHING_TO_PAUSED, std::memory_order_acquire, std::memory_order_relaxed))
+				break;
+		}
+		{
+			library_guard guard;
+			CMTS_UNLIKELY_IF(!os::suspend_threads(worker_threads, worker_thread_count))
+				return CMTS_ERROR_SUSPEND_WORKER_THREAD;
+		}
+		library_state.store(scheduler_state::PAUSED, std::memory_order_release);
 		return CMTS_OK;
 	}
 
 	CMTS_ATTR cmts_result_t CMTS_CALL cmts_lib_resume()
 	{
-		CMTS_UNLIKELY_IF(!library_is_paused.load(std::memory_order_acquire))
-			return CMTS_OK;
-		CMTS_UNLIKELY_IF(!library_is_initialized.load(std::memory_order_acquire))
-			return CMTS_ERROR_LIBRARY_UNINITIALIZED;
-		library_guard guard;
-		CMTS_UNLIKELY_IF(!os::resume_threads(worker_threads, worker_thread_count))
-			return CMTS_ERROR_SUSPEND_WORKER_THREAD;
-		library_is_paused.store(false, std::memory_order_release);
+		for (;; CMTS_SPIN_WAIT())
+		{
+			scheduler_state prior = library_state.load(std::memory_order_acquire);
+			if (prior == scheduler_state::UNINITIALIZED)
+				return CMTS_ERROR_LIBRARY_UNINITIALIZED;
+			CMTS_LIKELY_IF(prior == scheduler_state::PAUSED && library_state.compare_exchange_weak(prior, scheduler_state::SWITCHING_TO_LIVE, std::memory_order_acquire, std::memory_order_relaxed))
+				break;
+		}
+		{
+			library_guard guard;
+			CMTS_UNLIKELY_IF(!os::resume_threads(worker_threads, worker_thread_count))
+				return CMTS_ERROR_RESUME_WORKER_THREAD;
+		}
+		library_state.store(scheduler_state::LIVE, std::memory_order_release);
 		return CMTS_OK;
 	}
 
 	CMTS_ATTR void CMTS_CALL cmts_lib_exit_signal()
 	{
-		library_exit_flag.store(true, std::memory_order_release);
+		for (;; CMTS_SPIN_WAIT())
+		{
+			scheduler_state prior = library_state.load(std::memory_order_acquire);
+			if (prior == scheduler_state::UNINITIALIZED)
+				return;
+			CMTS_LIKELY_IF(library_state.compare_exchange_weak(prior, scheduler_state::SWITCHING_TO_UNINITIALIZED, std::memory_order_acquire, std::memory_order_relaxed))
+				break;
+		}
+
 		wake_all_worker_threads();
 		CMTS_LIKELY_IF(cmts_is_task())
 			exit_current_worker_thread();
@@ -1311,31 +1728,36 @@ extern "C"
 
 	CMTS_ATTR cmts_result_t CMTS_CALL cmts_lib_exit_await(cmts_deallocate_function_pointer_t deallocate)
 	{
-		CMTS_UNLIKELY_IF(!library_is_initialized.load(std::memory_order_acquire))
+		CMTS_REPORT_INFO("Invoked \"cmts_lib_exit_await\".");
+		CMTS_UNLIKELY_IF(library_state.load(std::memory_order_acquire) == scheduler_state::UNINITIALIZED)
 			return CMTS_ERROR_LIBRARY_UNINITIALIZED;
 		CMTS_UNLIKELY_IF(!os::await_threads(worker_threads, worker_thread_count))
 			return CMTS_ERROR_AWAIT_WORKER_THREAD;
+		spin_while_neq(library_state, scheduler_state::SWITCHING_TO_UNINITIALIZED);
 		library_guard guard;
-		for (ufast32 i = 0; i != non_atomic_load(task_pool_header.bump); ++i)
 		{
-			task_data& task = task_pool[i];
-#ifdef CMTS_DEBUG
-			CMTS_LIKELY_IF(task.handle != nullptr)
+			for (ufast32 i = 0; i != non_atomic_load(task_pool_header.bump); ++i)
 			{
-				DeleteFiber(task.handle);
-				task.handle = nullptr;
-			}
+				task_data& task = task_pool[i];
+#ifdef CMTS_DEBUG
+				CMTS_LIKELY_IF(task.handle != nullptr)
+				{
+					DeleteFiber(task.handle);
+					task.handle = nullptr;
+				}
 #endif
+			}
+			ufastptr buffer_size = required_library_buffer_size();
+			bool flag;
+			if (deallocate != nullptr)
+				flag = deallocate(worker_threads, buffer_size);
+			else
+				flag = os::deallocate(worker_threads, buffer_size);
+			CMTS_UNLIKELY_IF(!flag)
+				return CMTS_ERROR_MEMORY_DEALLOCATION;
 		}
-		ufastptr buffer_size = required_library_buffer_size();
-		bool flag;
-		if (deallocate != nullptr)
-			flag = deallocate(worker_threads, buffer_size);
-		else
-			flag = os::deallocate(worker_threads, buffer_size);
-		CMTS_UNLIKELY_IF(!flag)
-			return CMTS_ERROR_MEMORY_DEALLOCATION;
-		library_is_initialized.store(false, std::memory_order_release);
+		library_state.store(scheduler_state::UNINITIALIZED, std::memory_order_release);
+		CMTS_REPORT_INFO("\"cmts_lib_exit_await\" returned \"CMTS_OK\".");
 		return CMTS_OK;
 	}
 
@@ -1343,35 +1765,39 @@ extern "C"
 	{
 		cmts_lib_exit_signal();
 		library_guard guard;
-		CMTS_UNLIKELY_IF(!os::terminate_threads(worker_threads, worker_thread_count))
-			return CMTS_ERROR_WORKER_THREAD_TERMINATION;
-		ufastptr buffer_size = required_library_buffer_size();
-		bool flag;
-		if (deallocate != nullptr)
-			flag = deallocate(worker_threads, buffer_size);
-		else
-			flag = os::deallocate(worker_threads, buffer_size);
-		CMTS_UNLIKELY_IF(!flag)
-			return CMTS_ERROR_MEMORY_DEALLOCATION;
-		library_is_initialized.store(false, std::memory_order_release);
+		{
+			CMTS_UNLIKELY_IF(!os::terminate_threads(worker_threads, worker_thread_count))
+				return CMTS_ERROR_WORKER_THREAD_TERMINATION;
+			ufastptr buffer_size = required_library_buffer_size();
+			bool flag;
+			if (deallocate != nullptr)
+				flag = deallocate(worker_threads, buffer_size);
+			else
+				flag = os::deallocate(worker_threads, buffer_size);
+			CMTS_UNLIKELY_IF(!flag)
+				return CMTS_ERROR_MEMORY_DEALLOCATION;
+		}
+		library_state.store(scheduler_state::UNINITIALIZED, std::memory_order_release);
 		return CMTS_OK;
 	}
 
 	CMTS_ATTR cmts_bool_t CMTS_CALL cmts_lib_is_initialized()
 	{
-		return library_is_initialized.load(std::memory_order_acquire);
+		return library_state.load(std::memory_order_acquire) != scheduler_state::UNINITIALIZED;
 	}
 
 	CMTS_ATTR cmts_bool_t CMTS_CALL cmts_lib_is_online()
 	{
 		CMTS_UNLIKELY_IF(!cmts_lib_is_initialized())
 			return false;
-		return !library_exit_flag.load(std::memory_order_acquire);
+		scheduler_state state = library_state.load(std::memory_order_acquire);
+		return state == scheduler_state::LIVE;
 	}
 
 	CMTS_ATTR cmts_bool_t CMTS_CALL cmts_lib_is_paused()
 	{
-		return library_is_paused.load(std::memory_order_acquire);
+		scheduler_state state = library_state.load(std::memory_order_acquire);
+		return state == scheduler_state::PAUSED || state == scheduler_state::SWITCHING_TO_PAUSED;
 	}
 
 	CMTS_ATTR cmts_result_t CMTS_CALL cmts_lib_minimize(const cmts_minimize_options_t* options)
@@ -2101,4 +2527,5 @@ namespace cmts
 }
 #endif
 
+#endif
 #endif

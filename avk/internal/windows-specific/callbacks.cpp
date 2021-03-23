@@ -14,7 +14,7 @@ extern TCHAR window_title_buffer[4096];
 
 extern int vulkan_on_window_resize();
 
-static wchar_t dialog_box_buffer[4096 / sizeof(wchar_t)];
+static TCHAR dialog_box_buffer[4096 / sizeof(TCHAR)];
 
 enum class array_mode
 {
@@ -150,11 +150,11 @@ void modify_array<array_mode::RANDOM_SHUFFLE>()
 
         inline auto operator()()
         {
-            return romu_duo_get();
+            return romu2jr_get();
         }
     };
 
-    romu_duo_set_seed(main_array::size() ^ time(nullptr));
+    romu2jr_set_seed(main_array::size() ^ time(nullptr));
     romu_duo_functor tmp;
     std::shuffle(main_array::begin(), main_array::end(), tmp);
     main_array::for_each([](item& e, uint32_t position)
@@ -167,11 +167,11 @@ void modify_array<array_mode::RANDOM_SHUFFLE>()
 template <>
 void modify_array<array_mode::RANDOM_ROMUDUOJR>()
 {
-    romu_duo_set_seed(main_array::size() ^ time(nullptr));
+    romu2jr_set_seed(main_array::size() ^ time(nullptr));
     main_array::for_each([](item& e, uint32_t position)
     {
         item tmp;
-        tmp.value = romu_duo_get() % main_array::size();
+        tmp.value = romu2jr_get() % main_array::size();
         e = tmp;
         e.original_position = position;
         e.color = item_color::white();
@@ -343,6 +343,74 @@ static INT_PTR CALLBACK set_array_size_callbacks(HWND hDlg, UINT message, WPARAM
     return (INT_PTR)FALSE;
 }
 
+static INT_PTR CALLBACK set_romuduojr_callbacks(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    UNREFERENCED_PARAMETER(lParam);
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        return (INT_PTR)TRUE;
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        case IDOK:
+            if (GetDlgItemText(hDlg, IDD_SET_ROMUDUOJR_SEED_TEXTBOX, dialog_box_buffer, sizeof(dialog_box_buffer) / 2))
+            {
+                uint64_t k = 0;
+                if (swscanf_s(dialog_box_buffer, L"%llu", &k) == 1)
+                {
+                    romu2jr_set_seed(k);
+                }
+            }
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        case IDCANCEL:
+            EndDialog(hDlg, LOWORD(wParam));
+            break;
+        default:
+            break;
+        }
+        break;
+    }
+    return (INT_PTR)FALSE;
+}
+
+static INT_PTR CALLBACK set_delay_callbacks(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    UNREFERENCED_PARAMETER(lParam);
+    switch (message)
+    {
+    case WM_INITDIALOG:
+        return (INT_PTR)TRUE;
+    case WM_COMMAND:
+        switch (LOWORD(wParam))
+        {
+        case IDOK:
+            if (GetDlgItemText(hDlg, IDD_SET_DELAY_TEXTBOX, dialog_box_buffer, sizeof(dialog_box_buffer) / 2))
+            {
+                long double k = 0;
+                if (swscanf_s(dialog_box_buffer, L"%Lf", &k) == 1)
+                {
+                    k *= 1000000000;
+                    auto ns = main_array::nanoseconds((uint64_t)k);
+                    main_array::set_compare_delay(ns);
+                    main_array::set_read_delay(ns);
+                    main_array::set_write_delay(ns);
+                }
+            }
+            EndDialog(hDlg, LOWORD(wParam));
+            return (INT_PTR)TRUE;
+        case IDCANCEL:
+            EndDialog(hDlg, LOWORD(wParam));
+            break;
+        default:
+            break;
+        }
+        break;
+        }
+    return (INT_PTR)FALSE;
+}
+
 LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
@@ -430,6 +498,12 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             break;
         case IDM_SET_ARRAY_SIZE:
             DialogBox(hinstance, MAKEINTRESOURCE(IDD_SET_ARRAY_SIZE_BOX), hWnd, set_array_size_callbacks);
+            break;
+        case IDM_SET_ROMUDUOJR_SEED:
+            DialogBox(hinstance, MAKEINTRESOURCE(IDD_SET_ROMUDUOJR_SEED_BOX), hWnd, set_romuduojr_callbacks);
+            break;
+        case IDM_SET_DELAY:
+            DialogBox(hinstance, MAKEINTRESOURCE(IDD_SET_DELAY_BOX), hWnd, set_delay_callbacks);
             break;
         case IDM_PAUSE_SIMULATION:
             algorithm_thread::pause();

@@ -76,5 +76,5 @@ void bitonic_sort_kernel(main_array array, uint begin, uint end, bool ascending)
 
 void bitonic_sort_parallel(main_array array)
 {
-    run_as_parallel([&]() { bitonic_sort_kernel(array, 0, array.size(), true); });
+    as_parallel([&]() { bitonic_sort_kernel(array, 0, array.size(), true); });
 }

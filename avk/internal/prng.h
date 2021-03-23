@@ -5,5 +5,5 @@
 
 
 
-void		romu_duo_set_seed(uint64_t seed);
-uint64_t	romu_duo_get();
+void		romu2jr_set_seed(uint64_t seed);
+uint64_t	romu2jr_get();

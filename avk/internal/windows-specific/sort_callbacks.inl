@@ -19,6 +19,9 @@ case IDM_SORT_bose_nelson_network:
 case IDM_SORT_bose_nelson_network_parallel:
 	algorithm_thread::assign_body(bose_nelson_network_parallel);
 	break;
+case IDM_SORT_breadth_sort:
+	algorithm_thread::assign_body(breadth_sort);
+	break;
 case IDM_SORT_bubble_sort:
 	algorithm_thread::assign_body(bubble_sort);
 	break;
@@ -36,6 +39,12 @@ case IDM_SORT_fold_sort_bottom_up:
 	break;
 case IDM_SORT_fold_sort_parallel:
 	algorithm_thread::assign_body(fold_sort_parallel);
+	break;
+case IDM_SORT_fold_sort_randomized:
+	algorithm_thread::assign_body(fold_sort_randomized);
+	break;
+case IDM_SORT_fold_sort_recursive:
+	algorithm_thread::assign_body(fold_sort_recursive);
 	break;
 case IDM_SORT_gambit_insertion_sort:
 	algorithm_thread::assign_body(gambit_insertion_sort);
@@ -108,6 +117,9 @@ case IDM_SORT_std_sort:
 	break;
 case IDM_SORT_std_stable_sort:
 	algorithm_thread::assign_body(std_stable_sort);
+	break;
+case IDM_SORT_triangle_fold_sort:
+	algorithm_thread::assign_body(triangle_fold_sort);
 	break;
 case IDM_SORT_weave_sorting_network:
 	algorithm_thread::assign_body(weave_sorting_network);

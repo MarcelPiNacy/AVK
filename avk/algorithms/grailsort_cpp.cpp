@@ -133,6 +133,7 @@ namespace grailsort
 			};
 
 			static constexpr size_type
+				EXPECTED_PAGE_SIZE				= static_cast<size_type>(8192),
 				CACHE_LINE_SIZE					= static_cast<size_type>(checked_thresholds::CACHE_LINE_SIZE),
 				SMALL_SORT_THRESHOLD			= static_cast<size_type>(checked_thresholds::SMALL_SORT_THRESHOLD),
 				SMALL_SORT_THRESHOLD_LOG2		= static_cast<size_type>(checked_thresholds::SMALL_SORT_THRESHOLD_LOG2),
@@ -201,7 +202,7 @@ namespace grailsort
 				iter_move(target, tmp);
 			}
 
-			static constexpr void rotate_original(I begin, I new_begin, I end)
+			static constexpr void rotate(I begin, I new_begin, I end)
 			{
 				GRAILSORT_INVARIANT(begin <= end);
 				GRAILSORT_INVARIANT(new_begin <= end);
@@ -223,40 +224,6 @@ namespace grailsort
 						swap_range(std::next(begin, left_size - right_size), middle, middle);
 						left_size -= right_size;
 					}
-				}
-			}
-
-			static constexpr void rotate(I begin, I new_begin, I end)
-			{
-				GRAILSORT_INVARIANT(begin <= end);
-				GRAILSORT_INVARIANT(new_begin <= end);
-				GRAILSORT_INVARIANT(begin <= new_begin);
-
-				size_type left_size = distance(begin, new_begin);
-				size_type right_size = distance(new_begin, end);
-				while (left_size != 0 && right_size != 0)
-				{
-					const I middle = std::next(begin, left_size);
-
-					bool flag = left_size > right_size;
-					size_type offset = left_size - right_size;
-					I from_begin = begin + offset;
-					if (!flag) //whether this is branchless depends on the iterator type
-						from_begin = begin;
-					I to_begin = middle;
-					do
-					{
-						iter_swap(from_begin, to_begin);
-						++from_begin;
-						++to_begin;
-					} while (from_begin != middle);
-					size_type new_right = right_size - left_size;
-					if (!flag)
-						begin = middle;
-					if (!flag)
-						right_size = new_right;
-					if (flag)
-						left_size = offset;
 				}
 			}
 
@@ -422,6 +389,30 @@ namespace grailsort
 
 				if (buffer != left)
 					swap_range(buffer, buffer + distance(left, middle), left);
+			}
+
+			static constexpr void internal_merge_forward_origin_aware(I working_buffer, I begin, I middle, I end, bool origin)
+			{
+				I middle_original = middle;
+				while (begin != middle_original && middle != end)
+				{
+					const bool flag = origin ?
+						*begin <= *middle :
+						*begin < *middle;
+
+					if (flag)
+					{
+						std::iter_swap(working_buffer, begin);
+						++begin;
+					}
+					else
+					{
+						std::iter_swap(working_buffer, middle);
+						++middle;
+					}
+
+					++working_buffer;
+				}
 			}
 
 			static constexpr void internal_merge_backward(I begin, I middle, I end, I buffer_end)
@@ -773,11 +764,38 @@ namespace grailsort
 				return run_count;
 			}
 
-			static constexpr I block_merge_forward(I tag_buffer, I working_buffer, I begin, I middle, I end, size_type block_size)
+			static constexpr void block_merge_forward(I tag_buffer, I working_buffer, I begin, I end, I median_tag, size_type block_size)
+			{
+				I left_tag = tag_buffer;
+				I left_block = begin;
+				bool left_origin = *left_tag < *median_tag;
+				while (left_block < end)
+				{
+					I right_tag = left_tag + 1;
+					I right_block = left_block + block_size;
+					bool right_origin = *right_block < *median_tag;
+					if (left_origin == right_origin)
+					{
+						swap_range(working_buffer, left_block, left_block);
+					}
+					else
+					{
+						internal_merge_forward_origin_aware(working_buffer, left_block, right_block, right_block + block_size, right_origin);
+					}
+
+					left_tag = right_tag;
+					working_buffer = left_block;
+					left_block = right_block;
+				}
+			}
+
+			static constexpr void block_select_forward(I tag_buffer, I working_buffer, I begin, I middle, I end, size_type block_size)
 			{
 				GRAILSORT_INVARIANT(working_buffer < begin);
 				GRAILSORT_INVARIANT(begin - block_size == working_buffer);
 				GRAILSORT_INVARIANT(begin < end);
+
+				sort_tag_buffer(tag_buffer, tag_buffer + block_size);
 
 				I median_tag = std::next(tag_buffer, distance(tag_buffer, working_buffer) / 2);
 				I this_block = begin;
@@ -788,23 +806,23 @@ namespace grailsort
 					I min_tag = this_tag;
 					I next_block = std::next(min_block, block_size);
 					I next_tag = std::next(min_tag);
-					I target_block = next_block;
-					I target_tag = next_tag;
+					I candidate_block = next_block;
+					I cadidate_tag = next_tag;
 
-					while (target_block < end)
+					while (candidate_block < end)
 					{
-						bool flag = *target_block < *min_block;
+						bool flag = *candidate_block < *min_block;
 						if (!flag)
-							flag = *target_block == *min_block;
+							flag = *candidate_block == *min_block;
 						if (!flag)
-							flag = *target_tag < *min_tag;
+							flag = *cadidate_tag < *min_tag;
 						if (flag)
 						{
-							min_tag = target_tag;
-							min_block = target_block;
+							min_tag = cadidate_tag;
+							min_block = candidate_block;
 						}
-						target_block = std::next(target_block, block_size);
-						target_tag = std::next(target_tag);
+						candidate_block = std::next(candidate_block, block_size);
+						cadidate_tag = std::next(cadidate_tag);
 					}
 
 					if (min_block != this_block)
@@ -821,8 +839,7 @@ namespace grailsort
 					this_tag = next_tag;
 				} while (this_block < end);
 
-				internal_merge_pass_forward(working_buffer, begin, end, block_size);
-				return median_tag;
+				block_merge_forward(tag_buffer, working_buffer, begin, this_block, median_tag, block_size);
 			}
 
 			static constexpr void block_merge_backward(I tag_buffer, I working_buffer, I begin, I middle, I end, size_type block_size)
@@ -841,8 +858,7 @@ namespace grailsort
 					I merge_end = merge_middle + run_size;
 					if (merge_end > end)
 						merge_end = end;
-					sort_tag_buffer(tag_buffer, tag_buffer + block_size);
-					block_merge_forward(tag_buffer, working_buffer, merge_begin, merge_middle, merge_end, block_size);
+					block_select_forward(tag_buffer, working_buffer, merge_begin, merge_middle, merge_end, block_size);
 					working_buffer += run_size * 2;
 					begin = working_buffer + block_size;
 				}

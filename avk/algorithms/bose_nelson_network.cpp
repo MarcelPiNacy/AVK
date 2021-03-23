@@ -1,7 +1,7 @@
 #include "all.h"
 
 
-static void rangeComp(main_array array, uint a, uint b, uint offset)
+static void ranged_cas(main_array array, uint a, uint b, uint offset)
 {
 	int half = (b - a) / 2, m = a + half;
 	a += offset;
@@ -17,5 +17,5 @@ void bose_nelson_network(main_array array)
 	for (uint k = 2; k <= current_size; k *= 2)
 		for (uint j = 0; j < k / 2; j++)
 			for (uint i = 0; i + j < array.size(); i += k)
-				rangeComp(array, i, i + k, j);
+				ranged_cas(array, i, i + k, j);
 }

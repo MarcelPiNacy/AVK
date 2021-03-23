@@ -1,39 +1,46 @@
 #include "all.h"
 #include <algorithm>
-#include <thread>
-#include <vector>
-
-void merge(item* begin, item* middle, item* end)
-{
-	std::inplace_merge(begin, middle, end);
-}
 
 void parallel_merge_sort(main_array array)
 {
-	run_as_parallel([=]()
+	as_parallel([=]()
 	{
-		using std::vector;
-		using std::thread;
+		uint base_run_size = 16;
+		uint size = array.size();
 
-		for (uint run_size = 1; run_size < array.size(); run_size *= 2)
+		parallel_for<uint>(0, size / base_run_size, [=](uint base_index)
 		{
-			vector<thread> threads;
-			threads.reserve(array.size() / run_size);
-			item* begin = array.begin();
-			while (true)
+			sint begin = (base_index * base_run_size);
+			sint end = begin + base_run_size;
+			for (sint i = begin + 1; i < end; ++i)
 			{
-				item* middle = begin + run_size;
-				if (middle >= array.end())
-					break;
-				item* end = middle + run_size;
-				if (end > array.end())
-					end = array.end();
-				threads.push_back(thread(merge, begin, middle, end));
-				begin = end;
+				item tmp = array[i];
+				sint j = i - 1;
+				for (; j >= begin && array[j] > tmp; --j)
+					array[j + 1] = array[j];
+				array[j + 1] = tmp;
 			}
+		});
 
-			for (thread& t : threads)
-				t.join();
+		auto begin = array.begin();
+		for (uint run_size = base_run_size; run_size < size;)
+		{
+			uint next_run_size = run_size * 2;
+			uint run_count = size / run_size;
+
+			parallel_for<uint>(0, run_count, [=](uint base_index)
+			{
+				uint begin_offset = base_index * next_run_size;
+				uint middle_offset = begin_offset + run_size;
+				if (middle_offset >= size)
+					return;
+				uint end_offset = middle_offset + run_size;
+				if (end_offset > size)
+					end_offset = size;
+				std::inplace_merge(begin + begin_offset, begin + middle_offset, begin + end_offset);
+			});
+
+			run_size = next_run_size;
 		}
 	});
 }

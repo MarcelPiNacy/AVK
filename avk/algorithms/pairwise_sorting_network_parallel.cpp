@@ -54,5 +54,5 @@ static void pairwise_sorting_network_parallel_kernel(main_array array, uint star
 
 void pairwise_sorting_network_parallel(main_array array)
 {
-    run_as_parallel([=]() { pairwise_sorting_network_parallel_kernel(array, 0, array.size(), 1); });
+    as_parallel([=]() { pairwise_sorting_network_parallel_kernel(array, 0, array.size(), 1); });
 }

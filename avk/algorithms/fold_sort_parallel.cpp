@@ -1,62 +1,50 @@
 #include "all.h"
-#include <vector>
-#include <thread>
 
-using std::vector;
-using std::thread;
 
-static void range_halver(main_array array, uint low, uint high, uint count)
-{
-	uint k = 0;
-	while (low < high && k != count)
-	{
-		compare_swap(array, low, high);
-		++low;
-		--high;
-		++k;
-	}
-}
 
 static void halver(main_array array, uint low, uint high)
 {
-	vector<thread> threads;
-
-	while (low < high)
+	uint half_range = (high - low) / 2;
+	--high;
+	if (half_range > 2)
 	{
-		uint n = 0;
-		uint l = low;
-		uint h = high;
-		while (low < high && n < 64)
+		parallel_for<uint>(0, half_range, [=](uint i)
 		{
-			++n;
-			++low;
-			--high;
-		}
-		threads.push_back(thread(range_halver, array, l, h, n));
+			compare_swap(array, low + i, high - i);
+		});
 	}
+	else
+	{
+		compare_swap(array, low, high);
+	}
+}
 
-	for (thread& t : threads)
-		t.join();
+static void fold_sort_parallel_step(main_array array, uint low, uint high, uint limit)
+{
+	uint range = high - low;
+	if (range < limit || range < 2)
+		return;
+	halver(array, low, high);
+	uint mid = low + range / 2;
+	uint params[2][2] =
+	{
+		{ low, mid },
+		{ mid, high },
+	};
+
+	parallel_for<uint>(0, 2, [=](uint i)
+	{
+		fold_sort_parallel_step(array, params[i][0], params[i][1], limit);
+	});
 }
 
 void fold_sort_parallel(main_array array)
 {
-	run_as_parallel([=]()
+	as_parallel([=]()
 	{
-		uint size = array.size();
-		for (uint i = size / 2; i > 0; i /= 2)
+		for (uint limit = array.size() / 2; limit > 0; limit /= 2)
 		{
-			for (uint j = size; j >= i; j /= 2)
-			{
-				vector<thread> threads;
-				threads.reserve(size / j);
-
-				for (uint i = 0; i < size; i += j)
-					threads.push_back(thread(halver, array, i, i + j - 1));
-
-				for (thread& t : threads)
-					t.join();
-			}
+			fold_sort_parallel_step(array, 0, array.size(), limit);
 		}
 	});
 }

@@ -1,4 +1,4 @@
-#include "../external_dependencies/cmts/include/cmts.h"
+#include "../external_dependencies/cmts/cmts.h"
 #include "algorithm_thread.h"
 #include "graphics/vulkan_state.h"
 #include "windows-specific/framework.h"
@@ -80,6 +80,17 @@ namespace cmts_checks
     }
 }
 
+static void update_title()
+{
+    char buffer[4096];
+    
+    uint64_t array_size = main_array::size();
+    uint64_t comparissons = sort_stats::comparisson_count();
+    uint64_t writes = sort_stats::write_count();
+    sprintf_s(buffer, "AVK - Sorting Algorithm Visualizer - [ array size = %llu, comparissons = %llu, writes = %llu ]", array_size, comparissons, writes);
+    SetWindowTextA(hwnd, buffer);
+}
+
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
@@ -116,8 +127,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         class_name,
         title,
         WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, 0,
-        CW_USEDEFAULT, 0,
+        CW_USEDEFAULT, 1920,
+        CW_USEDEFAULT, 1080,
         nullptr, nullptr,
         hInstance, nullptr);
 
@@ -139,22 +150,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     auto last = high_resolution_clock::now();
     
-    auto delay = std::chrono::milliseconds(1);
+    auto delay = std::chrono::microseconds(5);
     main_array::set_compare_delay(delay);
     main_array::set_read_delay(delay);
     main_array::set_write_delay(delay);
-    main_array::resize(1 << 8);
+    main_array::resize(1 << 18);
     
-    constexpr TCHAR title_format[] = TEXT("AVK - Sorting Algorithm Visualizer - [ %u elements ]");
-
-#ifdef UNICODE
-    wsprintf(window_title_buffer, title_format, main_array::size());
-    SetWindowText(hwnd, window_title_buffer);
-#else
-    sprintf(window_title_buffer, title_format, main_array::size());
-    SetWindowTextA(hwnd, window_title_buffer);
-#endif
-
     main_array::for_each([&](item& e, uint32_t position)
     {
         e.value = position;
@@ -162,9 +163,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         e.color = item_color::white();
     });
 
-    constexpr auto framerrate = duration<long double>(1.0 / 60.0);
+    constexpr auto framerrate = milliseconds(16);
+    constexpr auto title_update_threshold = milliseconds(60);
 
     auto last_draw = high_resolution_clock::now();
+    auto last_title_update = last_draw;
 
     MSG msg = {};
     while (should_continue_global.load(std::memory_order_acquire))
@@ -183,6 +186,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         {
             draw_main_array();
             last_draw = now;
+        }
+
+        if (now - last_title_update > title_update_threshold)
+        {
+            update_title();
+            last_title_update = now;
         }
     }
 

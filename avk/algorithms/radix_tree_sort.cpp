@@ -21,10 +21,7 @@ struct node
 		return r;
 	}
 
-	node()
-	{
-		memset(this, 0, sizeof(node));
-	}
+	node() = default;
 
 	~node()
 	{
@@ -34,12 +31,12 @@ struct node
 			next.~vector();
 	}
 
-	bool leaf;
 	union
 	{
 		vector<node_ptr>			next;
 		vector<vector<item>>		values;
 	};
+	bool leaf;
 };
 
 node_ptr build_radix_tree(main_array array, uint radix_size)

@@ -70,12 +70,12 @@ struct item_iterator : std::random_access_iterator_tag
 	uint index;
 
 	constexpr item_iterator& operator=(const item_iterator& other) { index = other.index; return *this; }
-	constexpr bool operator==(const item_iterator& other)	const { return index == other.index; }
-	constexpr bool operator!=(const item_iterator& other)	const { return index != other.index; }
-	constexpr bool operator<(const item_iterator& other)	const { return index <  other.index; }
-	constexpr bool operator>(const item_iterator& other)	const { return index >  other.index; }
-	constexpr bool operator<=(const item_iterator& other)	const { return index <= other.index; }
-	constexpr bool operator>=(const item_iterator& other)	const { return index >= other.index; }
+	inline bool operator==(const item_iterator& other)	const { sort_stats::add_comparisson(); return index == other.index; }
+	inline bool operator!=(const item_iterator& other)	const { sort_stats::add_comparisson(); return index != other.index; }
+	inline bool operator<(const item_iterator& other)	const { sort_stats::add_comparisson(); return index <  other.index; }
+	inline bool operator>(const item_iterator& other)	const { sort_stats::add_comparisson(); return index >  other.index; }
+	inline bool operator<=(const item_iterator& other)	const { sort_stats::add_comparisson(); return index <= other.index; }
+	inline bool operator>=(const item_iterator& other)	const { sort_stats::add_comparisson(); return index >= other.index; }
 
 	constexpr item_iterator& operator++() { ++index; return *this; }
 	constexpr item_iterator& operator--() { --index; return *this; }
@@ -173,13 +173,13 @@ struct scoped_highlight
 
 
 
-#include <include/cmts.h>
+#include <cmts.h>
 #include "platform.h"
 #include <cassert>
 #include <thread>
 
 template <typename F>
-void run_as_parallel(F&& function)
+void as_parallel(F&& function)
 {
 	cmts_result_t code;
 	cmts_ext_debugger_init_options_t debugger_options = {};
@@ -231,6 +231,7 @@ void parallel_for(I begin, I end, F&& body)
 	{
 		count = std::distance(begin, end);
 	}
+
 	AVK_ASSERT(count < UINT32_MAX);
 
 	cmts_result_t code;

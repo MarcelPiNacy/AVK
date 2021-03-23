@@ -28,8 +28,8 @@ static DWORD WINAPI thread_entry_point(void* unused)
 			break;
 		if (sort_function == nullptr)
 			continue;
-		sort_function({});
 		sort_stats::clear();
+		sort_function({});
 		sort_function = nullptr;
 		(void)tail.fetch_add(1, std::memory_order_release);
 		(void)WakeByAddressSingle(&tail);
@@ -65,16 +65,22 @@ namespace algorithm_thread
 	void pause()
 	{
 		paused.store(true, std::memory_order_release);
-		SuspendThread(thread_handle);
 		if (cmts_lib_is_initialized())
-			cmts_lib_pause();
+		{
+			auto code = cmts_lib_pause();
+			//AVK_ASSERT(code == CMTS_OK);
+		}
+		SuspendThread(thread_handle);
 	}
 
 	void resume()
 	{
-		if (cmts_lib_is_initialized())
-			AVK_ASSERT(cmts_lib_resume() == CMTS_OK);
 		ResumeThread(thread_handle);
+		if (cmts_lib_is_initialized())
+		{
+			auto code = cmts_lib_resume();
+			//AVK_ASSERT(code == CMTS_OK);
+		}
 #ifdef DEBUG
 		bool prior = paused.exchange(false, std::memory_order_release);
 		AVK_ASSERT(prior);

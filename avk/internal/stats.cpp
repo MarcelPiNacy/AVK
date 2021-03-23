@@ -66,36 +66,36 @@ namespace sort_stats
 
 	uint read_count()
 	{
-		return reads.load(std::memory_order_release);
+		return reads.load(std::memory_order_acquire);
 	}
 
 	uint write_count()
 	{
-		return writes.load(std::memory_order_release);
+		return writes.load(std::memory_order_acquire);
 	}
 
 	uint comparisson_count()
 	{
-		return comparissons.load(std::memory_order_release);
+		return comparissons.load(std::memory_order_acquire);
 	}
 
 	uint swap_count()
 	{
-		return swaps.load(std::memory_order_release);
+		return swaps.load(std::memory_order_acquire);
 	}
 
 	uint reversal_count()
 	{
-		return reversals.load(std::memory_order_release);
+		return reversals.load(std::memory_order_acquire);
 	}
 
 	uint memory_allocation_count()
 	{
-		return memory_allocations.load(std::memory_order_release);
+		return memory_allocations.load(std::memory_order_acquire);
 	}
 
 	uint memory_deallocation_count()
 	{
-		return memory_deallocations.load(std::memory_order_release);
+		return memory_deallocations.load(std::memory_order_acquire);
 	}
 }
