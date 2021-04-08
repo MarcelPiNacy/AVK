@@ -130,6 +130,6 @@ constexpr void american_flag_sort(RandomAccessIterator begin, RandomAccessIterat
 
 void american_flag_sort(main_array array)
 {
-	const uint default_radix_size = sort_config::radix_size;
+	const size_t default_radix_size = sort_config::radix_size;
 	american_flag_sort<4>(array.begin(), array.end(), extract_byte);
 }

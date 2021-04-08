@@ -4,12 +4,12 @@
 
 void pairwise_sorting_network(main_array array)
 {
-    uint length = array.size();
-    uint a = 1;
-    uint b = 0;
-    uint c = 0;
-    uint d = 0;
-    uint e = 0;
+    size_t length = array.size();
+    size_t a = 1;
+    size_t b = 0;
+    size_t c = 0;
+    size_t d = 0;
+    size_t e = 0;
     while (a < length)
     {
         b = a;

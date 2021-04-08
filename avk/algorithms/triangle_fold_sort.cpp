@@ -2,7 +2,7 @@
 
 
 // unused
-static void trivial_halver(main_array array, uint low, uint high)
+static void trivial_halver(main_array array, size_t low, size_t high)
 {
 	--high;
 	while (low < high)
@@ -13,19 +13,19 @@ static void trivial_halver(main_array array, uint low, uint high)
 	}
 }
 
-static void triangle_halver(main_array array, uint low, uint high)
+static void triangle_halver(main_array array, size_t low, size_t high)
 {
-	uint range = high - low;
-	uint half_range = range / 2;
-	uint mod_mask = half_range - 1;
-	uint mid = low + half_range;
-	uint counter = 0;
+	size_t range = high - low;
+	size_t half_range = range / 2;
+	size_t mod_mask = half_range - 1;
+	size_t mid = low + half_range;
+	size_t counter = 0;
 	--high;
-	for (uint i = 0; i != half_range; ++i)
+	for (size_t i = 0; i != half_range; ++i)
 	{
-		uint a = low + i;
-		uint b = high - i;
-		uint c = mid + (((counter * (counter + 1)) / 2) & mod_mask);
+		size_t a = low + i;
+		size_t b = high - i;
+		size_t c = mid + (((counter * (counter + 1)) / 2) & mod_mask);
 		++counter;
 		if (b > c)
 			std::swap(b, c);
@@ -33,11 +33,11 @@ static void triangle_halver(main_array array, uint low, uint high)
 	}
 
 	counter = 0;
-	for (uint i = 0; i != half_range; ++i)
+	for (size_t i = 0; i != half_range; ++i)
 	{
-		uint a = low + i;
-		uint b = high - i;
-		uint c = mid + (((counter * (counter + 1)) / 2) & mod_mask);
+		size_t a = low + i;
+		size_t b = high - i;
+		size_t c = mid + (((counter * (counter + 1)) / 2) & mod_mask);
 		++counter;
 		if (b > c)
 			std::swap(b, c);
@@ -45,12 +45,12 @@ static void triangle_halver(main_array array, uint low, uint high)
 	}
 }
 
-static void triangle_sort_recursive_step(main_array array, uint low, uint high, uint limit)
+static void triangle_sort_recursive_step(main_array array, size_t low, size_t high, size_t limit)
 {
-	uint range = high - low;
+	size_t range = high - low;
 	if (range < limit || range < 2)
 		return;
-	uint mid = low + range / 2;
+	size_t mid = low + range / 2;
 	triangle_halver(array, low, high);
 	triangle_sort_recursive_step(array, low, mid, limit);
 	triangle_sort_recursive_step(array, mid, high, limit);
@@ -58,7 +58,7 @@ static void triangle_sort_recursive_step(main_array array, uint low, uint high, 
 
 void triangle_fold_sort(main_array array)
 {
-	for (uint limit = array.size() / 2; limit > 0; limit /= 2)
+	for (size_t limit = array.size() / 2; limit > 0; limit /= 2)
 	{
 		triangle_sort_recursive_step(array, 0, array.size(), limit);
 	}

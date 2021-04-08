@@ -71,21 +71,21 @@ void main_array::finalize()
 	main_array_buffer = nullptr;
 }
 
-item& main_array::get(uint index)
+item& main_array::get(size_t index)
 {
 	AVK_ASSERT(main_array_mapping != nullptr);
 	AVK_ASSERT(index < size());
 	return main_array_mapping[index];
 }
 
-item& main_array::operator[](uint index) const
+item& main_array::operator[](size_t index) const
 {
 	AVK_ASSERT(main_array_mapping != nullptr);
 	AVK_ASSERT(index < size());
 	return main_array_mapping[index];
 }
 
-uint main_array::size()
+size_t main_array::size()
 {
 	return main_array_size;
 }
@@ -160,7 +160,7 @@ void main_array::sleep(nanoseconds duration)
 	{
 		if (duration >= sleep_threshold)
 		{
-			SleepEx(duration_cast<milliseconds>(duration).count(), false);
+			SleepEx((DWORD)duration_cast<milliseconds>(duration).count(), false);
 		}
 		else
 		{
@@ -238,12 +238,12 @@ bool item::operator>=(const item& other) const
 	return value >= other.value;
 }
 
-uint item::max_radix(uint radix)
+size_t item::max_radix(size_t radix)
 {
 	return 32 / fast_log2(radix);
 }
 
-sint compare(const item& left, const item& right)
+ptrdiff_t compare(const item& left, const item& right)
 {
 	scoped_highlight highlight_left(left.flags);
 	scoped_highlight highlight_right(right.flags);
@@ -252,13 +252,13 @@ sint compare(const item& left, const item& right)
 	sort_stats::add_read(2);
 	if (left.value == right.value)
 		return 0;
-	sint r = 1;
+	ptrdiff_t r = 1;
 	if (left.value < right.value)
 		r = -1;
 	return r;
 }
 
-sint compare(main_array array, uint left_index, uint right_index)
+ptrdiff_t compare(main_array array, size_t left_index, size_t right_index)
 {
 	return compare(array[left_index], array[right_index]);
 }
@@ -279,7 +279,7 @@ void swap(item& left, item& right)
 	right.color = c;
 }
 
-void swap(main_array array, uint left_index, uint right_index)
+void swap(main_array array, size_t left_index, size_t right_index)
 {
 	swap(array[left_index], array[right_index]);
 }
@@ -292,16 +292,16 @@ bool compare_swap(item& left, item& right)
 	return r;
 }
 
-bool compare_swap(main_array array, uint left_index, uint right_index)
+bool compare_swap(main_array array, size_t left_index, size_t right_index)
 {
 	return compare_swap(array[left_index], array[right_index]);
 }
 
-void reverse(main_array array, uint offset, uint size)
+void reverse(main_array array, size_t offset, size_t size)
 {
 	sort_stats::add_reversal(1);
-	uint begin = offset;
-	uint end = offset + size - 1;
+	size_t begin = offset;
+	size_t end = offset + size - 1;
 	while (begin < end)
 	{
 		swap(array[begin], array[end]);
@@ -310,19 +310,23 @@ void reverse(main_array array, uint offset, uint size)
 	}
 }
 
-uint8_t extract_byte(const item& value, uint byte_index)
+uint8_t extract_byte(const item& value, size_t byte_index)
 {
-	return extract_radix(value, byte_index);
+	return (uint8_t)extract_radix(value, byte_index);
 }
 
-uint extract_radix(const item& value, uint radix_index, uint radix)
+size_t extract_radix(const item& value, size_t radix_index, size_t radix)
 {
 	scoped_highlight highlight(value.flags);
 	main_array::sleep(duration_cast<std::chrono::nanoseconds>(read_delay));
+#if UINT32_MAX == UINTPTR_MAX
 	AVK_ASSERT(__popcnt(radix) == 1);
-	const uint log2 = fast_log2(radix);
-	const uint mask = radix - 1;
-	return (value.value >> (radix_index * log2)) & mask;
+#else
+	AVK_ASSERT(__popcnt64(radix) == 1);
+#endif
+	const size_t log2 = fast_log2(radix);
+	const size_t mask = radix - 1;
+	return ((size_t)value.value >> (radix_index * log2)) & mask;
 }
 
 item& item_iterator::operator*() const

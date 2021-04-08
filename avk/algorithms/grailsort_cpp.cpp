@@ -783,8 +783,8 @@ namespace grailsort
 						internal_merge_forward_origin_aware(working_buffer, left_block, right_block, right_block + block_size, right_origin);
 					}
 
-					left_tag = right_tag;
 					working_buffer = left_block;
+					left_tag = right_tag;
 					left_block = right_block;
 				}
 			}

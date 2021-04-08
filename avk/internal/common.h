@@ -15,14 +15,6 @@ void avk_assertion_handler(const char* expression);
 #define AVK_ASSERT(expression) (expression)
 #endif
 
-#ifdef AVK_32BIT_INDICES
-using sint = int32_t;
-using uint = uint32_t;
-#else
-using sint = int32_t;
-using uint = uint32_t;
-#endif
-
 template <typename R, typename... P>
 using function_ptr = R(*)(P...);
 

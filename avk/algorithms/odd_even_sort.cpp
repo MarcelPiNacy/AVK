@@ -6,7 +6,7 @@ void odd_even_sort(main_array array)
 	do
 	{
 		flag = true;
-		for (uint i = 1; i < array.size() - 1; i += 2)
+		for (size_t i = 1; i < array.size() - 1; i += 2)
 		{
 			if (array[i] > array[i + 1])
 			{
@@ -14,7 +14,7 @@ void odd_even_sort(main_array array)
 				flag = false;
 			}
 		}
-		for (uint i = 0; i < array.size() - 1; i += 2)
+		for (size_t i = 0; i < array.size() - 1; i += 2)
 		{
 			if (array[i] > array[i + 1])
 			{

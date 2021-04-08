@@ -114,11 +114,11 @@ static void breadth_sort_pass_parallel(I begin, I end, J buffer_begin, J buffer_
 			(void)counts[digit].fetch_add(1, std::memory_order_acquire);
 		});
 
-		uint32_t popcount =
-			__popcnt(presence[0].load(std::memory_order_acquire)) +
-			__popcnt(presence[1].load(std::memory_order_acquire)) +
-			__popcnt(presence[2].load(std::memory_order_acquire)) +
-			__popcnt(presence[3].load(std::memory_order_acquire));
+		uint_fast16_t popcount =
+			(uint_fast16_t)__popcnt64(presence[0].load(std::memory_order_acquire)) +
+			(uint_fast16_t)__popcnt64(presence[1].load(std::memory_order_acquire)) +
+			(uint_fast16_t)__popcnt64(presence[2].load(std::memory_order_acquire)) +
+			(uint_fast16_t)__popcnt64(presence[3].load(std::memory_order_acquire));
 
 		if (popcount != 1)
 			break;
@@ -189,6 +189,6 @@ void breadth_sort(main_array array)
 	{
 		breadth_sort_pass_parallel(
 			array.begin(), array.end(),
-			buffer.begin(), buffer.end(), item::max_radix(BREADTH_SORT_RADIX_SIZE), [](const item& e, uint index) { return extract_radix(e, index, BREADTH_SORT_RADIX_SIZE); });
+			buffer.begin(), buffer.end(), item::max_radix(BREADTH_SORT_RADIX_SIZE), [](const item& e, size_t index) { return extract_radix(e, (size_t)index, BREADTH_SORT_RADIX_SIZE); });
 	});
 }

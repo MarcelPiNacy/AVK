@@ -2,10 +2,10 @@
 
 void selection_sort(main_array array)
 {
-	for (uint i = 0; i < array.size() - 1; ++i)
+	for (size_t i = 0; i < array.size() - 1; ++i)
 	{
-		uint min = i;
-		for (uint j = i + 1; j < array.size(); ++j)
+		size_t min = i;
+		for (size_t j = i + 1; j < array.size(); ++j)
 			if (array[j] < array[min])
 				min = j;
 		if (min != i)

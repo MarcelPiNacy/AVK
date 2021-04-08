@@ -2,10 +2,10 @@
 
 void insertion_sort(main_array array)
 {
-	for (sint i = 1; i < (sint)array.size(); ++i)
+	for (ptrdiff_t i = 1; i < (ptrdiff_t)array.size(); ++i)
 	{
 		item tmp = array[i];
-		sint j = i - 1;
+		ptrdiff_t j = i - 1;
 		for (; j >= 0 && array[j] > tmp; --j)
 			array[j + 1] = array[j];
 		array[j + 1] = tmp;

@@ -28,6 +28,9 @@ case IDM_SORT_bubble_sort:
 case IDM_SORT_counting_sort:
 	algorithm_thread::assign_body(counting_sort);
 	break;
+case IDM_SORT_ctree_sort:
+	algorithm_thread::assign_body(ctree_sort);
+	break;
 case IDM_SORT_custom_radix_sort:
 	algorithm_thread::assign_body(custom_radix_sort);
 	break;
@@ -46,6 +49,9 @@ case IDM_SORT_fold_sort_randomized:
 case IDM_SORT_fold_sort_recursive:
 	algorithm_thread::assign_body(fold_sort_recursive);
 	break;
+case IDM_SORT_fold_sort_v2:
+	algorithm_thread::assign_body(fold_sort_v2);
+	break;
 case IDM_SORT_gambit_insertion_sort:
 	algorithm_thread::assign_body(gambit_insertion_sort);
 	break;
@@ -54,6 +60,9 @@ case IDM_SORT_grailsort_cpp:
 	break;
 case IDM_SORT_grail_sort:
 	algorithm_thread::assign_body(grail_sort);
+	break;
+case IDM_SORT_ilp_binary_msd_radix_sort:
+	algorithm_thread::assign_body(ilp_binary_msd_radix_sort);
 	break;
 case IDM_SORT_insertion_sort:
 	algorithm_thread::assign_body(insertion_sort);
@@ -87,6 +96,9 @@ case IDM_SORT_pairwise_sorting_network:
 	break;
 case IDM_SORT_pairwise_sorting_network_parallel:
 	algorithm_thread::assign_body(pairwise_sorting_network_parallel);
+	break;
+case IDM_SORT_pairwise_sorting_network_recursive:
+	algorithm_thread::assign_body(pairwise_sorting_network_recursive);
 	break;
 case IDM_SORT_parallel_merge_sort:
 	algorithm_thread::assign_body(parallel_merge_sort);
@@ -126,6 +138,9 @@ case IDM_SORT_weave_sorting_network:
 	break;
 case IDM_SORT_weave_sorting_network_parallel:
 	algorithm_thread::assign_body(weave_sorting_network_parallel);
+	break;
+case IDM_SORT_weave_sorting_network_recursive:
+	algorithm_thread::assign_body(weave_sorting_network_recursive);
 	break;
 case IDM_SORT_wiki_sort:
 	algorithm_thread::assign_body(wiki_sort);

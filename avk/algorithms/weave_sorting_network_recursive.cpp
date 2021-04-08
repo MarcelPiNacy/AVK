@@ -10,56 +10,26 @@ static void circle(main_array array, size_t offset, size_t size, size_t limit, s
 {
 	if (size < 2)
 		return;
-
-	size_t n = 0;
 	for (size_t i = 0; 2 * i < (size - 1) * gap; i += gap)
-		++n;
-	
-	parallel_for<size_t>(0, n, [&](size_t i)
-	{
-		i *= gap;
 		weave_compare_swap(array, offset + i, offset + (size - 1) * gap - i, limit);
-	});
-
-	size_t params[2] =
-	{
-		offset,
-		offset + size * gap / 2
-	};
-	
-	parallel_for(0, 2, [&](int i)
-	{
-		if (params[i] < limit)
-			circle(array, params[i], size / 2, limit, gap);
-	});
+	circle(array, offset, size / 2, limit, gap);
+	if (offset + size * gap / 2 < limit)
+		circle(array, offset + size * gap / 2, size / 2, limit, gap);
 }
 
 static void weave_circle(main_array array, size_t offset, size_t size, size_t limit, size_t gap)
 {
 	if (size < 2)
 		return;
-
-	size_t params[2] =
-	{
-		offset,
-		offset + gap
-	};
-
-	parallel_for(0, 2, [&](int i)
-	{
-		weave_circle(array, params[i], size / 2, limit, 2 * gap);
-	});
-
+	weave_circle(array, offset, size / 2, limit, 2 * gap);
+	weave_circle(array, offset + gap, size / 2, limit, 2 * gap);
 	circle(array, offset, size, limit, gap);
 }
 
-void weave_sorting_network_parallel(main_array array)
+void weave_sorting_network_recursive(main_array array)
 {
-	as_parallel([&]
-	{
-		size_t i = 1;
-		while (i < array.size())
-			i *= 2;
-		weave_circle(array, 0, i, array.size(), 1);
-	});
+	size_t i = 1;
+	while (i < array.size())
+		i *= 2;
+	weave_circle(array, 0, i, array.size(), 1);
 }

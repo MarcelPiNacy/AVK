@@ -15,8 +15,8 @@ static HANDLE thread_handle;
 
 static bool is_run_all;
 static std::atomic<bool> paused;
-static std::atomic<uint32_t> head;
-static std::atomic<uint32_t> tail;
+static std::atomic<size_t> head;
+static std::atomic<size_t> tail;
 
 static DWORD WINAPI thread_entry_point(void* unused)
 {
@@ -65,9 +65,9 @@ namespace algorithm_thread
 	void pause()
 	{
 		paused.store(true, std::memory_order_release);
-		if (cmts_lib_is_initialized())
+		if (cmts_is_initialized())
 		{
-			auto code = cmts_lib_pause();
+			auto code = cmts_pause();
 			//AVK_ASSERT(code == CMTS_OK);
 		}
 		SuspendThread(thread_handle);
@@ -76,9 +76,9 @@ namespace algorithm_thread
 	void resume()
 	{
 		ResumeThread(thread_handle);
-		if (cmts_lib_is_initialized())
+		if (cmts_is_initialized())
 		{
-			auto code = cmts_lib_resume();
+			auto code = cmts_resume();
 			//AVK_ASSERT(code == CMTS_OK);
 		}
 #ifdef DEBUG
@@ -91,13 +91,13 @@ namespace algorithm_thread
 
 	void abort_sort()
 	{
-		if (cmts_lib_is_initialized())
-			cmts_lib_terminate(nullptr);
 		should_exit_algorithm.store(true, std::memory_order_release);
 		(void)head.fetch_add(1, std::memory_order_release);
 		(void)WakeByAddressSingle(&head);
-		if (WaitForSingleObject(thread_handle, 10) == WAIT_TIMEOUT)
-			TerminateThread(thread_handle, MAXDWORD);
+		if (WaitForSingleObject(thread_handle, 16) == WAIT_TIMEOUT)
+			TerminateThread(thread_handle, 0);
+		if (cmts_is_initialized())
+			cmts_terminate(nullptr);
 		sort_function = nullptr;
 		non_atomic_store(should_exit_algorithm, false);
 		non_atomic_store(paused, false);
@@ -112,12 +112,12 @@ namespace algorithm_thread
 		WakeByAddressSingle(&head);
 	}
 
-	void await(uint32_t timeout_ms)
+	void await(size_t timeout_ms)
 	{
 		if (is_idle())
 			return;
 		auto desired = head.load(std::memory_order_acquire);
-		(void)WaitOnAddress(&tail, &desired, sizeof(desired), timeout_ms == UINT32_MAX ? INFINITE : timeout_ms);
+		(void)WaitOnAddress(&tail, &desired, sizeof(desired), timeout_ms == UINTPTR_MAX ? INFINITE : (uint32_t)timeout_ms);
 	}
 
 	void terminate()

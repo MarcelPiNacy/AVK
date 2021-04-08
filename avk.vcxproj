@@ -103,7 +103,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <CallingConvention>FastCall</CallingConvention>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointExceptions>true</FloatingPointExceptions>
       <LanguageStandard_C>Default</LanguageStandard_C>
@@ -137,7 +137,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
@@ -176,7 +176,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <CallingConvention>FastCall</CallingConvention>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <ControlFlowGuard>false</ControlFlowGuard>
       <FloatingPointExceptions>true</FloatingPointExceptions>
       <LanguageStandard_C>Default</LanguageStandard_C>
@@ -210,7 +210,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <ExceptionHandling>false</ExceptionHandling>
+      <ExceptionHandling>Sync</ExceptionHandling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
@@ -285,8 +285,11 @@
     <ClCompile Include="avk\algorithms\bose_nelson_network.cpp" />
     <ClCompile Include="avk\algorithms\bose_nelson_network_parallel.cpp" />
     <ClCompile Include="avk\algorithms\breadth_sort.cpp" />
+    <ClCompile Include="avk\algorithms\ctree_sort.cpp" />
     <ClCompile Include="avk\algorithms\fold_sort_parallel.cpp" />
     <ClCompile Include="avk\algorithms\fold_sort_recursive.cpp" />
+    <ClCompile Include="avk\algorithms\fold_sort_v2.cpp" />
+    <ClCompile Include="avk\algorithms\ilp_binary_msd_radix_sort.cpp" />
     <ClCompile Include="avk\algorithms\odd_even_merge_sort_parallel.cpp" />
     <ClCompile Include="avk\algorithms\pairwise_sorting_network.cpp" />
     <ClCompile Include="avk\algorithms\pairwise_sorting_network_parallel.cpp" />
@@ -302,6 +305,7 @@
     <ClCompile Include="avk\algorithms\fold_sort.cpp" />
     <ClCompile Include="avk\algorithms\grail_sort.cpp" />
     <ClCompile Include="avk\algorithms\odd_even_sort.cpp" />
+    <ClCompile Include="avk\algorithms\pairwise_sorting_network_recursive.cpp" />
     <ClCompile Include="avk\algorithms\parallel_merge_sort.cpp" />
     <ClCompile Include="avk\algorithms\quadsort_cpp.cpp" />
     <ClCompile Include="avk\algorithms\radix_tree_sort.cpp" />
@@ -322,6 +326,7 @@
     <ClCompile Include="avk\algorithms\triangle_fold_sort.cpp" />
     <ClCompile Include="avk\algorithms\weave_sorting_network.cpp" />
     <ClCompile Include="avk\algorithms\weave_sorting_network_parallel.cpp" />
+    <ClCompile Include="avk\algorithms\weave_sorting_network_recursive.cpp" />
     <ClCompile Include="avk\algorithms\wiki_sort.cpp" />
     <ClCompile Include="avk\internal\cmts_include.cpp" />
     <ClCompile Include="avk\internal\common.cpp" />

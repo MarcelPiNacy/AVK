@@ -14,6 +14,6 @@ namespace algorithm_thread
 	void resume();
 	void abort_sort();
 	void signal();
-	void await(uint32_t timeout_ms = UINT32_MAX);
+	void await(size_t timeout_ms = UINTPTR_MAX);
 	void terminate();
 }

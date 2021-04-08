@@ -53,7 +53,7 @@ void modify_array<array_mode::LINEAR_REVERSE>()
     main_array::for_each([&](item& e, uint32_t position)
     {
         item tmp;
-        tmp.value = main_array::size() - position;
+        tmp.value = (uint32_t)main_array::size() - position;
         e = tmp;
         e.original_position = position;
         e.color = item_color::white();
@@ -81,11 +81,11 @@ void modify_array<array_mode::ORGAN_PIPE_LINEAR>()
 template <>
 void modify_array<array_mode::ORGAN_PIPE_LINEAR_REVERSE>()
 {
-    uint32_t k = main_array::size();
+    size_t k = main_array::size();
     main_array::for_each([&](item& e, uint32_t position)
     {
         item tmp;
-        tmp.value = k;
+        tmp.value = (uint32_t)k;
         if (position < main_array::size() / 2)
             k -= 2;
         else
@@ -99,28 +99,28 @@ void modify_array<array_mode::ORGAN_PIPE_LINEAR_REVERSE>()
 template <>
 void modify_array<array_mode::QSORT_KILLER>()
 {
-    const uint k = main_array::size();
-    const uint middle = k / 2;
-    uint left = 0;
-    uint right = middle;
-    uint step = 2;
-    uint staircase = 0;
+    const size_t k = main_array::size();
+    const size_t middle = k / 2;
+    size_t left = 0;
+    size_t right = middle;
+    size_t step = 2;
+    size_t staircase = 0;
 
-    for (uint i = 0; i < k; ++i)
+    for (size_t i = 0; i < k; ++i)
     {
         if ((i & 1) == 0)
         {
             item& e = main_array::get(left);
             e = {};
             e.color = item_color::white();
-            e.value = i;
-            e.original_position = left;
+            e.value = (uint32_t)i;
+            e.original_position = (uint32_t)left;
 
             left += step;
             if (left >= middle)
             {
                 ++staircase;
-                left = 1 << (uint8_t)_tzcnt_u64(staircase);
+                left = (size_t)1 << (uint8_t)_tzcnt_u64(staircase);
                 --left;
                 step *= 2;
             }
@@ -130,8 +130,8 @@ void modify_array<array_mode::QSORT_KILLER>()
             item& e = main_array::get(right);
             e = {};
             e.color = item_color::white();
-            e.value = i;
-            e.original_position = right;
+            e.value = (uint32_t)i;
+            e.original_position = (uint32_t)right;
             ++right;
         }
     }
@@ -171,7 +171,7 @@ void modify_array<array_mode::RANDOM_ROMUDUOJR>()
     main_array::for_each([](item& e, uint32_t position)
     {
         item tmp;
-        tmp.value = romu2jr_get() % main_array::size();
+        tmp.value = (uint32_t)(romu2jr_get() % main_array::size());
         e = tmp;
         e.original_position = position;
         e.color = item_color::white();

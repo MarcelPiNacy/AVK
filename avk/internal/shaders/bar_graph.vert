@@ -3,13 +3,13 @@
 
 layout(push_constant) uniform ShaderArgs
 {
-	uint array_size;
+	size_t array_size;
 } args;
 
-layout(location = 0) in uint	item_value;
-layout(location = 1) in uint	item_original_position;
+layout(location = 0) in size_t	item_value;
+layout(location = 1) in size_t	item_original_position;
 layout(location = 2) in vec3	item_color;
-layout(location = 3) in uint	item_flags;
+layout(location = 3) in size_t	item_flags;
 layout(location = 0) out vec4	out_frag_color;
 
 const vec2 local_vertices[4] = vec2[]
@@ -18,13 +18,13 @@ const vec2 local_vertices[4] = vec2[]
 	vec2(0, 0), vec2(1, 0)
 );
 
-const uint local_indices[6] = uint[](0, 1, 2, 2, 3, 0);
+const size_t local_indices[6] = size_t[](0, 1, 2, 2, 3, 0);
 
 void main()
 {
 	const vec2 base_vertex = local_vertices[local_indices[gl_VertexIndex]];
 	vec2 v = base_vertex;
-	uint item_index = gl_InstanceIndex;
+	size_t item_index = gl_InstanceIndex;
 
 	float relative_original_position = float(item_original_position) / float(args.array_size);
 	float relative_item_value = float(item_value) / float(args.array_size);

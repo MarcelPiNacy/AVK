@@ -50,7 +50,7 @@ static vector<char> read_file(const char* path) //TODO: IMPROVE THIS. USE MAPPED
 	if (f == nullptr)
 		return r;
 	fseek(f, 0, SEEK_END);
-	const auto k = (uint)ftell(f);
+	const auto k = (size_t)ftell(f);
 	fseek(f, 0, SEEK_SET);
 	r.resize(k);
 	fread(r.data(), 1, k, f);
@@ -621,14 +621,14 @@ int vulkan_on_window_resize()
 	if (instance == VK_NULL_HANDLE)
 		return 0;
 
-	if (cmts_lib_is_initialized())
-		AVK_ASSERT(cmts_lib_resume() == CMTS_OK);
+	if (cmts_is_initialized())
+		AVK_ASSERT(cmts_resume() == CMTS_OK);
 	algorithm_thread::pause();
 	DEFER
 	{
 		algorithm_thread::resume();
-		if (cmts_lib_is_initialized())
-			AVK_ASSERT(cmts_lib_resume() == CMTS_OK);
+		if (cmts_is_initialized())
+			AVK_ASSERT(cmts_resume() == CMTS_OK);
 	};
 	vkDeviceWaitIdle(device);
 

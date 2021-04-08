@@ -1,15 +1,15 @@
 #include "all.h"
 #include "../internal/prng.h"
 
-static void halver(main_array array, uint low, uint high)
+static void halver(main_array array, size_t low, size_t high)
 {
 	while (low < high)
 	{
-		uint span = (high - low) / 2;
-		uint target;
+		size_t span = (high - low) / 2;
+		size_t target;
 		if (span != 0)
 		{
-			target = (uint)romu2jr_get();
+			target = (size_t)romu2jr_get();
 			if (target > span)
 				target %= span;
 			target += low;
@@ -29,15 +29,15 @@ static void halver(main_array array, uint low, uint high)
 
 void fold_sort_randomized(main_array array)
 {
-	uint size = array.size();
-	for (uint i = size / 2; i > 0; i /= 2)
+	size_t size = array.size();
+	for (size_t i = size / 2; i > 0; i /= 2)
 	{
-		for (uint j = size; j >= i; j /= 2)
+		for (size_t j = size; j >= i; j /= 2)
 		{
-			for (uint k = 0; k != size / j; ++k)
+			for (size_t k = 0; k != size / j; ++k)
 			{
-				uint low = k * j;
-				uint high = (k + 1) * j;
+				size_t low = k * j;
+				size_t high = (k + 1) * j;
 				halver(array, low, high - 1);
 			}
 		}

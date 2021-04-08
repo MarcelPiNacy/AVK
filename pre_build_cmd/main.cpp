@@ -18,7 +18,6 @@ int main(int argc, const char** args)
 		puts("Missing solution directory!");
 		return -1;
 	}
-
 	const char* solution_dir = args[1];
 	const char* configuration = args[2];
 	std::string resource;

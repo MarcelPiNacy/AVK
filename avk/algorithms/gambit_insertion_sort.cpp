@@ -23,7 +23,7 @@ constexpr item* binary_search(item* begin, item* end, item* target)
 
 void gambit_insertion_sort(main_array array)
 {
-	uint offset = 1;
+	size_t offset = 1;
 	while (offset * offset < array.size())
 		offset *= 2;
 

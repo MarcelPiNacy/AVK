@@ -19,66 +19,8 @@ TCHAR window_title_buffer[4096];
 
 extern LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-
-
 extern int init_vulkan();
 extern void draw_main_array();
-
-
-
-namespace cmts_checks
-{
-    const int count = 65536;
-
-    alignas(64) std::atomic_int counter_a;
-    alignas(64) std::atomic_int counter_b;
-
-    static void count_test_task_a(void* unused)
-    {
-        counter_a.fetch_add(1, std::memory_order_relaxed);
-    }
-
-    static void count_test_task_b(void* unused)
-    {
-        counter_b.fetch_add(1, std::memory_order_relaxed);
-    }
-
-    static void count_test()
-    {
-        cmts_init_options_t options = {};
-        options.task_stack_size = cmts_default_task_stack_size();
-        options.max_tasks = count;
-        options.thread_count = cmts_processor_count();
-        auto code = cmts_lib_init(&options);
-        assert(code == CMTS_OK);
-        code = cmts_dispatch([](void* unused)
-        {
-            cmts_counter_t ca, cb;
-            cmts_counter_init(&ca, count);
-            cmts_counter_init(&cb, count);
-            cmts_dispatch_options_t options = {};
-            options.flags = CMTS_DISPATCH_FLAGS_FORCE;
-            options.sync_type = CMTS_SYNC_TYPE_COUNTER;
-            options.sync_object = &ca;
-            for (int i = 0; i != count; ++i)
-                cmts_dispatch(count_test_task_a, &options);
-            options.sync_object = &cb;
-            for (int i = 0; i != count; ++i)
-                cmts_dispatch(count_test_task_b, &options);
-            cmts_counter_await(&ca);
-            cmts_counter_await(&cb);
-            cmts_lib_exit_signal();
-        }, nullptr);
-        assert(code == CMTS_OK);
-        code = cmts_lib_exit_await(nullptr);
-        assert(code == CMTS_OK);
-    }
-
-    static void run()
-    {
-        count_test();
-    }
-}
 
 static void update_title()
 {
@@ -96,11 +38,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
-    //cmts_checks::run();
-
     constexpr TCHAR class_name[] = TEXT("AVKClassName");
 
-    WNDCLASSEXW wcex;
+    WNDCLASSEXW wcex = {};
     wcex.cbSize = sizeof(WNDCLASSEX);
     wcex.style = CS_HREDRAW | CS_VREDRAW;
     wcex.lpfnWndProc = window_callbacks;
@@ -154,7 +94,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     main_array::set_compare_delay(delay);
     main_array::set_read_delay(delay);
     main_array::set_write_delay(delay);
-    main_array::resize(1 << 18);
+    main_array::resize(1 << 16);
     
     main_array::for_each([&](item& e, uint32_t position)
     {
@@ -163,7 +103,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         e.color = item_color::white();
     });
 
-    constexpr auto framerrate = milliseconds(16);
+    constexpr auto framerrate = milliseconds(8);
     constexpr auto title_update_threshold = milliseconds(60);
 
     auto last_draw = high_resolution_clock::now();
@@ -182,13 +122,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         }
 
         const auto now = high_resolution_clock::now();
-        if (now - last_draw > framerrate)
+        if (now - last_draw >= framerrate)
         {
             draw_main_array();
             last_draw = now;
         }
 
-        if (now - last_title_update > title_update_threshold)
+        if (now - last_title_update >= title_update_threshold)
         {
             update_title();
             last_title_update = now;

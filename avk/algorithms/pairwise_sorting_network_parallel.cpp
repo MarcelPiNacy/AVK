@@ -1,58 +1,77 @@
 #include "all.h"
 
-static void pairwise_sorting_network_parallel_kernel(main_array array, uint start, uint end, uint gap)
+
+
+static void pairwise_sorting_network_parallel_step(main_array array, size_t begin, size_t end, size_t gap)
 {
-    if (start == end - gap)
+    if (begin == end - gap)
         return;
 
-    int b = start + gap;
-    while (b < end)
-    {
-        compare_swap(array, b - gap, b);
-        b += (2 * gap);
-    }
+    size_t n = 0;
+    for (size_t i = begin + gap; i < end; i += (2 * gap))
+        ++n;
 
-    if (((end - start) / gap) % 2 == 0)
+    parallel_for<size_t>(0, n, [&](size_t i)
     {
-        parallel_for(0, 2, [=](int i)
+        i *= gap * 2;
+        i += begin + gap;
+        compare_swap(array, i - gap, i);
+    });
+
+    if ((((end - begin) / gap) & 1) == 0)
+    {
+        size_t params[2][2] =
         {
-            if (i == 0)
-                pairwise_sorting_network_parallel_kernel(array, start + gap, end + gap, gap * 2);
-            else
-                pairwise_sorting_network_parallel_kernel(array, start, end, gap * 2);
+            { begin, end },
+            { begin + gap, end + gap }
+        };
+
+        parallel_for(0, 2, [&](int i)
+        {
+            pairwise_sorting_network_parallel_step(array, params[i][0], params[i][1], gap * 2);
         });
     }
     else
     {
-        parallel_for(0, 2, [=](int i)
+        size_t params[2][2] =
         {
-            if (i == 0)
-                pairwise_sorting_network_parallel_kernel(array, start, end + gap, gap * 2);
-            else
-                pairwise_sorting_network_parallel_kernel(array, start + gap, end, gap * 2);
+            { begin, end + gap },
+            { begin + gap, end }
+        };
+
+        parallel_for(0, 2, [&](int i)
+        {
+            pairwise_sorting_network_parallel_step(array, params[i][0], params[i][1], gap * 2);
         });
     }
 
-    int a = 1;
-    while (a < ((end - start) / gap))
+    size_t k = 1;
+    while (k < ((end - begin) / gap))
+        k = (k * 2) + 1;
+
+    n = 0;
+    for (size_t i = begin + gap; i + gap < end; i += (2 * gap))
+        ++n;
+
+    for (size_t j = k; j > 1;)
     {
-        a = (a * 2) + 1;
-    }
-    b = start + gap;
-    while (b + gap < end)
-    {
-        int c = a;
-        while (c > 1)
+        j /= 2;
+        parallel_for<size_t>(0, n, [&](size_t i)
         {
-            c /= 2;
-            if (b + (c * gap) < end)
-                compare_swap(array, b, b + (c * gap));
-        }
-        b += (2 * gap);
+            i *= 2 * gap;
+            i += begin + gap;
+            if (i + (j * gap) < end)
+                compare_swap(array, i, i + (j * gap));
+        });
     }
 }
 
+
+
 void pairwise_sorting_network_parallel(main_array array)
 {
-    as_parallel([=]() { pairwise_sorting_network_parallel_kernel(array, 0, array.size(), 1); });
+    as_parallel([=]()
+    {
+        pairwise_sorting_network_parallel_step(array, 0, array.size(), 1);
+    });
 }

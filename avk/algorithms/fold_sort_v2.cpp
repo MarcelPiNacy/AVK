@@ -10,7 +10,7 @@ static void halver(main_array array, size_t low, size_t high)
 	}
 }
 
-void fold_sort(main_array array)
+void fold_sort_v2(main_array array)
 {
 	size_t size = array.size();
 	for (size_t i = size / 2; i > 0; i /= 2)

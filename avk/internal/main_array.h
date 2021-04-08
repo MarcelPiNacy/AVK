@@ -12,20 +12,20 @@ struct main_array;
 namespace sort_stats
 {
 	void clear();
-	void add_read(uint count = 1);
-	void add_write(uint count = 1);
-	void add_comparisson(uint count = 1);
-	void add_swap(uint count = 1);
-	void add_reversal(uint count = 1);
-	void add_memory_allocation(uint count = 1);
-	void add_memory_deallocation(uint count = 1);
-	uint read_count();
-	uint write_count();
-	uint comparisson_count();
-	uint swap_count();
-	uint reversal_count();
-	uint memory_allocation_count();
-	uint memory_deallocation_count();
+	void add_read(size_t count = 1);
+	void add_write(size_t count = 1);
+	void add_comparisson(size_t count = 1);
+	void add_swap(size_t count = 1);
+	void add_reversal(size_t count = 1);
+	void add_memory_allocation(size_t count = 1);
+	void add_memory_deallocation(size_t count = 1);
+	size_t read_count();
+	size_t write_count();
+	size_t comparisson_count();
+	size_t swap_count();
+	size_t reversal_count();
+	size_t memory_allocation_count();
+	size_t memory_deallocation_count();
 }
 
 
@@ -58,16 +58,16 @@ struct item
 	bool operator<=(const item& other) const;
 	bool operator>=(const item& other) const;
 
-	static uint max_radix(uint base = 256);
+	static size_t max_radix(size_t base = 256);
 };
 
 
 
 struct item_iterator : std::random_access_iterator_tag
 {
-	using difference_type = sint;
+	using difference_type = ptrdiff_t;
 
-	uint index;
+	size_t index;
 
 	constexpr item_iterator& operator=(const item_iterator& other) { index = other.index; return *this; }
 	inline bool operator==(const item_iterator& other)	const { sort_stats::add_comparisson(); return index == other.index; }
@@ -81,15 +81,15 @@ struct item_iterator : std::random_access_iterator_tag
 	constexpr item_iterator& operator--() { --index; return *this; }
 	constexpr item_iterator operator++(int) { item_iterator r = *this; ++index; return r; }
 	constexpr item_iterator operator--(int) { item_iterator r = *this; --index; return r; }
-	constexpr item_iterator& operator+=(uint offset) { index += offset; return *this; }
-	constexpr item_iterator& operator-=(uint offset) { index -= offset; return *this; }
-	constexpr item_iterator operator+(uint offset) const { item_iterator r = *this; r.index += offset; return r; }
-	constexpr item_iterator operator-(uint offset) const { item_iterator r = *this; r.index -= offset; return r; }
-	constexpr item_iterator& operator+=(sint offset) { index += offset; return *this; }
-	constexpr item_iterator& operator-=(sint offset) { index -= offset; return *this; }
-	constexpr item_iterator operator+(sint offset) const { item_iterator r = *this; r.index += offset; return r; }
-	constexpr item_iterator operator-(sint offset) const { item_iterator r = *this; r.index -= offset; return r; }
-	constexpr sint operator-(const item_iterator& other) const { return index - other.index; }
+	constexpr item_iterator& operator+=(size_t offset) { index += offset; return *this; }
+	constexpr item_iterator& operator-=(size_t offset) { index -= offset; return *this; }
+	constexpr item_iterator operator+(size_t offset) const { item_iterator r = *this; r.index += offset; return r; }
+	constexpr item_iterator operator-(size_t offset) const { item_iterator r = *this; r.index -= offset; return r; }
+	constexpr item_iterator& operator+=(ptrdiff_t offset) { index += offset; return *this; }
+	constexpr item_iterator& operator-=(ptrdiff_t offset) { index -= offset; return *this; }
+	constexpr item_iterator operator+(ptrdiff_t offset) const { item_iterator r = *this; r.index += offset; return r; }
+	constexpr item_iterator operator-(ptrdiff_t offset) const { item_iterator r = *this; r.index -= offset; return r; }
+	constexpr ptrdiff_t operator-(const item_iterator& other) const { return index - other.index; }
 
 	item& operator*() const;
 };
@@ -113,15 +113,15 @@ struct item_raw
 
 
 
-sint compare(const item& left, const item& right);
-sint compare(main_array array, uint left_index, uint right_index);
+ptrdiff_t compare(const item& left, const item& right);
+ptrdiff_t compare(main_array array, size_t left_index, size_t right_index);
 void swap(item& left, item& right);
-void swap(main_array array, uint left_index, uint right_index);
+void swap(main_array array, size_t left_index, size_t right_index);
 bool compare_swap(item& left, item& right);
-bool compare_swap(main_array array, uint left_index, uint right_index);
-void reverse(main_array array, uint offset, uint size);
-uint8_t extract_byte(const item& value, uint byte_index);
-uint extract_radix(const item& value, uint radix_index, uint radix = 256);
+bool compare_swap(main_array array, size_t left_index, size_t right_index);
+void reverse(main_array array, size_t offset, size_t size);
+uint8_t extract_byte(const item& value, size_t byte_index);
+size_t extract_radix(const item& value, size_t radix_index, size_t radix = 256);
 
 
 
@@ -132,9 +132,9 @@ struct main_array
 	static bool resize(uint32_t size);
 	static void finalize();
 
-	static item& get(uint index);
-	item& operator[](uint index) const;
-	static uint size();
+	static item& get(size_t index);
+	item& operator[](size_t index) const;
+	static size_t size();
 
 	static item* begin();
 	static item* end();
@@ -177,6 +177,7 @@ struct scoped_highlight
 #include "platform.h"
 #include <cassert>
 #include <thread>
+#include <mutex>
 
 template <typename F>
 void as_parallel(F&& function)
@@ -186,6 +187,8 @@ void as_parallel(F&& function)
 	debugger_options.ext_type = CMTS_EXT_TYPE_DEBUGGER;
 	debugger_options.message_callback = [](void* context, const cmts_ext_debugger_message_t* message)
 	{
+		static std::mutex lock;
+		std::scoped_lock guard(lock);
 		OutputDebugStringA(message->message);
 		OutputDebugStringA("\n");
 	};
@@ -193,9 +196,9 @@ void as_parallel(F&& function)
 	init_options.ext = &debugger_options;
 	init_options.flags = CMTS_INIT_FLAGS_USE_AFFINITY;
 	init_options.thread_count = cmts_processor_count();
-	init_options.max_tasks = std::min(main_array::size(), CMTS_MAX_TASKS);
+	init_options.max_tasks = (uint32_t)std::min<size_t>(main_array::size(), CMTS_MAX_TASKS);
 	init_options.task_stack_size = cmts_default_task_stack_size();
-	code = cmts_lib_init(&init_options);
+	code = cmts_init(&init_options);
 	AVK_ASSERT(cmts_ext_debugger_enabled());
 	AVK_ASSERT(code == CMTS_OK);
 	F fn = std::forward<F>(function);
@@ -205,10 +208,10 @@ void as_parallel(F&& function)
 	code = cmts_dispatch([](void* ptr)
 	{
 		(*(F*)ptr)();
-		cmts_lib_exit_signal();
+		cmts_finalize_signal();
 	}, &options);
 	AVK_ASSERT(code == CMTS_OK);
-	code = cmts_lib_exit_await(nullptr);
+	code = cmts_finalize_await(nullptr);
 	AVK_ASSERT(code == CMTS_OK);
 }
 
@@ -239,11 +242,10 @@ void parallel_for(I begin, I end, F&& body)
 	{
 		F function;
 		I current;
-		cmts_barrier_t barrier;
+		cmts_fence_t fence;
 	};
 	wrapper_type wrapper = { std::forward<F>(body), begin };
-	cmts_counter_t counter;
-	cmts_counter_init(&counter, count);
+	cmts_counter_t counter = CMTS_COUNTER_INIT((uint32_t)count);
 	cmts_dispatch_options_t options = {};
 	options.parameter = &wrapper;
 	options.flags = CMTS_DISPATCH_FLAGS_FORCE;
@@ -252,16 +254,16 @@ void parallel_for(I begin, I end, F&& body)
 	for (; begin != end; ++begin)
 	{
 		wrapper.current = begin;
-		cmts_barrier_init(&wrapper.barrier);
+		wrapper.fence = CMTS_FENCE_INIT;
 		code = cmts_dispatch([](void* ptr)
 		{
 			wrapper_type& wrapper = *(wrapper_type*)ptr;
 			I it = std::move(wrapper.current);
-			cmts_barrier_signal(&wrapper.barrier);
+			cmts_fence_signal(&wrapper.fence);
 			wrapper.function(it);
 		}, &options);
 		AVK_ASSERT(code == CMTS_OK);
-		cmts_barrier_await(&wrapper.barrier);
+		cmts_fence_await(&wrapper.fence);
 	}
 	code = cmts_counter_await(&counter);
 }

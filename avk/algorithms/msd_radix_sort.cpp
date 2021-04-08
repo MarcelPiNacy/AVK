@@ -3,12 +3,12 @@
 #include <array>
 #include "sort_config.h"
 
-void msd_radix_sort_helper(item* begin, item* end, uint radix_index, uint radix_size)
+void msd_radix_sort_helper(item* begin, item* end, size_t radix_index, size_t radix_size)
 {
-	const uint size = (uint)(end - begin);
+	const size_t size = (size_t)(end - begin);
 
-	std::vector<uint> offsets = {};
-	std::vector<uint> counts = {};
+	std::vector<size_t> offsets = {};
+	std::vector<size_t> counts = {};
 	counts.resize(radix_size);
 	offsets.resize(radix_size);
 	//std::vector zero-initializes the elements
@@ -18,8 +18,8 @@ void msd_radix_sort_helper(item* begin, item* end, uint radix_index, uint radix_
 		++counts[extract_radix(*e, radix_index, radix_size)];
 	}
 
-	uint offset = 0;
-	for (uint i = 0; i < counts.size(); ++i)
+	size_t offset = 0;
+	for (size_t i = 0; i < counts.size(); ++i)
 	{
 		offsets[i] = offset;
 		offset += counts[i];
@@ -31,8 +31,8 @@ void msd_radix_sort_helper(item* begin, item* end, uint radix_index, uint radix_
 
 		for (auto e = begin; e < end; ++e)
 		{
-			const uint radix = extract_radix(*e, radix_index, radix_size);
-			uint& o = offsets[radix];
+			const size_t radix = extract_radix(*e, radix_index, radix_size);
+			size_t& o = offsets[radix];
 			buffer[o] = *e;
 			++o;
 		}
@@ -45,7 +45,7 @@ void msd_radix_sort_helper(item* begin, item* end, uint radix_index, uint radix_
 
 	--radix_index;
 
-	for (uint e : counts)
+	for (size_t e : counts)
 	{
 		if (e > 0)
 		{
@@ -57,6 +57,6 @@ void msd_radix_sort_helper(item* begin, item* end, uint radix_index, uint radix_
 
 void msd_radix_sort(main_array array)
 {
-	const uint default_radix_size = sort_config::radix_size;
+	const size_t default_radix_size = sort_config::radix_size;
 	msd_radix_sort_helper(array.begin(), array.end(), item::max_radix(default_radix_size) - 1, default_radix_size);
 }

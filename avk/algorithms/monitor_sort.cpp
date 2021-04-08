@@ -1076,7 +1076,7 @@ namespace detal::monitor_sort
 
 		encode_size_backward(first_run_end, unsigned_distance(begin,first_run_end));
 
-		// Find smallest uint*_t that can store |end - begin|:
+		// Find smallest size_t*_t that can store |end - begin|:
 
 		if (size > UINT16_MAX)
 		{

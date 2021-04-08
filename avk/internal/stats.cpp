@@ -1,7 +1,7 @@
 #include <atomic>
 #include "common.h"
 using std::atomic;
-using shared_counter = atomic<uint>;
+using shared_counter = atomic<size_t>;
 
 static shared_counter reads;
 static shared_counter writes;
@@ -11,9 +11,9 @@ static shared_counter reversals;
 static shared_counter memory_allocations;
 static shared_counter memory_deallocations;
 
-void non_atomic_store(shared_counter& where, uint value)
+void non_atomic_store(shared_counter& where, size_t value)
 {
-	*(uint*)&where = value;
+	*(size_t*)&where = value;
 }
 
 namespace sort_stats
@@ -29,72 +29,72 @@ namespace sort_stats
 		non_atomic_store(memory_deallocations, 0);
 	}
 
-	void add_read(uint count)
+	void add_read(size_t count)
 	{
 		(void)reads.fetch_add(count, std::memory_order_release);
 	}
 
-	void add_write(uint count)
+	void add_write(size_t count)
 	{
 		(void)writes.fetch_add(count, std::memory_order_release);
 	}
 
-	void add_comparisson(uint count)
+	void add_comparisson(size_t count)
 	{
 		(void)comparissons.fetch_add(count, std::memory_order_release);
 	}
 
-	void add_swap(uint count)
+	void add_swap(size_t count)
 	{
 		(void)swaps.fetch_add(count, std::memory_order_release);
 	}
 
-	void add_reversal(uint count)
+	void add_reversal(size_t count)
 	{
 		(void)reversals.fetch_add(count, std::memory_order_release);
 	}
 
-	void add_memory_allocation(uint count)
+	void add_memory_allocation(size_t count)
 	{
 		(void)memory_allocations.fetch_add(count, std::memory_order_release);
 	}
 
-	void add_memory_deallocation(uint count)
+	void add_memory_deallocation(size_t count)
 	{
 		(void)memory_deallocations.fetch_add(count, std::memory_order_release);
 	}
 
-	uint read_count()
+	size_t read_count()
 	{
 		return reads.load(std::memory_order_acquire);
 	}
 
-	uint write_count()
+	size_t write_count()
 	{
 		return writes.load(std::memory_order_acquire);
 	}
 
-	uint comparisson_count()
+	size_t comparisson_count()
 	{
 		return comparissons.load(std::memory_order_acquire);
 	}
 
-	uint swap_count()
+	size_t swap_count()
 	{
 		return swaps.load(std::memory_order_acquire);
 	}
 
-	uint reversal_count()
+	size_t reversal_count()
 	{
 		return reversals.load(std::memory_order_acquire);
 	}
 
-	uint memory_allocation_count()
+	size_t memory_allocation_count()
 	{
 		return memory_allocations.load(std::memory_order_acquire);
 	}
 
-	uint memory_deallocation_count()
+	size_t memory_deallocation_count()
 	{
 		return memory_deallocations.load(std::memory_order_acquire);
 	}

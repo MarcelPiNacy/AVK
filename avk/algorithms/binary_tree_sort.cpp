@@ -11,7 +11,7 @@ void binary_tree_sort(main_array array)
 		scoped_highlight hl(e.flags);
 		tree.insert(e);
 	}
-	uint offset = 0;
+	size_t offset = 0;
 	for (const item& e : tree)
 	{
 		scoped_highlight hl(array[offset].flags);

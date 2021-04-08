@@ -5,15 +5,15 @@
 void avk_assertion_handler(const wchar_t* expression)
 {
 	wprintf_s(L"Expression \"%s\" evaluated to false.", expression);
-	if (cmts_lib_is_initialized())
-		cmts_lib_terminate(nullptr);
+	if (cmts_is_initialized())
+		cmts_terminate(nullptr);
 	abort();
 }
 
 void avk_assertion_handler(const char* expression)
 {
 	printf_s("Expression \"%s\" evaluated to false.", expression);
-	if (cmts_lib_is_initialized())
-		cmts_lib_terminate(nullptr);
+	if (cmts_is_initialized())
+		cmts_terminate(nullptr);
 	abort();
 }
