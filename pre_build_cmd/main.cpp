@@ -57,7 +57,7 @@ int main(int argc, const char** args)
 		all_header.append(buffer_a);
 		k = snprintf(buffer_a, buffer_size,
 			"case IDM_SORT_%s:\n"
-			"\talgorithm_thread::assign_body(%s);\n"
+			"\talgorithm_thread::launch(%s);\n"
 			"\tbreak;\n", data.cFileName, data.cFileName);
 		assert(k > 0);
 		callbacks.append(buffer_a);

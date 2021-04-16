@@ -1,6 +1,5 @@
 #include "all.h"
-
-
+#include "../internal/parallel_for.h"
 
 static void pairwise_sorting_network_parallel_step(main_array array, size_t begin, size_t end, size_t gap)
 {
@@ -70,8 +69,5 @@ static void pairwise_sorting_network_parallel_step(main_array array, size_t begi
 
 void pairwise_sorting_network_parallel(main_array array)
 {
-    as_parallel([=]()
-    {
-        pairwise_sorting_network_parallel_step(array, 0, array.size(), 1);
-    });
+    pairwise_sorting_network_parallel_step(array, 0, array.size(), 1);
 }

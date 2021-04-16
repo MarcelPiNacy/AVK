@@ -1,4 +1,5 @@
 #include "all.h"
+#include "../internal/parallel_for.h"
 
 
 
@@ -33,11 +34,8 @@ static void fold_sort_parallel_step(main_array array, size_t low, size_t high, s
 
 void fold_sort_parallel(main_array array)
 {
-	as_parallel([=]()
+	for (size_t limit = array.size() / 2; limit > 0; limit /= 2)
 	{
-		for (size_t limit = array.size() / 2; limit > 0; limit /= 2)
-		{
-			fold_sort_parallel_step(array, 0, array.size(), limit);
-		}
-	});
+		fold_sort_parallel_step(array, 0, array.size(), limit);
+	}
 }

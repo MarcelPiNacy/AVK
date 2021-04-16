@@ -1,7 +1,9 @@
 #include "all.h"
+#include "../internal/parallel_for.h"
 #include <vector>
 #include <bitset>
 #include <atomic>
+#include <cassert>
 
 
 
@@ -185,10 +187,7 @@ void breadth_sort(main_array array)
 	std::vector<item> buffer;
 	buffer.resize(array.size());
 
-	as_parallel([&]()
-	{
-		breadth_sort_pass_parallel(
-			array.begin(), array.end(),
-			buffer.begin(), buffer.end(), item::max_radix(BREADTH_SORT_RADIX_SIZE), [](const item& e, size_t index) { return extract_radix(e, (size_t)index, BREADTH_SORT_RADIX_SIZE); });
-	});
+	breadth_sort_pass_parallel(
+		array.begin(), array.end(),
+		buffer.begin(), buffer.end(), item::max_radix(BREADTH_SORT_RADIX_SIZE), [](const item& e, size_t index) { return extract_radix(e, (size_t)index, BREADTH_SORT_RADIX_SIZE); });
 }

@@ -1,4 +1,5 @@
 #include "all.h"
+#include "../internal/parallel_for.h"
 
 static void weave_compare_swap(main_array array, size_t left, size_t right, size_t limit)
 {
@@ -55,11 +56,8 @@ static void weave_circle(main_array array, size_t offset, size_t size, size_t li
 
 void weave_sorting_network_parallel(main_array array)
 {
-	as_parallel([&]
-	{
-		size_t i = 1;
-		while (i < array.size())
-			i *= 2;
-		weave_circle(array, 0, i, array.size(), 1);
-	});
+	size_t i = 1;
+	while (i < array.size())
+		i *= 2;
+	weave_circle(array, 0, i, array.size(), 1);
 }

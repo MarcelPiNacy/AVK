@@ -5,5 +5,10 @@
 
 
 
-void		romu2jr_set_seed(uint64_t seed);
-uint64_t	romu2jr_get();
+struct romu2jr
+{
+	uint64_t x, y;
+
+	void set_seed(uint64_t seed);
+	uint64_t get();
+};

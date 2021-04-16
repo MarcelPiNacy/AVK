@@ -1,4 +1,5 @@
 #include "all.h"
+#include "../internal/parallel_for.h"
 
 void bitonic_sort_merge(main_array array, size_t begin, size_t end, bool ascending)
 {
@@ -54,5 +55,5 @@ void bitonic_sort_kernel(main_array array, size_t begin, size_t end, bool ascend
 
 void bitonic_sort_parallel(main_array array)
 {
-    as_parallel([&]() { bitonic_sort_kernel(array, 0, array.size(), true); });
+    bitonic_sort_kernel(array, 0, array.size(), true);
 }

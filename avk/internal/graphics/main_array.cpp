@@ -8,6 +8,7 @@
 #include "vulkan_state.h"
 #include "../defer.h"
 #include <shared_mutex>
+#include <cmts.h>
 using std::chrono::duration_cast;
 
 using clock_type = std::chrono::steady_clock;
@@ -32,9 +33,6 @@ static uint32_t find_buffer_memory_type(VkBuffer buffer, VkMemoryPropertyFlags f
 
 bool main_array::resize(uint32_t size)
 {
-	algorithm_thread::pause();
-	DEFER{ algorithm_thread::resume(); };
-
 	if (main_array_buffer != VK_NULL_HANDLE)
 	{
 		finalize();
@@ -144,33 +142,9 @@ void main_array::sleep(nanoseconds duration)
 {
 	using namespace std::chrono;
 
-	constexpr auto sleep_threshold = milliseconds(1);
-	auto ns = duration_cast<nanoseconds>(duration);
-	auto start = clock_type::now();
-
-	if (cmts_is_task())
-	{
-		auto yield = platform::yield_cpu;
-		if (duration > nanoseconds(100))
-			yield = cmts_yield;
-		while (clock_type::now() - start < duration)
-			yield();
-	}
-	else
-	{
-		if (duration >= sleep_threshold)
-		{
-			SleepEx((DWORD)duration_cast<milliseconds>(duration).count(), false);
-		}
-		else
-		{
-			auto yield = platform::yield_cpu;
-			if (duration > nanoseconds(100))
-				yield = platform::yield_thread;
-			while (clock_type::now() - start < duration)
-				yield();
-		}
-	}
+	auto start = high_resolution_clock::now();
+	while (high_resolution_clock::now() - start <= duration)
+		cmts_yield();
 }
 
 item& item::operator=(const item& other)
@@ -286,9 +260,9 @@ void swap(main_array array, size_t left_index, size_t right_index)
 
 bool compare_swap(item& left, item& right)
 {
-	const bool r = right < left;
+	const bool r = left > right;
 	if (r)
-		swap(right, left);
+		swap(left, right);
 	return r;
 }
 

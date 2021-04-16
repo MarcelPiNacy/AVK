@@ -25,6 +25,7 @@ void grail_sort(main_array array);
 void ilp_binary_msd_radix_sort(main_array array);
 void insertion_sort(main_array array);
 void lsd_radix_sort(main_array array);
+void matrix_sort(main_array array);
 void max_heap_sort(main_array array);
 void merge_sort_bottom_up(main_array array);
 void monitor_sort(main_array array);

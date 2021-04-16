@@ -141,21 +141,18 @@ void modify_array<array_mode::QSORT_KILLER>()
 template <>
 void modify_array<array_mode::RANDOM_SHUFFLE>()
 {
-    struct romu_duo_functor
+    struct romu_duo_functor : romu2jr
     {
         using result_type = uint64_t;
 
         static constexpr auto min() { return 0; }
         static constexpr auto max() { return UINT64_MAX; }
 
-        inline auto operator()()
-        {
-            return romu2jr_get();
-        }
+        auto operator()() { return romu2jr::get(); }
     };
 
-    romu2jr_set_seed(main_array::size() ^ time(nullptr));
     romu_duo_functor tmp;
+    tmp.set_seed(time(nullptr));
     std::shuffle(main_array::begin(), main_array::end(), tmp);
     main_array::for_each([](item& e, uint32_t position)
     {
@@ -164,14 +161,17 @@ void modify_array<array_mode::RANDOM_SHUFFLE>()
     });
 }
 
+static uint64_t romu2jr_seed;
+
 template <>
 void modify_array<array_mode::RANDOM_ROMUDUOJR>()
 {
-    romu2jr_set_seed(main_array::size() ^ time(nullptr));
-    main_array::for_each([](item& e, uint32_t position)
+    romu2jr rng;
+    rng.set_seed(romu2jr_seed);
+    main_array::for_each([&](item& e, uint32_t position)
     {
         item tmp;
-        tmp.value = (uint32_t)(romu2jr_get() % main_array::size());
+        tmp.value = (uint32_t)(rng.get() % main_array::size());
         e = tmp;
         e.original_position = position;
         e.color = item_color::white();
@@ -359,7 +359,7 @@ static INT_PTR CALLBACK set_romuduojr_callbacks(HWND hDlg, UINT message, WPARAM 
                 uint64_t k = 0;
                 if (swscanf_s(dialog_box_buffer, L"%llu", &k) == 1)
                 {
-                    romu2jr_set_seed(k);
+                    romu2jr_seed = k;
                 }
             }
             EndDialog(hDlg, LOWORD(wParam));
@@ -431,63 +431,63 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::LINEAR;
-                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::LINEAR>(); });
+                algorithm_thread::launch([](main_array unused) { modify_array<array_mode::LINEAR>(); });
             }
             break;
         case IDM_INITIALIZE_REVERSE_LINEAR:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::LINEAR_REVERSE;
-                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::LINEAR_REVERSE>(); });
+                algorithm_thread::launch([](main_array unused) { modify_array<array_mode::LINEAR_REVERSE>(); });
             }
             break;
         case IDM_INITIALIZE_ORGAN_PIPE_LINEAR:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::ORGAN_PIPE_LINEAR;
-                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::ORGAN_PIPE_LINEAR>(); });
+                algorithm_thread::launch([](main_array unused) { modify_array<array_mode::ORGAN_PIPE_LINEAR>(); });
             }
             break;
         case IDM_INITIALIZE_RANDOM_SHUFFLE:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::RANDOM_SHUFFLE;
-                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::RANDOM_SHUFFLE>(); });
+                algorithm_thread::launch([](main_array unused) { modify_array<array_mode::RANDOM_SHUFFLE>(); });
             }
             break;
         case IDM_INITIALIZE_RANDOM_ROMU_DUO_JR:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::RANDOM_ROMUDUOJR;
-                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::RANDOM_ROMUDUOJR>(); });
+                algorithm_thread::launch([](main_array unused) { modify_array<array_mode::RANDOM_ROMUDUOJR>(); });
             }
             break;
         case IDM_INITIALIZE_REVERSE_ORGAN_PIPE_LINEAR:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::ORGAN_PIPE_LINEAR_REVERSE;
-                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::ORGAN_PIPE_LINEAR_REVERSE>(); });
+                algorithm_thread::launch([](main_array unused) { modify_array<array_mode::ORGAN_PIPE_LINEAR_REVERSE>(); });
             }
             break;
         case IDM_QSORT_KILLER:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::QSORT_KILLER;
-                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::QSORT_KILLER>(); });
+                algorithm_thread::launch([](main_array unused) { modify_array<array_mode::QSORT_KILLER>(); });
             }
             break;
         case IDM_INITIALIZE_MAX_HEAP:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::MAX_HEAP;
-                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::MAX_HEAP>(); });
+                algorithm_thread::launch([](main_array unused) { modify_array<array_mode::MAX_HEAP>(); });
             }
             break;
         case IDM_INITIALIZE_MIN_HEAP:
             if (algorithm_thread::is_idle())
             {
                 last_array_mode = array_mode::MIN_HEAP;
-                algorithm_thread::assign_body([](main_array unused) { modify_array<array_mode::MIN_HEAP>(); });
+                algorithm_thread::launch([](main_array unused) { modify_array<array_mode::MIN_HEAP>(); });
             }
             break;
         case IDM_SET_RADIX_SIZE:
@@ -512,7 +512,7 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             algorithm_thread::resume();
             break;
         case IDM_ABORT_SIMULATION:
-            algorithm_thread::abort_sort();
+            algorithm_thread::terminate();
             break;
         default:
             return DefWindowProc(hWnd, message, wParam, lParam);

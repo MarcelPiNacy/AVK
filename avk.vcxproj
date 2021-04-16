@@ -270,6 +270,7 @@
     <ClInclude Include="avk\internal\common.h" />
     <ClInclude Include="avk\internal\graphics\vulkan_state.h" />
     <ClInclude Include="avk\internal\main_array.h" />
+    <ClInclude Include="avk\internal\parallel_for.h" />
     <ClInclude Include="avk\internal\platform.h" />
     <ClInclude Include="avk\internal\locks.h" />
     <ClInclude Include="avk\internal\algorithm_thread.h" />
@@ -290,6 +291,7 @@
     <ClCompile Include="avk\algorithms\fold_sort_recursive.cpp" />
     <ClCompile Include="avk\algorithms\fold_sort_v2.cpp" />
     <ClCompile Include="avk\algorithms\ilp_binary_msd_radix_sort.cpp" />
+    <ClCompile Include="avk\algorithms\matrix_sort.cpp" />
     <ClCompile Include="avk\algorithms\odd_even_merge_sort_parallel.cpp" />
     <ClCompile Include="avk\algorithms\pairwise_sorting_network.cpp" />
     <ClCompile Include="avk\algorithms\pairwise_sorting_network_parallel.cpp" />

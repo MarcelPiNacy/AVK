@@ -1,6 +1,8 @@
 #include "all.h"
 #include "../internal/prng.h"
 
+static thread_local romu2jr rng;
+
 static void halver(main_array array, size_t low, size_t high)
 {
 	while (low < high)
@@ -9,7 +11,7 @@ static void halver(main_array array, size_t low, size_t high)
 		size_t target;
 		if (span != 0)
 		{
-			target = (size_t)romu2jr_get();
+			target = (size_t)rng.get();
 			if (target > span)
 				target %= span;
 			target += low;
@@ -29,6 +31,7 @@ static void halver(main_array array, size_t low, size_t high)
 
 void fold_sort_randomized(main_array array)
 {
+	rng.set_seed(time(nullptr));
 	size_t size = array.size();
 	for (size_t i = size / 2; i > 0; i /= 2)
 	{

@@ -3,6 +3,7 @@
 #include "../main_array.h"
 #include "../defer.h"
 #include <mutex>
+#include <cmts.h>
 
 using std::vector;
 
@@ -622,7 +623,7 @@ int vulkan_on_window_resize()
 		return 0;
 
 	if (cmts_is_initialized())
-		AVK_ASSERT(cmts_resume() == CMTS_OK);
+		AVK_ASSERT(cmts_pause() == CMTS_OK);
 	algorithm_thread::pause();
 	DEFER
 	{

@@ -1,4 +1,5 @@
 #include "all.h"
+#include "../internal/parallel_for.h"
 
 static void odd_even_merge_sort_kernel(main_array array, size_t lo, size_t m2, size_t n, size_t r)
 {
@@ -79,8 +80,5 @@ static void odd_even_merge_sort_core(main_array array, size_t lo, size_t n)
 
 void odd_even_merge_sort_parallel(main_array array)
 {
-    as_parallel([=]()
-    {
-        odd_even_merge_sort_core(array, 0, array.size());
-    });
+    odd_even_merge_sort_core(array, 0, array.size());
 }

@@ -1,4 +1,5 @@
 #include "all.h"
+#include "../internal/parallel_for.h"
 
 static void bose_nelson_merge(main_array array, size_t start1, size_t len1, size_t start2, size_t len2)
 {
@@ -19,18 +20,18 @@ static void bose_nelson_merge(main_array array, size_t start1, size_t len1, size
     else
     {
         size_t mid1 = len1 / 2;
-        size_t mid2 = len1 % 2 == 1 ? len2 / 2 : (len2 + 1) / 2;
+        size_t mid2 = len1 % 2 == 1 ? len2 / 2 : (len2 + 1) / 2; // stfu msvc
         size_t params[3][4] =
         {
-            { start1 , mid1 , start2 , mid2 },
-            { start1 + mid1 , len1 - mid1 , start2 + mid2 , len2 - mid2 },
-            { start1 + mid1 , len1 - mid1 , start2 , mid2 }
+            { start1, mid1, start2, mid2 },
+            { start1 + mid1, len1 - mid1, start2 + mid2, len2 - mid2 },
+            { start1 + mid1, len1 - mid1, start2, mid2 }
         };
 
-        parallel_for<size_t>(0, 3, [&](size_t i)
+        for (size_t i = 0; i != 3; ++i)
         {
             bose_nelson_merge(array, params[i][0], params[i][1], params[i][2], params[i][3]);
-        });
+        }
     }
 }
 
@@ -57,5 +58,5 @@ static void bose_nelson_core(main_array array, size_t start, size_t length)
 
 void bose_nelson_network_parallel(main_array array)
 {
-    as_parallel([=]() { bose_nelson_core(array, 0, array.size()); });
+    bose_nelson_core(array, 0, array.size());
 }

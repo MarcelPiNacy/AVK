@@ -99,15 +99,15 @@
     <ClInclude Include="avk\internal\debug.h">
       <Filter>avk\internal</Filter>
     </ClInclude>
+    <ClInclude Include="avk\internal\parallel_for.h">
+      <Filter>avk\internal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="avk\internal\main.cpp">
       <Filter>avk\internal</Filter>
     </ClCompile>
     <ClCompile Include="avk\internal\stats.cpp">
-      <Filter>avk\internal</Filter>
-    </ClCompile>
-    <ClCompile Include="avk\internal\algorithm_thread.cpp">
       <Filter>avk\internal</Filter>
     </ClCompile>
     <ClCompile Include="avk\internal\graphics\vulkan_init.cpp">
@@ -286,6 +286,12 @@
     </ClCompile>
     <ClCompile Include="avk\algorithms\pairwise_sorting_network_recursive.cpp">
       <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\matrix_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\internal\algorithm_thread.cpp">
+      <Filter>avk\internal</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
