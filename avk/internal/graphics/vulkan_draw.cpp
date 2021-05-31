@@ -40,6 +40,18 @@ bool build_commands(uint32_t index)
 
 void draw_main_array()
 {
+	uint32_t image_index = 0;
+
+	VkResult result = vkAcquireNextImageKHR(device, swapchain, 0, begin_render_semaphore[frame_index], VK_NULL_HANDLE, &image_index);
+	if (result == VK_TIMEOUT)
+		return;
+
+	if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+	{
+		AVK_BREAKPOINT;
+		return;
+	}
+
 	algorithm_thread::pause();
 	DEFER{ algorithm_thread::resume(); };
 
@@ -47,16 +59,6 @@ void draw_main_array()
 		return;
 
 	const VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
-
-	uint32_t image_index = 0;
-
-	VkResult result = vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, begin_render_semaphore[frame_index], VK_NULL_HANDLE, &image_index);
-
-	if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
-	{
-		AVK_BREAKPOINT;
-		return;
-	}
 
 	if (!build_commands(frame_index))
 		return;

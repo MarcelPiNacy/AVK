@@ -56,6 +56,7 @@ static void weave_circle(main_array array, size_t offset, size_t size, size_t li
 
 void weave_sorting_network_parallel(main_array array)
 {
+	array.mark_as_parallel_sort();
 	size_t i = 1;
 	while (i < array.size())
 		i *= 2;

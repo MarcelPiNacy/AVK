@@ -293,6 +293,18 @@
     <ClCompile Include="avk\internal\algorithm_thread.cpp">
       <Filter>avk\internal</Filter>
     </ClCompile>
+    <ClCompile Include="avk\algorithms\thatsoven_feature_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\thatsoven_stable_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\thatsoven_m16aqsort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\custom_sqrt_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="avk\internal\windows-specific\array_vk.aps">

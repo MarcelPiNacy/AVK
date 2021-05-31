@@ -138,13 +138,44 @@ void main_array::sleep(int64_t ns)
 	sleep(nanoseconds(ns));
 }
 
+static std::atomic_bool is_parallel;
+
 void main_array::sleep(nanoseconds duration)
 {
 	using namespace std::chrono;
+	if (duration.count() <= 50)
+	{
+		auto start = high_resolution_clock::now();
+		while (high_resolution_clock::now() - start < duration)
+			platform::yield_cpu();
+	}
+	else
+	{
+		if (is_parallel.load(std::memory_order_acquire))
+		{
+			auto start = high_resolution_clock::now();
+			while (high_resolution_clock::now() - start < duration)
+				cmts_yield();
+		}
+		else
+		{
+			if (duration_cast<microseconds>(duration).count() < 1000)
+			{
+				auto start = high_resolution_clock::now();
+				while (high_resolution_clock::now() - start < duration)
+					SwitchToThread();
+			}
+			else
+			{
+				Sleep(duration_cast<milliseconds>(duration).count());
+			}
+		}
+	}
+}
 
-	auto start = high_resolution_clock::now();
-	while (high_resolution_clock::now() - start <= duration)
-		cmts_yield();
+void main_array::mark_as_parallel_sort()
+{
+	is_parallel.store(true, std::memory_order_release);
 }
 
 item& item::operator=(const item& other)

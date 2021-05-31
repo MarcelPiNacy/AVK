@@ -80,5 +80,6 @@ static void odd_even_merge_sort_core(main_array array, size_t lo, size_t n)
 
 void odd_even_merge_sort_parallel(main_array array)
 {
+    array.mark_as_parallel_sort();
     odd_even_merge_sort_core(array, 0, array.size());
 }

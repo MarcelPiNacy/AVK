@@ -58,5 +58,6 @@ static void bose_nelson_core(main_array array, size_t start, size_t length)
 
 void bose_nelson_network_parallel(main_array array)
 {
+    array.mark_as_parallel_sort();
     bose_nelson_core(array, 0, array.size());
 }

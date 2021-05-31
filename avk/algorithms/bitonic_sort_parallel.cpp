@@ -55,5 +55,6 @@ void bitonic_sort_kernel(main_array array, size_t begin, size_t end, bool ascend
 
 void bitonic_sort_parallel(main_array array)
 {
+    array.mark_as_parallel_sort();
     bitonic_sort_kernel(array, 0, array.size(), true);
 }

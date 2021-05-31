@@ -184,6 +184,7 @@ static void breadth_sort_pass_parallel(I begin, I end, J buffer_begin, J buffer_
 
 void breadth_sort(main_array array)
 {
+	array.mark_as_parallel_sort();
 	std::vector<item> buffer;
 	buffer.resize(array.size());
 

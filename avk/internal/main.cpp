@@ -88,11 +88,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     auto last = high_resolution_clock::now();
     
-    auto delay = std::chrono::microseconds(1);
+    auto delay = std::chrono::microseconds(100);
     main_array::set_compare_delay(delay);
     main_array::set_read_delay(delay);
     main_array::set_write_delay(delay);
-    main_array::resize(1 << 8);
+    main_array::resize(1 << 10);
     
     main_array::for_each([&](item& e, uint32_t position)
     {
@@ -101,16 +101,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
         e.color = item_color::white();
     });
 
-    constexpr auto framerrate = milliseconds(8);
+    constexpr auto framerrate = milliseconds(16);
     constexpr auto title_update_threshold = milliseconds(60);
 
     auto last_draw = high_resolution_clock::now();
     auto last_title_update = last_draw;
 
-    MSG msg = {};
     while (should_continue_global.load(std::memory_order_acquire))
     {
-        while (PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE))
+        MSG msg;
+        if (PeekMessage(&msg, hwnd, 0, 0, PM_REMOVE))
         {
             if (!TranslateAccelerator(msg.hwnd, accel, &msg))
             {
@@ -119,20 +119,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
             }
         }
 
-        const auto now = high_resolution_clock::now();
+        auto now = high_resolution_clock::now();
         if (now - last_draw >= framerrate)
         {
             draw_main_array();
-            last_draw = now;
+            last_draw = high_resolution_clock::now();
         }
 
+        now = high_resolution_clock::now();
         if (now - last_title_update >= title_update_threshold)
         {
             update_title();
-            last_title_update = now;
+            last_title_update = high_resolution_clock::now();
         }
     }
 
     algorithm_thread::terminate();
-    return (int)msg.message;
+    return 0;
 }

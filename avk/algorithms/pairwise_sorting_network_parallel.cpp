@@ -69,5 +69,6 @@ static void pairwise_sorting_network_parallel_step(main_array array, size_t begi
 
 void pairwise_sorting_network_parallel(main_array array)
 {
+    array.mark_as_parallel_sort();
     pairwise_sorting_network_parallel_step(array, 0, array.size(), 1);
 }

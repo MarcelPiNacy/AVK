@@ -34,6 +34,9 @@ case IDM_SORT_ctree_sort:
 case IDM_SORT_custom_radix_sort:
 	algorithm_thread::launch(custom_radix_sort);
 	break;
+case IDM_SORT_custom_sqrt_sort:
+	algorithm_thread::launch(custom_sqrt_sort);
+	break;
 case IDM_SORT_fold_sort:
 	algorithm_thread::launch(fold_sort);
 	break;
@@ -132,6 +135,15 @@ case IDM_SORT_std_sort:
 	break;
 case IDM_SORT_std_stable_sort:
 	algorithm_thread::launch(std_stable_sort);
+	break;
+case IDM_SORT_thatsoven_feature_sort:
+	algorithm_thread::launch(thatsoven_feature_sort);
+	break;
+case IDM_SORT_thatsoven_m16aqsort:
+	algorithm_thread::launch(thatsoven_m16aqsort);
+	break;
+case IDM_SORT_thatsoven_stable_sort:
+	algorithm_thread::launch(thatsoven_stable_sort);
 	break;
 case IDM_SORT_triangle_fold_sort:
 	algorithm_thread::launch(triangle_fold_sort);
