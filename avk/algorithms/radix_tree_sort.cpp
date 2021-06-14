@@ -10,18 +10,10 @@ using node_ptr = std::unique_ptr<node>;
 
 struct node
 {
-	static node_ptr make(size_t radix_size, bool is_leaf)
+	node()
 	{
-		node_ptr r = node_ptr(new node{});
-		r->leaf = is_leaf;
-		if (r->leaf)
-			r->values.resize(radix_size);
-		else
-			r->next.resize(radix_size);
-		return r;
+		(void)memset(this, 0, sizeof(node));
 	}
-
-	node() = default;
 
 	~node()
 	{
@@ -37,6 +29,17 @@ struct node
 		vector<vector<item>>		values;
 	};
 	bool leaf;
+
+	static node_ptr make(size_t radix_size, bool is_leaf)
+	{
+		node_ptr r = std::make_unique<node>();
+		r->leaf = is_leaf;
+		if (r->leaf)
+			r->values.resize(radix_size);
+		else
+			r->next.resize(radix_size);
+		return r;
+	}
 };
 
 node_ptr build_radix_tree(main_array array, size_t radix_size)

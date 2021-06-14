@@ -395,23 +395,21 @@ namespace grailsort
 
 			constexpr void insertion_sort_stable(I begin, I end)
 			{
-				if (distance(begin, end) <= BASIC_INSERTION_SORT_THRESHOLD)
-					return insertion_sort_basic(begin, end);
-				I min = begin;
-				for (I i = min + 1; i < end; ++i)
-					if (*i < *min)
-						min = i;
-				value_type tmp = std::move(*min);
-				for (I i = min; i > begin; --i)
-					iter_move(i, i - 1);
-				iter_move(begin, std::move(tmp));
 				for (I i = begin + 1; i < end; ++i)
 				{
-					tmp = std::move(*i);
 					I j = i - 1;
-					for (; *j > tmp; --j)
-						iter_move(j + 1, j);
-					iter_move(j + 1, std::move(tmp));
+					value_type tmp = std::move(*i);
+					if (*i > *begin)
+					{
+						for (; *j > tmp; --j)
+							iter_move(j + 1, j);
+					}
+					else
+					{
+						for (; j >= begin; --j)
+							iter_move(j + 1, j);
+					}
+					iter_move(j + 1, tmp);
 				}
 			}
 
@@ -628,14 +626,6 @@ namespace grailsort
 			{
 				GRAILSORT_INVARIANT(working_buffer < begin);
 				GRAILSORT_INVARIANT(begin < end);
-				I middle_original = middle;
-				while (begin != middle_original && middle != end)
-				{
-					I& rhs = (!left_origin ? *begin <= *middle : *begin < *middle) ? begin : middle;
-					std::iter_swap(working_buffer, rhs);
-					++rhs;
-					++working_buffer;
-				}
 			}
 
 			constexpr void block_merge_forward(I tag_buffer, I working_buffer, I begin, I end, I median_tag, size_type block_size)
@@ -659,15 +649,21 @@ namespace grailsort
 					if (left_origin == right_origin)
 					{
 						swap_range(left_block, right_block, next);
+						rotate(working_buffer, working_buffer + block_size, next);
 					}
 					else
 					{
-						local_block_merge(working_buffer, left_block, right_block, next, left_origin, right_origin);
+						I original_middle = right_block;
+						while (left_block != original_middle && right_block != next)
+						{
+							I& rhs = (!left_origin ? *left_block <= *right_block : *left_block < *right_block) ? left_block : right_block;
+							std::iter_swap(working_buffer, rhs);
+							++rhs;
+							++working_buffer;
+						}
 					}
 					++left_tag;
 					++right_tag;
-					begin = next;
-					working_buffer = right_block;
 				}
 			}
 

@@ -38,12 +38,20 @@ void non_atomic_store(std::atomic<T>& where, U&& value)
 
 inline uint8_t fast_log2(uint32_t value)
 {
+#if defined(__clang__) || defined(__GNUC__)
+	return __builtin_ctz(value);
+#else
 	return (uint8_t)_tzcnt_u32(value);
+#endif
 }
 
 inline uint8_t fast_log2(uint64_t value)
 {
+#if defined(__clang__) || defined(__GNUC__)
+	return __builtin_ctzll(value);
+#else
 	return (uint8_t)_tzcnt_u64(value);
+#endif
 }
 
 inline uint32_t round_pow2(uint32_t value)

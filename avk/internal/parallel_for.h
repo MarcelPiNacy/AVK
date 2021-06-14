@@ -25,23 +25,24 @@ void parallel_for(I begin, I end, F&& body)
 
 	AVK_ASSERT(count < UINT32_MAX);
 
-	cmts_result_t code;
+	cmts_result code;
 	struct wrapper_type
 	{
 		F function;
 		I current;
-		cmts_fence_t fence;
+		cmts_fence fence;
 	};
 	wrapper_type wrapper = { std::forward<F>(body), begin };
-	cmts_counter_t counter = CMTS_COUNTER_INIT((uint32_t)count);
-	cmts_dispatch_options_t options = {};
+	cmts_counter counter;
+	cmts_counter_init(&counter, (uint32_t)count);
+	cmts_dispatch_options options = {};
 	options.parameter = &wrapper;
 	options.sync_type = CMTS_SYNC_TYPE_COUNTER;
 	options.sync_object = &counter;
 	for (; begin != end; ++begin)
 	{
 		wrapper.current = begin;
-		wrapper.fence = CMTS_FENCE_INIT;
+		cmts_fence_init(&wrapper.fence);
 
 		code = cmts_dispatch([](void* ptr)
 		{

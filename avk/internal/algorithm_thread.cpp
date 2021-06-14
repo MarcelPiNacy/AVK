@@ -4,29 +4,31 @@
 #include <cmts.h>
 #pragma comment(lib, "Synchronization.lib")
 
-static cmts_event_t done = CMTS_EVENT_INIT;
+static cmts_event done = CMTS_EVENT_INIT;
 
 namespace algorithm_thread
 {
 	void launch(sort_function_pointer sort)
 	{
-		cmts_result_t result;
+		cmts_result result;
 		bool initialized = cmts_is_initialized();
 		if (cmts_event_state(&done) == CMTS_OK || !initialized)
 		{
 			if (initialized)
+			{
+				cmts_purge_all();
 				return;
-			cmts_purge_all();
-			cmts_init_options_t init_options = {};
+			}
+			cmts_init_options init_options = {};
 			init_options.allocate_function = nullptr;
 			init_options.task_stack_size = 4096;
 			init_options.thread_count = cmts_processor_count();
-			init_options.flags = CMTS_INIT_FLAGS_USE_AFFINITY;
+			init_options.flags = 0;
 			init_options.max_tasks = main_array::size();
 			result = cmts_init(&init_options);
 		}
 		done = CMTS_EVENT_INIT;
-		cmts_dispatch_options_t options = {};
+		cmts_dispatch_options options = {};
 		options.parameter = sort;
 		options.sync_object = &done;
 		options.sync_type = CMTS_SYNC_TYPE_EVENT;

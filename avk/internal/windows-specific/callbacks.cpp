@@ -120,7 +120,11 @@ void modify_array<array_mode::QSORT_KILLER>()
             if (left >= middle)
             {
                 ++staircase;
+#if defined(__clang__) || defined(__GNUC__)
+                left = (size_t)1 << (uint8_t)__builtin_ctzll(staircase);
+#else
                 left = (size_t)1 << (uint8_t)_tzcnt_u64(staircase);
+#endif
                 --left;
                 step *= 2;
             }
