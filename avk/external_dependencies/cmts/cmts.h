@@ -109,7 +109,7 @@ CMTS_EXTERN_C_BEGIN
 #ifdef __cplusplus
 typedef bool cmts_bool;
 #else
-typedef _Bool cmts_boolean;
+typedef _Bool cmts_bool;
 #endif
 typedef uint64_t cmts_task_id;
 typedef void(CMTS_PTR* cmts_fn_task)(void* parameter);
@@ -139,9 +139,11 @@ typedef enum cmts_result
 	CMTS_ERROR_FUTEX = -12,
 	CMTS_ERROR_LIBRARY_UNINITIALIZED = -13,
 	CMTS_ERROR_OS_INIT = -14,
+	CMTS_ERROR_INVALID_EXTENSION_TYPE = -15,
+	CMTS_ERROR_UNSUPPORTED_EXTENSION = -16,
 
-	CMTS_RESULT_BEGIN_ENUM = CMTS_ERROR_LIBRARY_UNINITIALIZED,
-	CMTS_RESULT_END_ENUM = CMTS_INITIALIZATION_IN_PROGRESS,
+	CMTS_RESULT_BEGIN_ENUM = CMTS_ERROR_UNSUPPORTED_EXTENSION,
+	CMTS_RESULT_END_ENUM = CMTS_INITIALIZATION_IN_PROGRESS + 1,
 } cmts_result;
 
 typedef enum cmts_sync_type
@@ -222,6 +224,9 @@ typedef enum cmts_ext_debug_message_severity
 	CMTS_EXT_DEBUGGER_MESSAGE_SEVERITY_INFO,
 	CMTS_EXT_DEBUGGER_MESSAGE_SEVERITY_WARNING,
 	CMTS_EXT_DEBUGGER_MESSAGE_SEVERITY_ERROR,
+
+	CMTS_EXT_DEBUGGER_MESSAGE_SEVERITY_BEGIN_ENUM = CMTS_EXT_DEBUGGER_MESSAGE_SEVERITY_INFO,
+	CMTS_EXT_DEBUGGER_MESSAGE_SEVERITY_END_ENUM = CMTS_EXT_DEBUGGER_MESSAGE_SEVERITY_ERROR + 1,
 } cmts_ext_debug_message_severity;
 
 typedef struct cmts_ext_debug_message
@@ -236,6 +241,8 @@ typedef void(CMTS_CALL* cmts_fn_debugger_message)(void* context, const cmts_ext_
 
 typedef struct cmts_ext_debug_init_options
 {
+	const void* next;
+	cmts_ext_type type;
 	void* context;
 	cmts_fn_debugger_message message_callback;
 } cmts_ext_debug_init_options;
@@ -252,6 +259,7 @@ CMTS_ATTR cmts_bool CMTS_CALL cmts_is_paused();
 CMTS_ATTR uint32_t CMTS_CALL cmts_purge(uint32_t max_trimmed_tasks);
 CMTS_ATTR uint32_t CMTS_CALL cmts_purge_all();
 CMTS_ATTR cmts_bool CMTS_CALL cmts_is_worker_thread();
+CMTS_ATTR uint32_t CMTS_CALL cmts_worker_thread_index();
 CMTS_ATTR uint32_t CMTS_CALL cmts_worker_thread_count();
 CMTS_ATTR cmts_bool CMTS_CALL cmts_requires_allocator();
 
@@ -314,6 +322,7 @@ CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_requirements(cmts_memory_requirements* 
 CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_init(cmts_hazard_ptr* hptr, void* buffer);
 CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_protect(cmts_hazard_ptr* hptr, void* ptr);
 CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_release(cmts_hazard_ptr* hptr);
+CMTS_ATTR void* CMTS_CALL cmts_hazard_ptr_get(cmts_hazard_ptr* hptr);
 CMTS_ATTR cmts_bool CMTS_CALL cmts_hazard_ptr_is_unreachable(const cmts_hazard_ptr* hptr, const void* ptr);
 
 CMTS_ATTR size_t CMTS_CALL cmts_processor_count();
@@ -341,7 +350,22 @@ CMTS_EXTERN_C_END
 
 #if defined(__GNUC__) || defined(__clang__)
 #define CMTS_GCC_OR_CLANG
-#define CMTS_MSVC
+#ifdef __alpha__
+#define CMTS_ARCH_ALPHA
+#elif defined(__x86_64__)
+#define CMTS_ARCH_X64
+#elif defined(__arm__)
+#define CMTS_ARCH_ARM
+#ifdef __thumb__
+#define CMTS_ARCH_ARM_THUMB
+#endif
+#elif defined(__i386__)
+#define CMTS_ARCH_X86
+#elif defined(__ia64__)
+#define CMTS_ARCH_ITANIUM
+#elif defined(__powerpc__)
+#define CMTS_ARCH_POWERPC
+#endif
 #define CMTS_THREAD_LOCAL(TYPE) __thread TYPE
 #define CMTS_ALIGNAS(K) __attribute__((aligned(K)))
 #define CMTS_INLINE_ALWAYS __attribute__((always_inline))
@@ -349,9 +373,9 @@ CMTS_EXTERN_C_END
 #define CMTS_LIKELY_IF(CONDITION) if (__builtin_expect((CONDITION), 1))
 #define CMTS_UNLIKELY_IF(CONDITION) if (__builtin_expect((CONDITION), 0))
 #define CMTS_ASSUME(CONDITION) __builtin_assume((CONDITION))
-#ifdef __ARM__
+#ifdef CMTS_ARCH_ARM
 #define CMTS_SPIN_WAIT __yield()
-#elif defined(__X86__)
+#elif defined(CMTS_ARCH_X64)
 #define CMTS_SPIN_WAIT __builtin_ia32_pause()
 #else
 #define CMTS_SPIN_WAIT
@@ -398,6 +422,22 @@ CMTS_EXTERN_C_END
 #elif defined(_MSC_VER) || defined(_MSVC_LANG)
 #include <intrin.h>
 #define CMTS_MSVC
+#ifdef _M_ALPHA
+#define CMTS_ARCH_ALPHA
+#elif defined(_M_AMD64)
+#define CMTS_ARCH_X64
+#elif defined(_M_ARM)
+#define CMTS_ARCH_ARM
+#ifdef _M_ARMT
+#define CMTS_ARCH_ARM_THUMB
+#endif
+#elif defined(_M_IX86)
+#define CMTS_ARCH_X86
+#elif defined(_M_IA64)
+#define CMTS_ARCH_ITANIUM
+#elif defined(_M_PPC)
+#define CMTS_ARCH_POWERPC
+#endif
 #define CMTS_THREAD_LOCAL(TYPE) __declspec(thread) TYPE
 #define CMTS_ALIGNAS(K) __declspec(align(K))
 #define CMTS_INLINE_ALWAYS __forceinline
@@ -413,11 +453,11 @@ CMTS_EXTERN_C_END
 #define CMTS_ROL64(MASK, COUNT) _rotl64((MASK), (COUNT))
 #define CMTS_ROR32(MASK, COUNT) _rotr((MASK), (COUNT))
 #define CMTS_ROR64(MASK, COUNT) _rotr64((MASK), (COUNT))
-#ifdef _M_ARM
+#ifdef CMTS_ARCH_ARM
 #define CMTS_SPIN_WAIT __yield()
 #define CMTS_MSVC_ATOMIC_ACQ_SUFFIX(NAME) NAME##_acq
 #define CMTS_MSVC_ATOMIC_REL_SUFFIX(NAME) NAME##_acq
-#elif defined(_M_IX86) || defined(_M_X64) || defined(_M_AMD64)
+#elif defined(CMTS_ARCH_X86) || defined(CMTS_ARCH_X64)
 #define CMTS_SPIN_WAIT _mm_pause()
 #define CMTS_MSVC_ATOMIC_ACQ_SUFFIX(NAME) NAME
 #define CMTS_MSVC_ATOMIC_REL_SUFFIX(NAME) NAME
@@ -459,6 +499,22 @@ CMTS_EXTERN_C_END
 #define CMTS_ATOMIC_DECREMENT_REL_U64(TARGET) ((uint64_t)(CMTS_MSVC_ATOMIC_REL_SUFFIX(_InterlockedDecrement64)((volatile long long*)(TARGET))) + 1)
 #endif
 
+#if UINTPTR_MAX == UINT32_MAX
+#define CMTS_ATOMIC_LOAD_ACQ_UPTR			CMTS_ATOMIC_LOAD_ACQ_U32
+#define CMTS_ATOMIC_STORE_REL_UPTR			CMTS_ATOMIC_STORE_REL_U32
+#define CMTS_ATOMIC_XCHG_ACQ_UPTR			CMTS_ATOMIC_XCHG_ACQ_U32
+#define CMTS_ATOMIC_XCHG_REL_UPTR			CMTS_ATOMIC_XCHG_REL_U32
+#define CMTS_ATOMIC_CMPXCHG_STRONG_ACQ_UPTR	CMTS_ATOMIC_CMPXCHG_STRONG_ACQ_U32
+#define CMTS_ATOMIC_CMPXCHG_STRONG_REL_UPTR	CMTS_ATOMIC_CMPXCHG_STRONG_REL_U32
+#else
+#define CMTS_ATOMIC_LOAD_ACQ_UPTR			CMTS_ATOMIC_LOAD_ACQ_U64
+#define CMTS_ATOMIC_STORE_REL_UPTR			CMTS_ATOMIC_STORE_REL_U64
+#define CMTS_ATOMIC_XCHG_ACQ_UPTR			CMTS_ATOMIC_XCHG_ACQ_U64
+#define CMTS_ATOMIC_XCHG_REL_UPTR			CMTS_ATOMIC_XCHG_REL_U64
+#define CMTS_ATOMIC_CMPXCHG_STRONG_ACQ_UPTR	CMTS_ATOMIC_CMPXCHG_STRONG_ACQ_U64
+#define CMTS_ATOMIC_CMPXCHG_STRONG_REL_UPTR	CMTS_ATOMIC_CMPXCHG_STRONG_REL_U64
+#endif
+
 #define CMTS_SHARED_ATTR CMTS_ALIGNAS(CMTS_CACHE_LINE_SIZE)
 #define CMTS_SPIN_LOOP for (;; CMTS_SPIN_WAIT)
 
@@ -496,7 +552,7 @@ CMTS_INLINE_NEVER static void cmts_debug_message(cmts_ext_debug_message_severity
 #ifdef _WIN32
 #define CMTS_TARGET_WINDOWS
 #include <Windows.h>
-typedef PVOID cmts_context;
+#include <bcrypt.h>
 typedef HANDLE thread_type;
 typedef DWORD thread_return_type;
 #define CMTS_THREAD_CALLING_CONVENTION __stdcall
@@ -504,7 +560,6 @@ typedef DWORD thread_return_type;
 #if defined(CMTS_NO_BUSY_WAIT) || defined(CMTS_HYBRID_MUTEX)
 typedef BOOL (WINAPI *WaitOnAddress_t)(volatile VOID* Address, PVOID CompareAddress, SIZE_T AddressSize, DWORD dwMilliseconds);
 typedef VOID (WINAPI *WakeByAddressSingle_t)(PVOID Address);
-typedef NTSTATUS (WINAPI *BCryptGenRandom_t)(BCRYPT_ALG_HANDLE hAlgorithm, PUCHAR pbBuffer, ULONG cbBuffer, ULONG dwFlags);
 static HMODULE sync_library;
 static WaitOnAddress_t wait_on_address;
 static WakeByAddressSingle_t wake_by_address_single;
@@ -653,14 +708,17 @@ CMTS_INLINE_ALWAYS static uint64_t cmts_os_time_ns(uint64_t timestamp)
 
 CMTS_INLINE_ALWAYS static cmts_bool cmts_os_csprng(void* out, size_t out_size)
 {
+	typedef NTSTATUS(WINAPI* BCryptGenRandom_T)(BCRYPT_ALG_HANDLE, PUCHAR, ULONG, ULONG);
 	HMODULE lib;
 	lib = GetModuleHandle(TEXT("Bcrypt.lib"));
 	CMTS_UNLIKELY_IF(lib == NULL)
 		lib = GetModuleHandle(TEXT("Bcrypt.dll"));
 	CMTS_UNLIKELY_IF(lib == NULL)
 		return CMTS_FALSE;
-	return ((BCryptGenRandom_t)GetProcAddress(lib, "BCryptGenRandom"))(NULL, (PUCHAR)out, (ULONG)out_size, (ULONG)BCRYPT_USE_SYSTEM_PREFERRED_RNG) == CMC_STATUS_SUCCESS;
+	return BCRYPT_SUCCESS(((BCryptGenRandom_T)GetProcAddress(lib, "BCryptGenRandom"))(NULL, (PUCHAR)out, (ULONG)out_size, (ULONG)BCRYPT_USE_SYSTEM_PREFERRED_RNG));
 }
+
+typedef PVOID cmts_context;
 
 CMTS_INLINE_ALWAYS static cmts_bool cmts_context_init(cmts_context* ctx, cmts_fn_task function, void* param, size_t stack_size)
 {
@@ -682,10 +740,16 @@ CMTS_INLINE_ALWAYS static void cmts_context_switch(cmts_context* from, cmts_cont
 	SwitchToFiber(*to);
 }
 
+CMTS_INLINE_ALWAYS static void cmts_context_wipe(cmts_context* ctx)
+{
+	*ctx = NULL;
+}
+
 CMTS_INLINE_ALWAYS static void cmts_context_delete(cmts_context* ctx)
 {
 	CMTS_INVARIANT(*ctx != NULL);
 	DeleteFiber(*ctx);
+	cmts_context_wipe(ctx);
 }
 #endif
 
@@ -806,6 +870,8 @@ static CMTS_THREAD_LOCAL(uint64_t) prng_last_seed;
 
 CMTS_INLINE_NEVER static void cmts_finalize_check_noinline()
 {
+	if (cmts_context_is_valid(&task_pool[task_index].ctx))
+		cmts_context_wipe(&task_pool[task_index].ctx);
 	cmts_os_exit_thread(0);
 }
 
@@ -1237,7 +1303,15 @@ CMTS_INLINE_ALWAYS static size_t cmts_required_memory_size()
 
 static cmts_result cmts_handle_extension(const cmts_init_options* options, const cmts_ext_header* header)
 {
-	return CMTS_OK;
+	switch (header->type)
+	{
+	case CMTS_EXT_TYPE_DEBUGGER:
+		debugger_callback = ((const cmts_ext_debug_init_options*)header)->message_callback;
+		debugger_context = ((const cmts_ext_debug_init_options*)header)->context;
+		return CMTS_OK;
+	default:
+		return CMTS_ERROR_INVALID_EXTENSION_TYPE;
+	}
 }
 
 CMTS_INLINE_ALWAYS static void cmts_common_init(uint8_t* buffer)
@@ -1317,6 +1391,7 @@ static cmts_result cmts_library_init_custom(const cmts_init_options* options)
 	cmts_result r;
 	size_t buffer_size;
 	uint8_t* buffer;
+	const cmts_ext_header* ext;
 	thread_count = options->thread_count;
 	task_pool_capacity = options->max_tasks;
 	queue_capacity = (uint32_t)cmts_round_pow2(task_pool_capacity / options->thread_count);
@@ -1336,9 +1411,9 @@ static cmts_result cmts_library_init_custom(const cmts_init_options* options)
 		r = cmts_os_init_threads(threads, thread_count, thread_stack_size, (LPTHREAD_START_ROUTINE)cmts_thread_entry_point);
 	CMTS_UNLIKELY_IF(r != CMTS_OK)
 		return r;
-	for (const cmts_ext_header* node = (const cmts_ext_header*)options->next_ext; node != NULL; node = node->next)
+	for (ext = (const cmts_ext_header*)options->next_ext; ext != NULL; ext = ext->next)
 	{
-		r = cmts_handle_extension(options, node);
+		r = cmts_handle_extension(options, ext);
 		CMTS_UNLIKELY_IF(r != CMTS_OK)
 			return r;
 	}
@@ -1493,6 +1568,13 @@ CMTS_ATTR uint32_t CMTS_CALL cmts_purge_all()
 CMTS_ATTR cmts_bool CMTS_CALL cmts_is_worker_thread()
 {
 	return root_task != NULL;
+}
+
+CMTS_ATTR uint32_t CMTS_CALL cmts_worker_thread_index()
+{
+	CMTS_UNLIKELY_IF(!cmts_is_worker_thread())
+		return thread_count;
+	return thread_index;
 }
 
 CMTS_ATTR uint32_t CMTS_CALL cmts_worker_thread_count()
@@ -1872,7 +1954,7 @@ CMTS_ATTR void CMTS_CALL cmts_mutex_lock(cmts_mutex* mutex)
 	CMTS_ASSERT(cmts_is_task());
 #else
 	CMTS_UNLIKELY_IF(!cmts_is_task())
-		for (;; cmts_os_futex_await((CMTS_ATOMIC(uint32_t)*)c, &prior.queue.head))
+		for (;; cmts_os_futex_await((CMTS_ATOMIC(uint32_t)*)c, &prior.queue.head, 4))
 			for (i = 0; i != CMTS_SPIN_THRESHOLD; ++i)
 				CMTS_LIKELY_IF(cmts_mutex_try_lock(mutex))
 					return;
@@ -2037,54 +2119,38 @@ CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_init(cmts_hazard_ptr* hptr, void* buffe
 
 CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_protect(cmts_hazard_ptr* hptr, void* ptr)
 {
-	CMTS_ATOMIC(void*)* hp;
-	hp = (CMTS_ATOMIC(void*)*)((uint8_t*)hptr + thread_index * CMTS_CACHE_LINE_SIZE);
-#if UINTPTR_MAX == UINT32_MAX
-#ifndef CMTS_DEBUG
-	CMTS_ATOMIC_STORE_REL_U32(hp, ptr);
+	CMTS_ASSERT(cmts_is_task());
+#ifdef CMTS_DEBUG
+	CMTS_ASSERT(CMTS_ATOMIC_XCHG_REL_UPTR((CMTS_ATOMIC(void*)*)hptr + thread_index, (size_t)ptr) == NULL);
 #else
-	CMTS_ASSERT(CMTS_ATOMIC_XCHG_REL_U32(hp, (uint32_t)ptr) == 0);
-#endif
-#else
-#ifndef CMTS_DEBUG
-	CMTS_ATOMIC_STORE_REL_U64(hp, ptr);
-#else
-	CMTS_ASSERT(CMTS_ATOMIC_XCHG_REL_U64(hp, (uint64_t)ptr) == 0);
-#endif
+	CMTS_ATOMIC_STORE_REL_UPTR((CMTS_ATOMIC(void*)*)hptr + thread_index, (size_t)ptr);
 #endif
 }
 
 CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_release(cmts_hazard_ptr* hptr)
 {
-	CMTS_ATOMIC(void*)* hp;
-	hp = (CMTS_ATOMIC(void*)*)((uint8_t*)hptr + thread_index * CMTS_CACHE_LINE_SIZE);
-#if UINTPTR_MAX == UINT32_MAX
-#ifndef CMTS_DEBUG
-	CMTS_ATOMIC_STORE_REL_U32(hp, 0);
+	CMTS_ASSERT(cmts_is_task());
+#ifdef CMTS_DEBUG
+	CMTS_ASSERT(CMTS_ATOMIC_XCHG_REL_UPTR((CMTS_ATOMIC(void*)*)hptr + thread_index, 0) != NULL);
 #else
-	CMTS_ASSERT(CMTS_ATOMIC_XCHG_REL_U32(hp, 0) == 0);
+	CMTS_ATOMIC_STORE_REL_UPTR((CMTS_ATOMIC(void*)*)hptr + thread_index, 0);
 #endif
-#else
-#ifndef CMTS_DEBUG
-	CMTS_ATOMIC_STORE_REL_U64(hp, 0);
-#else
-	CMTS_ASSERT(CMTS_ATOMIC_XCHG_REL_U64(hp, 0) == 0);
-#endif
-#endif
+}
+
+CMTS_ATTR void* CMTS_CALL cmts_hazard_ptr_get(cmts_hazard_ptr* hptr)
+{
+	CMTS_ASSERT(cmts_is_task());
+	return (void*)CMTS_ATOMIC_LOAD_ACQ_UPTR((CMTS_ATOMIC(void*)*)hptr + thread_index);
 }
 
 CMTS_ATTR cmts_bool CMTS_CALL cmts_hazard_ptr_is_unreachable(const cmts_hazard_ptr* hptr, const void* ptr)
 {
 	uint8_t* i;
 	uint8_t* end;
-	end = (uint8_t*)hptr + thread_count * CMTS_CACHE_LINE_SIZE;
-	for (i = (uint8_t*)hptr; i != end; i += CMTS_CACHE_LINE_SIZE)
+	end = (uint8_t*)hptr + thread_count * sizeof(void*);
+	for (i = (uint8_t*)hptr; i != end; i += sizeof(void*))
 	{
-#if UINTPTR_MAX == UINT32_MAX
-		CMTS_UNLIKELY_IF((void*)CMTS_ATOMIC_LOAD_ACQ_U32((CMTS_ATOMIC(void*)*)i) == ptr)
-#else
-		CMTS_UNLIKELY_IF((void*)CMTS_ATOMIC_LOAD_ACQ_U64((CMTS_ATOMIC(void*)*)i) == ptr)
-#endif
+		CMTS_UNLIKELY_IF((void*)CMTS_ATOMIC_LOAD_ACQ_UPTR((CMTS_ATOMIC(void*)*)i) == ptr)
 			return CMTS_FALSE;
 	}
 	return CMTS_TRUE;

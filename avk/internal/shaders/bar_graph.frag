@@ -3,7 +3,7 @@
 
 layout(push_constant) uniform ShaderArgs
 {
-	size_t array_size;
+	uint array_size;
 } args;
 
 layout(location = 0) in vec4 frag_color;
