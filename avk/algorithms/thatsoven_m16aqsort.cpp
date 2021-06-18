@@ -5,5 +5,5 @@
 
 void thatsoven_m16aqsort(main_array array)
 {
-	thsSort<item>().medianOfSixteenAQSort(array.begin(), 0, array.size(), 64);
+	thsSort<item>().medianOfSixteenAQSort(array.begin(), 0, (int)array.size(), 64);
 }

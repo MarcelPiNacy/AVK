@@ -167,7 +167,7 @@ void main_array::sleep(nanoseconds duration)
 			}
 			else
 			{
-				Sleep(duration_cast<milliseconds>(duration).count());
+				Sleep((DWORD)duration_cast<milliseconds>(duration).count());
 			}
 		}
 	}

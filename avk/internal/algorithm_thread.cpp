@@ -22,9 +22,9 @@ namespace algorithm_thread
 			cmts_init_options init_options = {};
 			init_options.allocate_function = nullptr;
 			init_options.task_stack_size = 4096;
-			init_options.thread_count = cmts_processor_count();
+			init_options.thread_count = (uint32_t)cmts_processor_count();
 			init_options.flags = 0;
-			init_options.max_tasks = main_array::size();
+			init_options.max_tasks = (uint32_t)main_array::size();
 			result = cmts_init(&init_options);
 		}
 		done = CMTS_EVENT_INIT;

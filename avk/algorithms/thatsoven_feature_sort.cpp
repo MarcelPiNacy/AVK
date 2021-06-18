@@ -5,5 +5,5 @@
 
 void thatsoven_feature_sort(main_array array)
 {
-	thsSort<item>().featureSort(array.begin(), 0, array.size());
+	thsSort<item>().featureSort(array.begin(), 0, (int)array.size());
 }

@@ -16,7 +16,7 @@ bool cmp_ge(T& lhs, T& rhs) { return lhs >= rhs; }
 
 size_t fast_sqrt(size_t count)
 {
-	uint8_t shift = 64 - __lzcnt64(count);
+	uint8_t shift = 64 - (uint8_t)__lzcnt64(count);
 	if (shift & 1)
 		++shift;
 	size_t r = 0;

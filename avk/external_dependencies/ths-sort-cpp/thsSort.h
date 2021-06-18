@@ -442,8 +442,8 @@ struct thsSort {
         MinMaxPair<T> minMax = findMinMax(array, a, b);
 
         float constant;
-        if (minMax.min.value < 0) constant = (b - a) / (minMax.max.value - minMax.min.value + 4);
-        else                constant = (b - a) / (minMax.max.value + 4);
+        if (minMax.min.value < 0) constant = (b - a) / float(minMax.max.value - minMax.min.value + 4);
+        else                constant = (b - a) / float(minMax.max.value + 4);
         
         std::vector<T>* aux = new std::vector<T>[b - a + 1];
 
@@ -451,7 +451,7 @@ struct thsSort {
             aux[(int)((float)(array[i].value - minMax.min.value) * constant)].push_back(array[i]);
 
         for (int i = 0; i < b - a; i++)
-            stableSort(aux[i].data(), 0, aux[i].size());
+            stableSort(aux[i].data(), 0, (int)aux[i].size());
 
         for (int i = 0, r = a; i < b - a; i++)
             for (int j = 0; j < aux[i].size(); j++, r++)

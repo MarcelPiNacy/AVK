@@ -14,6 +14,10 @@
 	limitations under the License.
 */
 
+/** @file cmts.h
+* Contains the core C api and implementation of CMTS.
+*/
+
 #ifndef CMTS_INCLUDED
 #define CMTS_INCLUDED
 #include <stdint.h>
@@ -27,14 +31,23 @@
 #endif
 
 #ifndef CMTS_CALL
+/**
+* Used to override the calling convention of public CMTS functions.
+*/
 #define CMTS_CALL
 #endif
 
 #ifndef CMTS_ATTR
+/**
+* Used to add extra attributes to public CMTS functions.
+*/
 #define CMTS_ATTR
 #endif
 
 #ifndef CMTS_PTR
+/**
+* Used to override the calling convention of CMTS function pointers.
+*/
 #define CMTS_PTR
 #endif
 
@@ -66,6 +79,9 @@
 #endif
 
 #ifndef CMTS_MAX_PRIORITY
+/**
+* Used to override the number of queues per worker thread.
+*/
 #define CMTS_MAX_PRIORITY 3
 #endif
 
@@ -74,10 +90,16 @@
 #endif
 
 #ifndef CMTS_DEFAULT_TASKS_PER_THREAD
+/**
+* Used to override the number allocated tasks per worker thread (if cmts_init is called with NULL).
+*/
 #define CMTS_DEFAULT_TASKS_PER_THREAD 256
 #endif
 
 #ifndef CMTS_SPIN_THRESHOLD
+/**
+* Used to override the maximum number of retries of a spin loop before switching to a long-term waiting strategy.
+*/
 #define CMTS_SPIN_THRESHOLD 8
 #endif
 
@@ -91,26 +113,21 @@
 #endif
 
 #ifndef CMTS_TEXT
-#define CMTS_TEXT(string_literal) string_literal
-#endif
-
-#ifndef CMTS_EXTERN_C_BEGIN
-#define CMTS_EXTERN_C_BEGIN extern "C" {
-#endif
-
-#ifndef CMTS_EXTERN_C_END
-#define CMTS_EXTERN_C_END }
+#define CMTS_TEXT(TEXT) TEXT
 #endif
 
 #define CMTS_FALSE ((cmts_bool)0)
 #define CMTS_TRUE ((cmts_bool)1)
 
-CMTS_EXTERN_C_BEGIN
+extern "C"
+{
+
 #ifdef __cplusplus
 typedef bool cmts_bool;
 #else
 typedef _Bool cmts_bool;
 #endif
+
 typedef uint64_t cmts_task_id;
 typedef void(CMTS_PTR* cmts_fn_task)(void* parameter);
 typedef void* (CMTS_PTR* cmts_fn_allocate)(size_t size);
@@ -131,7 +148,7 @@ typedef enum cmts_result
 	CMTS_ERROR_THREAD_AFFINITY = -4,
 	CMTS_ERROR_RESUME_THREAD = -5,
 	CMTS_ERROR_SUSPEND_THREAD = -6,
-	CMTS_ERROR_THREAD_TERMINATION = -7,
+	CMTS_ERROR_TERMINATE_THREAD = -7,
 	CMTS_ERROR_AWAIT_THREAD = -8,
 	CMTS_ERROR_TASK_POOL_CAPACITY = -9,
 	CMTS_ERROR_AFFINITY = -10,
@@ -177,46 +194,81 @@ typedef enum cmts_ext_type
 
 typedef uint32_t cmts_fence;
 typedef uint64_t cmts_event;
-#if defined(__clang__) || defined(__GNUC__)
-typedef __uint128_t cmts_counter;
-#else
-typedef struct cmts_counter { uint64_t x, y; } cmts_counter;
-#endif
-typedef uint64_t cmts_mutex;
-typedef size_t cmts_hazard_ptr;
+typedef struct cmts_counter { uint64_t low, high; } cmts_counter;
+typedef uint32_t cmts_mutex;
+typedef size_t cmts_hazard_context;
 
+/** Macro alternative to cmts_fence_init.
+* Mainly useful for compile-time initialization.
+*/
 #define CMTS_FENCE_INIT UINT32_MAX
+/** Macro alternative to cmts_event_init.
+* Mainly useful for compile-time initialization.
+*/
 #define CMTS_EVENT_INIT UINT64_MAX
+/** Macro alternative to cmts_counter_init.
+* Mainly useful for compile-time initialization.
+*/
 #define CMTS_COUNTER_INIT(VALUE) { UINT64_MAX, (VALUE) }
-#define CMTS_MUTEX_INIT UINT64_MAX
+/** Macro alternative to cmts_mutex_init.
+* Mainly useful for compile-time initialization.
+*/
+#define CMTS_MUTEX_INIT UINT32_MAX
+
+typedef struct cmts_task_allocator
+{
+	// The memory allocation callback.
+	cmts_fn_allocate allocate;
+	// The memory deallocation callback.
+	cmts_fn_deallocate deallocate;
+} cmts_task_allocator;
 
 typedef struct cmts_init_options
 {
-	cmts_fn_allocate allocate_function;
-	uint32_t task_stack_size;
-	uint32_t thread_count;
-	const uint32_t* thread_affinities;
+	// Reserved, must be 0.
 	cmts_init_flags flags;
+	// A callback that will be used when allocating memory for the global state of CMTS. This function is currently called only once.
+	cmts_fn_allocate allocate_function;
+	// Either NULL or a pointer to an array of indices to use when assigning worker threads to CPU cores.
+	const uint32_t* thread_affinities;
+	// Either NULL or a valid pointer to a cmts_task_allocator record. In Windows platforms this value is ignored.
+	const cmts_task_allocator* task_allocator;
+	// The default size of the stack of a tasks.
+	uint32_t task_stack_size;
+	// The number of worker threads to launch.
+	uint32_t thread_count;
+	// The capacity of the global task pool
 	uint32_t max_tasks;
+	// Either NULL or a valid pointer to a record of type cmts_ext_*_init_options. cmts_ext_debug_init_options, for example.
 	const void* next_ext;
 } cmts_init_options;
 
 typedef struct cmts_dispatch_options
 {
+	// Flags that specify the behavior of cmts_dispatch. For example, CMTS_DISPATCH_FLAGS_FORCE makes this function block until a task is acquired.
 	cmts_dispatch_flags flags;
+	// Either NULL or a valid pointer to a cmts_task_id variable that receives the ID of the submitted task.
 	cmts_task_id* out_task_id;
+	// Either NULL or a valid pointer to a uint32_t variable that specifies the index of the worker thread to which the task will always run on.
 	const uint32_t* locked_thread;
+	// The parameter to pass to the task entry point.
 	void* parameter;
+	// Either NULL or a valid pointer to a synchronization object (only cmts_event or cmts_counter).
 	void* sync_object;
+	// The type of the object pointed to by sync_object. Ignored if it is NULL.
 	cmts_sync_type sync_type;
+	// The execution priority of the task.
 	uint8_t priority;
+	// Reserved, must be NULL.
 	const void* next_ext;
 } cmts_dispatch_options;
 
 typedef struct cmts_memory_requirements
 {
+	// The required buffer size.
 	size_t size;
-	size_t alignment;
+	// The base-2 log of the alignment of the buffer.
+	uint8_t alignment_log2;
 } cmts_memory_requirements;
 
 typedef enum cmts_ext_debug_message_severity
@@ -231,9 +283,13 @@ typedef enum cmts_ext_debug_message_severity
 
 typedef struct cmts_ext_debug_message
 {
+	// A pointer to a null-terminated string with the message text.
 	const CMTS_CHAR* message;
+	// The length of the message.
 	size_t message_length;
+	// The severity of the message.
 	cmts_ext_debug_message_severity severity;
+	// Reserved, must be NULL.
 	const void* next_ext;
 } cmts_ext_debug_message;
 
@@ -241,105 +297,409 @@ typedef void(CMTS_CALL* cmts_fn_debugger_message)(void* context, const cmts_ext_
 
 typedef struct cmts_ext_debug_init_options
 {
+	// Either NULL or a valid pointer to another record of type cmts_ext_*_init_options.
 	const void* next;
+	// Must be CMTS_EXT_TYPE_DEBUGGER.
 	cmts_ext_type type;
+	// Either NULL or a pointer that will be passed to cmts_ext_debug_write when invoked.
 	void* context;
+	// Either NULL or the callback to use when cmts_ext_debug_write is invoked.
 	cmts_fn_debugger_message message_callback;
 } cmts_ext_debug_init_options;
 
+/** @brief Initializes the CMTS scheduler.
+* @param options An optional pointer to a @ref cmts_init_options record.
+* @return CMTS_OK on success. Possible error codes include: 
+* @li CMTS_ALREADY_INITIALIZED
+* @li CMTS_INITIALIZATION_IN_PROGRESS
+* @li CMTS_ERROR_OS_INIT
+* @li CMTS_ERROR_MEMORY_ALLOCATION
+* @li CMTS_ERROR_INVALID_EXTENSION_TYPE
+*/
 CMTS_ATTR cmts_result CMTS_CALL cmts_init(const cmts_init_options* options);
+/** Pauses all worker threads.
+* @return CMTS_OK on success. Otherwise CMTS_ERROR_LIBRARY_UNINITIALIZED or CMTS_ERROR_SUSPEND_THREAD.
+*/
 CMTS_ATTR cmts_result CMTS_CALL cmts_pause();
+/** Resumes all worker threads.
+* @return CMTS_OK on success. Otherwise CMTS_ERROR_LIBRARY_UNINITIALIZED or CMTS_ERROR_RESUME_THREAD.
+*/
 CMTS_ATTR cmts_result CMTS_CALL cmts_resume();
+/** Begins the library cleanup process.
+* After this function is called, the worker threads will begin to exit once they reach an idle state.
+*/
 CMTS_ATTR void CMTS_CALL cmts_finalize_signal();
+/** Blocks until all worker threads have quit and then handles library cleanup.
+* @param deallocate Either NULL or a callback to free the memory that was previously allocated by cmts_init_options::allocate_function at library startup.
+* @return CMTS_OK on success. Otherwise CMTS_ERROR_LIBRARY_UNINITIALIZED, CMTS_ERROR_AWAIT_THREAD or CMTS_ERROR_MEMORY_DEALLOCATION;
+*/
 CMTS_ATTR cmts_result CMTS_CALL cmts_finalize_await(cmts_fn_deallocate deallocate);
+/** Forcefully quits all worker threads and then handles library cleanup.
+* @param deallocate Either NULL or a callback to free the memory that was previously allocated by cmts_init_options::allocate_function at library startup.
+* @return CMTS_OK on success. Otherwise CMTS_ERROR_LIBRARY_UNINITIALIZED, CMTS_ERROR_TERMINATE_THREAD or CMTS_ERROR_MEMORY_DEALLOCATION;
+*/
 CMTS_ATTR cmts_result CMTS_CALL cmts_terminate(cmts_fn_deallocate deallocate);
+/**
+* @return Whether CMTS is initialized.
+*/
 CMTS_ATTR cmts_bool CMTS_CALL cmts_is_initialized();
+/**
+* @return CMTS_TRUE if the library is initialized and cmts_finalize_signal has not yet been called. CMTS_FALSE otherwise.
+*/
 CMTS_ATTR cmts_bool CMTS_CALL cmts_is_online();
+/**
+* @return Whether the worker threads are paused.
+*/
 CMTS_ATTR cmts_bool CMTS_CALL cmts_is_paused();
-CMTS_ATTR uint32_t CMTS_CALL cmts_purge(uint32_t max_trimmed_tasks);
+/** Frees cached tasks.
+* @params max_purged_tasks The maximum number of cached tasks to free.
+* @return The number of freed tasks.
+* @note This function is not thread-safe.
+*/
+CMTS_ATTR uint32_t CMTS_CALL cmts_purge(uint32_t max_purged_tasks);
+/** Frees all cached tasks.
+* @return The number of freed tasks.
+* @note This function is not thread-safe.
+*/
 CMTS_ATTR uint32_t CMTS_CALL cmts_purge_all();
+/**
+* @return Whether the current thread is a CMTS worker thread.
+*/
 CMTS_ATTR cmts_bool CMTS_CALL cmts_is_worker_thread();
+/**
+* @return If the current thread belongs to CMTS, the index of the worker thread. Otherwise returns the number of worker threads.
+*/
 CMTS_ATTR uint32_t CMTS_CALL cmts_worker_thread_index();
+/**
+* @return The number of worker threads.
+*/
 CMTS_ATTR uint32_t CMTS_CALL cmts_worker_thread_count();
-CMTS_ATTR cmts_bool CMTS_CALL cmts_requires_allocator();
 
+/** Submits a task to the CMTS scheduler with the specified entry point.
+* @param entry_point A callback to use as the entry point of the submitted task.
+* @param options Either NULL or a valid pointer to a cmts_dispatch_options record.
+* @return CMTS_OK on success. Otherwise CMTS_ERROR_TASK_POOL_CAPACITY or CMTS_ERROR_TASK_ALLOCATION.
+*/
 CMTS_ATTR cmts_result CMTS_CALL cmts_dispatch(cmts_fn_task entry_point, cmts_dispatch_options* options);
+/** Pauses execution of the current task, allowing another one to run on the current worker thread.
+*/
 CMTS_ATTR void CMTS_CALL cmts_yield();
+/** Finishes execution of the current task, returning it to the global pool.
+* @remarks In C++ programs extra care must be taken to ensure that local objects have their resources freed, since calling cmts_exit does not invoke destructors automatically.
+*/
 CMTS_NORETURN CMTS_ATTR void CMTS_CALL cmts_exit();
+/**
+* @return Whether this function is being called from within a task.
+*/
 CMTS_ATTR cmts_bool CMTS_CALL cmts_is_task();
+/**
+* @return The ID of the current task.
+*/
 CMTS_ATTR cmts_task_id CMTS_CALL cmts_this_task_id();
 
+/** Manually allocates a task from the global pool.
+* @return The ID of the allocated task. CMTS_INVALID_TASK_ID if the global pool has run out of tasks.
+*/
 CMTS_NODISCARD CMTS_ATTR cmts_task_id CMTS_CALL cmts_task_allocate();
+/** Retrieves the priority of a task.
+* @param task_id The ID of the task.
+* @return The priority of the task.
+*/
 CMTS_ATTR uint8_t CMTS_CALL cmts_task_get_priority(cmts_task_id task_id);
+/** Sets the priority of a task.
+* @param task_id The ID of the task.
+* @param new_priority The desired priority of the task.
+* @note WARNING: Reading or writing task attributes is not thread-safe and if the task has been submitted it is UB.
+*/
 CMTS_ATTR void CMTS_CALL cmts_task_set_priority(cmts_task_id task_id, uint8_t new_priority);
-CMTS_ATTR void CMTS_CALL cmts_task_set_parameter(cmts_task_id task_id, void* new_parameter);
+/** Retrieves the parameter of a task.
+* @param task_id The ID of the task.
+* @return The parameters of the task.
+* @note WARNING: Reading or writing task attributes is not thread-safe and if the task has been submitted it is UB.
+*/
 CMTS_ATTR void* CMTS_CALL cmts_task_get_parameter(cmts_task_id task_id);
-CMTS_ATTR void CMTS_CALL cmts_task_set_function(cmts_task_id task_id, cmts_fn_task new_function);
+/** Sets the parameter of a task.
+* @param task_id The ID of the task.
+* @param new_parameter The desired parameter of the task.
+* @note WARNING: Reading or writing task attributes is not thread-safe and if the task has been submitted it is UB.
+*/
+CMTS_ATTR void CMTS_CALL cmts_task_set_parameter(cmts_task_id task_id, void* new_parameter);
+/** Retrieves the entry point of a task.
+* @param task_id The ID of the task.
+* @return The entry point of the task.
+* @note WARNING: Reading or writing task attributes is not thread-safe and if the task has been submitted it is UB.
+*/
 CMTS_ATTR cmts_fn_task CMTS_CALL cmts_task_get_function(cmts_task_id task_id);
+/** Sets the entry point of a task.
+* @param task_id The ID of the task.
+* @param new_function The desired entry point of the task.
+* @note WARNING: Reading or writing task attributes is not thread-safe and if the task has been submitted it is UB.
+*/
+CMTS_ATTR void CMTS_CALL cmts_task_set_function(cmts_task_id task_id, cmts_fn_task new_function);
+/** Attaches a cmts_event to a task.
+* @param task_id The ID of the task.
+* @param event A pointer to the event to attach.
+* @note WARNING: Reading or writing task attributes is not thread-safe and if the task has been submitted it is UB.
+*/
 CMTS_ATTR void CMTS_CALL cmts_task_attach_event(cmts_task_id task_id, cmts_event* event);
+/** Attaches a cmts_counter to a task.
+* @param task_id The ID of the task.
+* @param counter A pointer to the counter to attach.
+* @note WARNING: Reading or writing task attributes is not thread-safe and if the task has been submitted it is UB.
+*/
 CMTS_ATTR void CMTS_CALL cmts_task_attach_counter(cmts_task_id task_id, cmts_counter* counter);
+/** Pauses the execution of a task.
+* @param task_id The ID of the task.
+* @note WARNING: Reading or writing task attributes is not thread-safe and if the task has been submitted it is UB.
+*/
 CMTS_ATTR void CMTS_CALL cmts_task_sleep(cmts_task_id task_id);
-CMTS_ATTR void CMTS_CALL cmts_task_wake(cmts_task_id task_id);
+/** Resumes execution of a task.
+* @param task_id The ID of the task.
+* @note WARNING: Calling this function while the specified task is not currently sleeping is UB.
+*/
+CMTS_ATTR void CMTS_CALL cmts_task_resume(cmts_task_id task_id);
+/** Checks whether a task ID is valid.
+* @param task_id The ID of the task.
+* @return Whether the specified ID is valid.
+*/
 CMTS_ATTR cmts_bool CMTS_CALL cmts_is_valid_task_id(cmts_task_id task_id);
+/** Checks whether a task is sleeping.
+* @param task_id The ID of the task.
+* @return Whether the specified task is sleeping.
+*/
 CMTS_ATTR cmts_bool CMTS_CALL cmts_task_is_sleeping(cmts_task_id task_id);
+/** Checks whether a task is running.
+* @param task_id The ID of the task.
+* @return Whether the specified task is running.
+*/
 CMTS_ATTR cmts_bool CMTS_CALL cmts_task_is_running(cmts_task_id task_id);
+/** Submits a task to the scheduler.
+* @param task_id The ID of the task.
+*/
 CMTS_ATTR void CMTS_CALL cmts_task_dispatch(cmts_task_id task_id);
+/** Returns the specified task to the global pool.
+* @param task_id The ID of the task.
+* @note WARNING: Reading or writing task attributes is not thread-safe and if the task has been submitted it is UB.
+*/
 CMTS_ATTR void CMTS_CALL cmts_task_deallocate(cmts_task_id task_id);
 
+/** Initializes a fence.
+* @param fence A valid pointer to a cmts_fence object.
+* @note This function is not thread-safe.
+*/
 CMTS_ATTR void CMTS_CALL cmts_fence_init(cmts_fence* fence);
+/** Busy waits until a task is waiting on the fence, then resumes it.
+* @param fence A valid pointer to a cmts_fence object.
+*/
 CMTS_ATTR void CMTS_CALL cmts_fence_signal(cmts_fence* fence);
+/** Attempts to suspend execution of the current task until the fence is signaled.
+* @param fence A valid pointer to a cmts_fence object.
+* @return CMTS_TRUE if the wait succeeded. CMTS_FALSE if the fence was already being awaited on.
+*/
+CMTS_ATTR cmts_bool CMTS_CALL cmts_fence_try_await(cmts_fence* fence);
+/** Suspends execution of the current task until the fence is signaled.
+* [DEBUG ONLY] If the fence is being awaited on by another task, abort is called.
+* @param fence A valid pointer to a cmts_fence object.
+*/
 CMTS_ATTR void CMTS_CALL cmts_fence_await(cmts_fence* fence);
 
+/** Initializes an event object.
+* @param event A valid pointer to a cmts_event object.
+* @note This function is not thread-safe.
+*/
 CMTS_ATTR void CMTS_CALL cmts_event_init(cmts_event* event);
+/** Retrieves the state of an event.
+* @param event A valid pointer to a cmts_event object.
+* @return The state of the event. Possible results:
+* @li CMTS_OK if the event has already been signaled.
+* @li CMTS_SYNC_OBJECT_EXPIRED if the event has already been signaled.
+* @li CMTS_NOT_READY if no task is waiting for the event to become signaled.
+*/
 CMTS_ATTR cmts_result CMTS_CALL cmts_event_state(const cmts_event* event);
+/** Signals the event, resuming any tasks awaiting on it.
+* @param event A valid pointer to a cmts_event object.
+* @return CMTS_OK if the operation succeeded, CMTS_SYNC_OBJECT_EXPIRED if the event has already been signaled.
+*/
 CMTS_ATTR cmts_result CMTS_CALL cmts_event_signal(cmts_event* event);
+/** Waits for the event to become signaled, putting the current task to sleep.
+* @param event A valid pointer to a cmts_event object.
+* @return CMTS_OK if the operation succeeded, CMTS_SYNC_OBJECT_EXPIRED if the event had already been signaled.
+*/
 CMTS_ATTR cmts_result CMTS_CALL cmts_event_await(cmts_event* event);
+/** Attempts to reset the event, allowing new tasks to await on it.
+* @param event A valid pointer to a cmts_event object.
+* @return CMTS_OK if the operation succeeded, CMTS_NOT_READY if the event still has tasks waiting for it to become signaled.
+*/
 CMTS_ATTR cmts_result CMTS_CALL cmts_event_reset(cmts_event* event);
 
+/** Initializes a counter object.
+* @param counter A valid pointer to a cmts_counter object.
+* @param start_value The initial value of the counter.
+* @note This function is not thread-safe.
+*/
 CMTS_ATTR void CMTS_CALL cmts_counter_init(cmts_counter* counter, uint64_t start_value);
+/** Retrieves the value of a counter.
+* @param counter A valid pointer to a cmts_counter object.
+* @return The current value of the counter.
+*/
 CMTS_ATTR uint64_t CMTS_CALL cmts_counter_value(const cmts_counter* counter);
+/** Retrieves the state of a counter.
+* @param counter A valid pointer to a cmts_counter object.
+* @return The state of the counter. Possible results:
+* @li CMTS_OK if the counter has already reached zero (signaled).
+* @li CMTS_SYNC_OBJECT_EXPIRED if the event has already been signaled.
+* @li CMTS_NOT_READY if no task is waiting for the counter to become signaled.
+*/
 CMTS_ATTR cmts_result CMTS_CALL cmts_counter_state(const cmts_counter* counter);
+/** Atomically increments the value of the counter.
+* @param counter A valid pointer to a cmts_counter object.
+* @return CMTS_OK if the operation succeeded, CMTS_SYNC_OBJECT_EXPIRED if the counter has already reached zero.
+* @note WARNING: Incrementing a counter after it reached zero leads to UB.
+*/
 CMTS_ATTR cmts_result CMTS_CALL cmts_counter_increment(cmts_counter* counter);
+/** Atomically decrements the value of the counter. If it reaches zero all waiting tasks are resumed.
+* @param counter A valid pointer to a cmts_counter object.
+* @return CMTS_OK if the operation succeeded, CMTS_SYNC_OBJECT_EXPIRED if the counter has already reached zero.
+*/
 CMTS_ATTR cmts_result CMTS_CALL cmts_counter_decrement(cmts_counter* counter);
+/** Attempts to wait for the counter to reach zero, putting the current task to sleep.
+* @param counter A valid pointer to a cmts_counter object.
+* @return CMTS_OK if the operation succeeded, CMTS_SYNC_OBJECT_EXPIRED if the counter had already reached zero.
+*/
 CMTS_ATTR cmts_result CMTS_CALL cmts_counter_await(cmts_counter* counter);
+/** Attempts to reset the counter, allowing new tasks to await on it.
+* @param counter A valid pointer to a cmts_counter object.
+* @return CMTS_OK if the operation succeeded, CMTS_NOT_READY if the counter still has tasks waiting for it to reach zero.
+*/
 CMTS_ATTR cmts_result CMTS_CALL cmts_counter_reset(cmts_counter* counter, uint64_t new_start_value);
 
+/** Initializes a mutex object.
+* @param mutex A valid pointer to a cmts_mutex object.
+*/
 CMTS_ATTR void CMTS_CALL cmts_mutex_init(cmts_mutex* mutex);
+/** Checks whether a mutex is locked.
+* @param mutex A valid pointer to a cmts_mutex object.
+* @return Whether the mutex is locked.
+*/
 CMTS_ATTR cmts_bool CMTS_CALL cmts_mutex_is_locked(const cmts_mutex* mutex);
+/** Attempts to lock the mutex.
+* @param mutex A valid pointer to a cmts_mutex object.
+* @return Whether the mutex was successfully acquired.
+*/
 CMTS_ATTR cmts_bool CMTS_CALL cmts_mutex_try_lock(cmts_mutex* mutex);
+/** Attempts to lock the mutex, otherwise blocks until it becomes available.
+* @param mutex A valid pointer to a cmts_mutex object.
+*/
 CMTS_ATTR void CMTS_CALL cmts_mutex_lock(cmts_mutex* mutex);
+/** Releases a previously acquired mutex.
+* @param mutex A valid pointer to a cmts_mutex object.
+*/
 CMTS_ATTR void CMTS_CALL cmts_mutex_unlock(cmts_mutex* mutex);
 
+/** Begins a CMTS RCU reader critical section.
+* Until cmts_rcu_read_end is invoked, suspending execution of the current task is forbidden.
+* @note No-op in release mode.
+*/
 CMTS_ATTR void CMTS_CALL cmts_rcu_read_begin();
+/** Ends a CMTS RCU reader critical section.
+* @note No-op in release mode.
+*/
 CMTS_ATTR void CMTS_CALL cmts_rcu_read_end();
+/** Performs a relatively naive RCU synchronize step.
+* This function blocks until all RCU reader critical sections have ended.
+*/
 CMTS_ATTR void CMTS_CALL cmts_rcu_sync();
+/** Retrieves the memory requirements of a CMTS RCU snapshot.
+* @param out_requirements A valid pointer to a cmts_memory_requirements record, which will be filled with the required size and alignment of an RCU snapshot.
+*/
 CMTS_ATTR void CMTS_CALL cmts_rcu_snapshot_requirements(cmts_memory_requirements* out_requirements);
+/** Fills a buffer with some information of the current state of the scheduler.
+* @param snapshot_buffer A pointer to the buffer to fill with snapshot information. This buffer must fulfill the requirements specified by cmts_rcu_snapshot_requirements.
+*/
 CMTS_ATTR void CMTS_CALL cmts_rcu_snapshot(void* snapshot_buffer);
+/** Attempts to synchronize using an RCU snaphost.
+* @param snapshot_buffer A pointer to a valid snapshot buffer.
+* @param prior_result 0 or the value that a prior invocation of cmts_rcu_try_snapshot_sync returned.
+* @return The number of worker threads that have finished executing an RCU critical section. If this value matches the number of worker threads then synchronization has finished.
+*/
 CMTS_ATTR uint32_t CMTS_CALL cmts_rcu_try_snapshot_sync(const void* snapshot_buffer, uint32_t prior_result);
+/** Synchronizes using an RCU snaphost.
+* @param snapshot_buffer A pointer to a valid snapshot buffer.
+*/
 CMTS_ATTR void CMTS_CALL cmts_rcu_snapshot_sync(const void* snapshot_buffer);
 
+/** Retrieves the memory requirements of a cmts_hazard_context.
+* @param out_requirements A valid pointer to a cmts_memory_requirements record, which will be filled with the required size and alignment of a cmts_hazard_context.
+*/
 CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_requirements(cmts_memory_requirements* out_requirements);
-CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_init(cmts_hazard_ptr* hptr, void* buffer);
-CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_protect(cmts_hazard_ptr* hptr, void* ptr);
-CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_release(cmts_hazard_ptr* hptr);
-CMTS_ATTR void* CMTS_CALL cmts_hazard_ptr_get(cmts_hazard_ptr* hptr);
-CMTS_ATTR cmts_bool CMTS_CALL cmts_hazard_ptr_is_unreachable(const cmts_hazard_ptr* hptr, const void* ptr);
+/** Initializes a cmts_hazard_context.
+* @param hctx A valid pointer to a cmts_hazard_context object.
+* @param buffer A pointer to a block of memory with the required size and alignment.
+*/
+CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_init(cmts_hazard_context* hctx, void* buffer);
+/** Protects the specified pointer.
+* Until cmts_hazard_ptr_release is invoked, suspending execution of the current task is forbidden.
+* @param hctx A valid pointer to a cmts_hazard_context object.
+* @param ptr The pointer to protect.
+*/
+CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_protect(cmts_hazard_context* hctx, void* ptr);
+/** Stops protecting the pointer that was previously passed to cmts_hazard_ptr_protect.
+* @param hctx A valid pointer to a cmts_hazard_context object.
+*/
+CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_release(cmts_hazard_context* hctx);
+/** Retrieves the current hazard pointer.
+* @param hctx A valid pointer to a cmts_hazard_context object.
+*/
+CMTS_ATTR void* CMTS_CALL cmts_hazard_ptr_get(cmts_hazard_context* hctx);
+/** Checks whether a pointer is in use by other tasks.
+* @param hctx A valid pointer to a cmts_hazard_context object.
+* @param ptr The pointer to check.
+* @return Whether the specified pointer is reachable by other tasks.
+*/
+CMTS_ATTR cmts_bool CMTS_CALL cmts_hazard_ptr_is_unreachable(const cmts_hazard_context* hctx, const void* ptr);
 
+/**
+* @return The number of physical processors.
+*/
 CMTS_ATTR size_t CMTS_CALL cmts_processor_count();
+/** 
+* @return The index of the current physical processor.
+*/
 CMTS_ATTR size_t CMTS_CALL cmts_this_processor_index();
+/**
+* @return The default size of the stack of a task
+*/
 CMTS_ATTR size_t CMTS_CALL cmts_default_task_stack_size();
 
 #ifdef CMTS_FORMAT_RESULT
+/** Formats a CMTS error code.
+* @param result The error code.
+* @param out_size Either NULL or a valid pointer to a variable that receives the length of the returned string.
+* @return A pointer to a read-only null-terminated string with error code as text.
+*/
 CMTS_ATTR const CMTS_CHAR* CMTS_CALL cmts_format_result(cmts_result result, size_t* out_size);
 #endif
 
+/** Enables or disables the yield trap.
+* [DEBUG ONLY] If enabled, any operation that results in the current task being suspended will crash the program.
+* @param enable Whether to enable the trap.
+* @return The previous state of the trap.
+*/
 CMTS_ATTR cmts_bool CMTS_CALL cmts_ext_debug_enable_yield_trap(cmts_bool enable);
 
+/**
+* @return Whether the CMTS debugger is enabled. Always CMTS_FALSE in release mode.
+*/
 CMTS_ATTR cmts_bool CMTS_CALL cmts_ext_debug_enabled();
+/** Prints a message to the debugger.
+* @param message The message information (text, length, severity, etc).
+*/
 CMTS_ATTR void CMTS_CALL cmts_ext_debug_write(const cmts_ext_debug_message* message);
 
-CMTS_EXTERN_C_END
+}
 #endif
+
+
 
 #ifdef CMTS_IMPLEMENTATION
 #define CMTS_ROUND_CACHE_LINE_SIZE(VALUE) ((VALUE) + (CMTS_CACHE_LINE_SIZE - 1)) & (~(CMTS_CACHE_LINE_SIZE - 1))
@@ -820,7 +1180,7 @@ typedef union cmts_wait_queue_union
 
 typedef CMTS_ATOMIC(uint32_t) cmts_fence_data;
 typedef CMTS_ATOMIC(uint64_t) cmts_event_data;
-typedef CMTS_ATOMIC(uint64_t) cmts_mutex_data;
+typedef CMTS_ATOMIC(uint32_t) cmts_mutex_data;
 
 typedef struct cmts_counter_data
 {
@@ -862,7 +1222,7 @@ static cmts_fn_remainder thread_remainder;
 static CMTS_THREAD_LOCAL(uint8_t) yield_trap_flag;
 #endif
 static CMTS_THREAD_LOCAL(cmts_context) root_task;
-static CMTS_THREAD_LOCAL(size_t) rcu_depth;
+static CMTS_THREAD_LOCAL(size_t) yield_trap_depth;
 static CMTS_THREAD_LOCAL(uint32_t) thread_index;
 static CMTS_THREAD_LOCAL(uint32_t) task_index;
 static CMTS_THREAD_LOCAL(cmts_romu2jr) prng;
@@ -870,8 +1230,9 @@ static CMTS_THREAD_LOCAL(uint64_t) prng_last_seed;
 
 CMTS_INLINE_NEVER static void cmts_finalize_check_noinline()
 {
-	if (cmts_context_is_valid(&task_pool[task_index].ctx))
-		cmts_context_wipe(&task_pool[task_index].ctx);
+	if (cmts_is_task())
+		if (cmts_context_is_valid(&task_pool[task_index].ctx))
+			cmts_context_wipe(&task_pool[task_index].ctx);
 	cmts_os_exit_thread(0);
 }
 
@@ -1209,7 +1570,7 @@ static thread_return_type CMTS_THREAD_CALLING_CONVENTION cmts_thread_entry_point
 #ifdef CMTS_WINDOWS
 	root_task = ConvertThreadToFiberEx(NULL, FIBER_FLAG_FLOAT_SWITCH);
 #endif
-	while (CMTS_ATOMIC_LOAD_ACQ_U8(&should_continue))
+	for (;; cmts_finalize_check())
 	{
 		task_index = cmts_pop_task();
 		task = task_pool + task_index;
@@ -1240,7 +1601,6 @@ static thread_return_type CMTS_THREAD_CALLING_CONVENTION cmts_thread_entry_point
 			(void)callback(sync_object);
 		}
 	}
-	return 0;
 }
 
 static void cmts_task_entry_point(void* ptr)
@@ -1441,7 +1801,8 @@ static cmts_result cmts_common_cleanup(cmts_fn_deallocate deallocate)
 	return CMTS_OK;
 }
 
-CMTS_EXTERN_C_BEGIN
+extern "C"
+{
 CMTS_ATTR cmts_result CMTS_CALL cmts_init(const cmts_init_options* options)
 {
 	cmts_result r;
@@ -1516,7 +1877,7 @@ CMTS_ATTR cmts_result CMTS_CALL cmts_terminate(cmts_fn_deallocate deallocate)
 	CMTS_UNLIKELY_IF(!cmts_is_initialized())
 		return CMTS_ERROR_LIBRARY_UNINITIALIZED;
 	CMTS_UNLIKELY_IF(!cmts_os_terminate_threads(threads, thread_count))
-		return CMTS_ERROR_THREAD_TERMINATION;
+		return CMTS_ERROR_TERMINATE_THREAD;
 	return cmts_common_cleanup(deallocate);
 }
 
@@ -1535,14 +1896,14 @@ CMTS_ATTR cmts_bool CMTS_CALL cmts_is_paused()
 	return CMTS_ATOMIC_LOAD_ACQ_U8(&scheduler_state) == CMTS_SCHEDULER_STATE_PAUSED;
 }
 
-CMTS_ATTR uint32_t CMTS_CALL cmts_purge(uint32_t max_trimmed_tasks)
+CMTS_ATTR uint32_t CMTS_CALL cmts_purge(uint32_t max_purged_tasks)
 {
 	uint_fast32_t n, k, i;
 	n = CMTS_ATOMIC_LOAD_ACQ_U32(&task_pool_bump);
 	CMTS_UNLIKELY_IF(n > task_pool_capacity)
 		n = task_pool_capacity;
 	k = 0;
-	for (i = 0; i != n && k != max_trimmed_tasks; ++i)
+	for (i = 0; i != n && k != max_purged_tasks; ++i)
 	{
 		CMTS_LIKELY_IF(cmts_context_is_valid(&task_pool[i].ctx))
 			cmts_context_delete(&task_pool[i].ctx);
@@ -1580,15 +1941,6 @@ CMTS_ATTR uint32_t CMTS_CALL cmts_worker_thread_index()
 CMTS_ATTR uint32_t CMTS_CALL cmts_worker_thread_count()
 {
 	return thread_count;
-}
-
-CMTS_ATTR cmts_bool CMTS_CALL cmts_requires_allocator()
-{
-#ifdef CMTS_WINDOWS
-	return CMTS_FALSE;
-#else
-	return CMTS_TRUE;
-#endif
 }
 
 CMTS_ATTR cmts_result CMTS_CALL cmts_dispatch(cmts_fn_task entry_point, cmts_dispatch_options* options)
@@ -1732,7 +2084,7 @@ CMTS_ATTR void CMTS_CALL cmts_task_sleep(cmts_task_id task_id)
 	CMTS_ATOMIC_STORE_REL_U8(&task_pool[index].state, CMTS_TASK_STATE_GOING_TO_SLEEP);
 }
 
-CMTS_ATTR void CMTS_CALL cmts_task_wake(cmts_task_id task_id)
+CMTS_ATTR void CMTS_CALL cmts_task_resume(cmts_task_id task_id)
 {
 	CMTS_TASK_COMMON_VARIABLES;
 	cmts_impl_wake_task(index);
@@ -1792,6 +2144,19 @@ CMTS_ATTR void CMTS_CALL cmts_fence_signal(cmts_fence* fence)
 			break;
 	}
 	cmts_impl_wake_task(index);
+}
+
+CMTS_ATTR cmts_bool CMTS_CALL cmts_fence_try_await(cmts_fence* fence)
+{
+	cmts_fence_data* e;
+	uint32_t prior, desired;
+	e = (cmts_fence_data*)fence;
+	prior = UINT32_MAX;
+	desired = task_index;
+	CMTS_UNLIKELY_IF(!CMTS_ATOMIC_CMPXCHG_ACQ_U32(e, &prior, desired))
+		return CMTS_FALSE;
+	cmts_impl_sleep_task();
+	return CMTS_TRUE;
 }
 
 CMTS_ATTR void CMTS_CALL cmts_fence_await(cmts_fence* fence)
@@ -1918,110 +2283,74 @@ CMTS_ATTR cmts_result CMTS_CALL cmts_counter_reset(cmts_counter* counter, uint64
 
 CMTS_ATTR void CMTS_CALL cmts_mutex_init(cmts_mutex* mutex)
 {
-	(void)memset(mutex, 0xff, 8);
+	(void)memset(mutex, 0xff, 4);
 }
 
 CMTS_ATTR cmts_bool CMTS_CALL cmts_mutex_is_locked(const cmts_mutex* mutex)
 {
 	cmts_mutex_data* c;
-	cmts_wait_queue_union info;
 	c = (cmts_mutex_data*)mutex;
-	info.packed = CMTS_ATOMIC_LOAD_ACQ_U64(c);
-	return info.queue.head != UINT32_MAX;
+	return CMTS_ATOMIC_LOAD_ACQ_U32(c) != UINT32_MAX;
 }
 
 CMTS_ATTR cmts_bool CMTS_CALL cmts_mutex_try_lock(cmts_mutex* mutex)
 {
-	uint64_t desired;
 	cmts_mutex_data* c;
-	cmts_wait_queue_union info;
-	desired = UINT64_MAX;
+	uint32_t prior, desired;
+	CMTS_ASSERT(cmts_is_task());
 	c = (cmts_mutex_data*)mutex;
-	info.queue.head = task_index;
-	info.queue.tail = UINT32_MAX;
-	return CMTS_ATOMIC_CMPXCHG_ACQ_U64(mutex, &desired, info.packed);
+	prior = UINT32_MAX;
+	desired = task_index;
+	return CMTS_ATOMIC_CMPXCHG_ACQ_U32(c, &prior, desired);
 }
 
 CMTS_ATTR void CMTS_CALL cmts_mutex_lock(cmts_mutex* mutex)
 {
 	cmts_mutex_data* c;
-	cmts_wait_queue_union prior, desired;
-#ifdef CMTS_HYBRID_MUTEX
-	size_t i;
-#endif
-	c = (cmts_mutex_data*)mutex;
-#ifndef CMTS_HYBRID_MUTEX
+	uint32_t prior;
 	CMTS_ASSERT(cmts_is_task());
-#else
-	CMTS_UNLIKELY_IF(!cmts_is_task())
-		for (;; cmts_os_futex_await((CMTS_ATOMIC(uint32_t)*)c, &prior.queue.head, 4))
-			for (i = 0; i != CMTS_SPIN_THRESHOLD; ++i)
-				CMTS_LIKELY_IF(cmts_mutex_try_lock(mutex))
-					return;
-#endif
-	CMTS_SPIN_LOOP
-	{
-		prior.packed = CMTS_ATOMIC_LOAD_ACQ_U64(c);
-		CMTS_LIKELY_IF(prior.queue.head == UINT32_MAX)
-		{
-			desired.queue.head = task_index;
-			desired.queue.tail = UINT32_MAX;
-		}
-		else
-		{
-			desired.queue.head = prior.queue.head;
-			desired.queue.tail = task_index;
-		}
-		CMTS_LIKELY_IF(CMTS_ATOMIC_CMPXCHG_ACQ_U64(c, &prior.packed, desired.packed))
-			break;
-	}
-	CMTS_LIKELY_IF(desired.queue.head == task_index)
+	c = (cmts_mutex_data*)mutex;
+	prior = CMTS_ATOMIC_XCHG_ACQ_U32(c, task_index);
+	CMTS_LIKELY_IF(prior == UINT32_MAX)
 		return;
-	CMTS_LIKELY_IF(prior.queue.tail == UINT32_MAX)
-		task_pool[prior.queue.tail].next = task_index;
+	task_pool[prior].next = task_index;
 	cmts_impl_sleep_task();
-	task_pool[task_index].next = UINT32_MAX;
 }
 
 CMTS_ATTR void CMTS_CALL cmts_mutex_unlock(cmts_mutex* mutex)
 {
 	cmts_mutex_data* c;
-	cmts_wait_queue_union prior, desired;
-#ifndef CMTS_HYBRID_MUTEX
+	uint32_t index;
 	CMTS_ASSERT(cmts_is_task());
-#endif
 	c = (cmts_mutex_data*)mutex;
-	prior.queue.head = task_index;
-	prior.queue.tail = UINT32_MAX;
-	CMTS_LIKELY_IF(CMTS_ATOMIC_CMPXCHG_STRONG_ACQ_U64(c, &prior.packed, UINT64_MAX))
-		return;
-	CMTS_SPIN_LOOP
+	CMTS_LIKELY_IF(task_pool[task_index].next == UINT32_MAX)
 	{
-		prior.packed = CMTS_ATOMIC_LOAD_ACQ_U64(c);
-		desired.queue.head = prior.queue.tail;
-		CMTS_LIKELY_IF(prior.queue.tail != UINT32_MAX)
+		index = task_index;
+		CMTS_LIKELY_IF(CMTS_ATOMIC_CMPXCHG_STRONG_REL_U32(c, &index, UINT32_MAX))
+			return;
+		CMTS_SPIN_LOOP
 		{
-			CMTS_UNLIKELY_IF(CMTS_ATOMIC_LOAD_ACQ_U8(&task_pool[prior.queue.tail].state) != CMTS_TASK_STATE_SLEEPING)
-				continue;
-			desired.queue.tail = task_pool[prior.queue.tail].next;
+			index = task_pool[task_index].next;
+			if (index == UINT32_MAX)
+				break;
 		}
-		CMTS_LIKELY_IF(CMTS_ATOMIC_CMPXCHG_ACQ_U64(c, &prior.packed, desired.packed))
-			break;
 	}
-	CMTS_LIKELY_IF(prior.queue.tail == UINT32_MAX)
-		cmts_impl_wake_task(prior.queue.tail);
-#ifdef CMTS_HYBRID_MUTEX
-	cmts_os_futex_signal((CMTS_ATOMIC(uint32_t)*)c);
-#endif
+	else
+	{
+		index = task_pool[task_index].next;
+	}
+	CMTS_INVARIANT(index != UINT32_MAX);
+	task_pool[task_index].next = UINT32_MAX;
+	cmts_impl_wake_task(index);
 }
 
 CMTS_ATTR void CMTS_CALL cmts_rcu_read_begin()
 {
 #ifdef CMTS_DEBUG
 	CMTS_ASSERT(cmts_is_task());
-	CMTS_LIKELY_IF(rcu_depth == 0)
+	CMTS_LIKELY_IF(yield_trap_depth == 0)
 		cmts_ext_debug_enable_yield_trap(CMTS_TRUE);
-	++rcu_depth;
+	++yield_trap_depth;
 #endif
 }
 
@@ -2029,8 +2358,8 @@ CMTS_ATTR void CMTS_CALL cmts_rcu_read_end()
 {
 #ifdef CMTS_DEBUG
 	CMTS_ASSERT(cmts_is_task());
-	--rcu_depth;
-	CMTS_LIKELY_IF(rcu_depth == 0)
+	--yield_trap_depth;
+	CMTS_LIKELY_IF(yield_trap_depth == 0)
 		cmts_ext_debug_enable_yield_trap(CMTS_FALSE);
 #endif
 }
@@ -2066,7 +2395,7 @@ CMTS_ATTR void CMTS_CALL cmts_rcu_sync()
 CMTS_ATTR void CMTS_CALL cmts_rcu_snapshot_requirements(cmts_memory_requirements* out_requirements)
 {
 	out_requirements->size = thread_count * sizeof(uint32_t);
-	out_requirements->alignment = sizeof(uint32_t);
+	out_requirements->alignment_log2 = 2;
 }
 
 CMTS_ATTR void CMTS_CALL cmts_rcu_snapshot(void* snapshot_buffer)
@@ -2108,47 +2437,53 @@ CMTS_ATTR void CMTS_CALL cmts_rcu_snapshot_sync(const void* snapshot_buffer)
 CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_requirements(cmts_memory_requirements* out_requirements)
 {
 	out_requirements->size = (size_t)thread_count * sizeof(void*);
-	out_requirements->alignment = sizeof(void*);
+#if UINTPTR_MAX == UINT32_MAX
+	out_requirements->alignment_log2 = 2;
+#else
+	out_requirements->alignment_log2 = 3;
+#endif
 }
 
-CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_init(cmts_hazard_ptr* hptr, void* buffer)
+CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_init(cmts_hazard_context* hctx, void* buffer)
 {
 	(void)memset((void*)buffer, 0, (size_t)thread_count * sizeof(void*));
-	*hptr = (size_t)buffer;
+	*hctx = (size_t)buffer;
 }
 
-CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_protect(cmts_hazard_ptr* hptr, void* ptr)
+CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_protect(cmts_hazard_context* hctx, void* ptr)
 {
 	CMTS_ASSERT(cmts_is_task());
+	cmts_rcu_read_begin();
 #ifdef CMTS_DEBUG
-	CMTS_ASSERT(CMTS_ATOMIC_XCHG_REL_UPTR((CMTS_ATOMIC(void*)*)hptr + thread_index, (size_t)ptr) == NULL);
+	CMTS_ASSERT(CMTS_ATOMIC_XCHG_REL_UPTR((CMTS_ATOMIC(void*)*)hctx + thread_index, (size_t)ptr) == NULL);
 #else
-	CMTS_ATOMIC_STORE_REL_UPTR((CMTS_ATOMIC(void*)*)hptr + thread_index, (size_t)ptr);
+	CMTS_ATOMIC_STORE_REL_UPTR((CMTS_ATOMIC(void*)*)hctx + thread_index, (size_t)ptr);
 #endif
 }
 
-CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_release(cmts_hazard_ptr* hptr)
+CMTS_ATTR void CMTS_CALL cmts_hazard_ptr_release(cmts_hazard_context* hctx)
 {
 	CMTS_ASSERT(cmts_is_task());
 #ifdef CMTS_DEBUG
-	CMTS_ASSERT(CMTS_ATOMIC_XCHG_REL_UPTR((CMTS_ATOMIC(void*)*)hptr + thread_index, 0) != NULL);
+	CMTS_ASSERT(CMTS_ATOMIC_XCHG_REL_UPTR((CMTS_ATOMIC(void*)*)hctx + thread_index, 0) != NULL);
 #else
-	CMTS_ATOMIC_STORE_REL_UPTR((CMTS_ATOMIC(void*)*)hptr + thread_index, 0);
+	CMTS_ATOMIC_STORE_REL_UPTR((CMTS_ATOMIC(void*)*)hctx + thread_index, 0);
 #endif
+	cmts_rcu_read_end();
 }
 
-CMTS_ATTR void* CMTS_CALL cmts_hazard_ptr_get(cmts_hazard_ptr* hptr)
+CMTS_ATTR void* CMTS_CALL cmts_hazard_ptr_get(cmts_hazard_context* hctx)
 {
 	CMTS_ASSERT(cmts_is_task());
-	return (void*)CMTS_ATOMIC_LOAD_ACQ_UPTR((CMTS_ATOMIC(void*)*)hptr + thread_index);
+	return (void*)CMTS_ATOMIC_LOAD_ACQ_UPTR((CMTS_ATOMIC(void*)*)hctx + thread_index);
 }
 
-CMTS_ATTR cmts_bool CMTS_CALL cmts_hazard_ptr_is_unreachable(const cmts_hazard_ptr* hptr, const void* ptr)
+CMTS_ATTR cmts_bool CMTS_CALL cmts_hazard_ptr_is_unreachable(const cmts_hazard_context* hctx, const void* ptr)
 {
 	uint8_t* i;
 	uint8_t* end;
-	end = (uint8_t*)hptr + thread_count * sizeof(void*);
-	for (i = (uint8_t*)hptr; i != end; i += sizeof(void*))
+	end = (uint8_t*)hctx + thread_count * sizeof(void*);
+	for (i = (uint8_t*)hctx; i != end; i += sizeof(void*))
 	{
 		CMTS_UNLIKELY_IF((void*)CMTS_ATOMIC_LOAD_ACQ_UPTR((CMTS_ATOMIC(void*)*)i) == ptr)
 			return CMTS_FALSE;
@@ -2184,7 +2519,7 @@ static const CMTS_CHAR* format_result_names[] =
 	"CMTS_ERROR_THREAD_AFFINITY",
 	"CMTS_ERROR_RESUME_THREAD",
 	"CMTS_ERROR_SUSPEND_THREAD",
-	"CMTS_ERROR_THREAD_TERMINATION",
+	"CMTS_ERROR_TERMINATE_THREAD",
 	"CMTS_ERROR_AWAIT_THREAD",
 	"CMTS_ERROR_TASK_POOL_CAPACITY",
 	"CMTS_ERROR_AFFINITY",
@@ -2207,7 +2542,7 @@ static const size_t format_result_sizes[] =
 	CMTS_STRING_SIZE("CMTS_ERROR_THREAD_AFFINITY"),
 	CMTS_STRING_SIZE("CMTS_ERROR_RESUME_THREAD"),
 	CMTS_STRING_SIZE("CMTS_ERROR_SUSPEND_THREAD"),
-	CMTS_STRING_SIZE("CMTS_ERROR_THREAD_TERMINATION"),
+	CMTS_STRING_SIZE("CMTS_ERROR_TERMINATE_THREAD"),
 	CMTS_STRING_SIZE("CMTS_ERROR_AWAIT_THREAD"),
 	CMTS_STRING_SIZE("CMTS_ERROR_TASK_POOL_CAPACITY"),
 	CMTS_STRING_SIZE("CMTS_ERROR_AFFINITY"),
@@ -2263,5 +2598,5 @@ CMTS_ATTR void CMTS_CALL cmts_ext_debug_write(const cmts_ext_debug_message* mess
 		debugger_callback(debugger_context, message);
 #endif
 }
-CMTS_EXTERN_C_END
+}
 #endif

@@ -1,4 +1,3 @@
 #define CMTS_NO_BUSY_WAIT
-#define CMTS_FULLY_WAIT_FREE_QUEUE
 #define CMTS_IMPLEMENTATION
 #include <cmts.h>
