@@ -40,6 +40,7 @@ bool main_array::resize(uint32_t size)
 
 	main_array_size = size;
 	main_array_capacity = round_pow2(size);
+	size *= sizeof(item);
 	VkBufferCreateInfo buffer_info = {};
 	buffer_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	buffer_info.size = main_array_capacity * sizeof(item);
@@ -51,6 +52,8 @@ bool main_array::resize(uint32_t size)
 	alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	alloc_info.allocationSize = buffer_info.size;
 	alloc_info.memoryTypeIndex = find_buffer_memory_type(main_array_buffer, VK_MEMORY_PROPERTY_HOST_COHERENT_BIT | VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+	if (alloc_info.memoryTypeIndex == UINT32_MAX)
+		return false;
 	if (vkAllocateMemory(device, &alloc_info, nullptr, &main_array_memory) != VK_SUCCESS)
 		return false;
 	if (vkBindBufferMemory(device, main_array_buffer, main_array_memory, 0) != VK_SUCCESS)
@@ -245,7 +248,7 @@ bool item::operator>=(const item& other) const
 
 size_t item::max_radix(size_t radix)
 {
-	return 32 / fast_log2(radix);
+	return 32 / floor_log2(radix);
 }
 
 ptrdiff_t compare(const item& left, const item& right)
@@ -329,7 +332,7 @@ size_t extract_radix(const item& value, size_t radix_index, size_t radix)
 #else
 	AVK_ASSERT(__popcnt64(radix) == 1);
 #endif
-	const size_t log2 = fast_log2(radix);
+	const size_t log2 = floor_log2(radix);
 	const size_t mask = radix - 1;
 	return ((size_t)value.value >> (radix_index * log2)) & mask;
 }

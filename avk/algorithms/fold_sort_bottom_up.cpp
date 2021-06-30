@@ -15,7 +15,7 @@ static void halver(main_array array, size_t low, size_t high)
 void fold_sort_bottom_up(main_array array)
 {
 	size_t size = array.size();
-	size_t log2 = fast_log2(size);
+	size_t log2 = floor_log2(size);
 
 	//for (size_t n = 0; n <= log2; ++n)
 	{

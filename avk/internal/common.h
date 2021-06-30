@@ -36,32 +36,52 @@ void non_atomic_store(std::atomic<T>& where, U&& value)
 	new ((T*)&where) T(std::forward<U>(value));
 }
 
-inline uint8_t fast_log2(uint32_t value)
+inline uint8_t floor_log2(uint32_t value)
 {
-#if defined(__clang__) || defined(__GNUC__)
-	return __builtin_ctz(value);
+#ifdef _MSVC_LANG
+	return 31 - (uint8_t)__lzcnt(value);
 #else
-	return (uint8_t)_tzcnt_u32(value);
+	return 31 - (uint8_t)__builtin_clz(value);
 #endif
 }
 
-inline uint8_t fast_log2(uint64_t value)
+inline uint8_t floor_log2(uint64_t value)
 {
-#if defined(__clang__) || defined(__GNUC__)
-	return __builtin_ctzll(value);
+#ifdef _MSVC_LANG
+	return 63 - (uint8_t)__lzcnt64(value);
 #else
-	return (uint8_t)_tzcnt_u64(value);
+	return 63 - (uint8_t)__builtin_clzll(value);
+#endif
+}
+
+inline uint8_t round_log2(uint32_t value)
+{
+	--value;
+#ifdef _MSVC_LANG
+	return 32 - (uint8_t)__lzcnt(value);
+#else
+	return 32 - (uint8_t)__builtin_clz(value);
+#endif
+}
+
+inline uint8_t round_log2(uint64_t value)
+{
+	--value;
+#ifdef _MSVC_LANG
+	return 64 - (uint8_t)__lzcnt64(value);
+#else
+	return 64 - (uint8_t)__builtin_clzll(value);
 #endif
 }
 
 inline uint32_t round_pow2(uint32_t value)
 {
-	uint32_t log2 = (uint32_t)fast_log2(value);
+	uint32_t log2 = (uint32_t)round_log2(value);
 	return 1U << log2;
 }
 
 inline uint64_t round_pow2(uint64_t value)
 {
-	uint64_t log2 = (uint64_t)fast_log2(value);
+	uint64_t log2 = (uint64_t)round_log2(value);
 	return 1ULL << log2;
 }
