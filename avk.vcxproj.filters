@@ -272,12 +272,6 @@
     <ClCompile Include="avk\algorithms\triangle_fold_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="avk\algorithms\ctree_sort.cpp">
-      <Filter>avk\algorithms</Filter>
-    </ClCompile>
-    <ClCompile Include="avk\algorithms\ilp_binary_msd_radix_sort.cpp">
-      <Filter>avk\algorithms</Filter>
-    </ClCompile>
     <ClCompile Include="avk\algorithms\fold_sort_v2.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>

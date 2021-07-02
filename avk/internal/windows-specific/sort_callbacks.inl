@@ -64,9 +64,6 @@ case IDM_SORT_grailsort_cpp:
 case IDM_SORT_grail_sort:
 	algorithm_thread::launch(grail_sort);
 	break;
-case IDM_SORT_ilp_binary_msd_radix_sort:
-	algorithm_thread::launch(ilp_binary_msd_radix_sort);
-	break;
 case IDM_SORT_insertion_sort:
 	algorithm_thread::launch(insertion_sort);
 	break;

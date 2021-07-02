@@ -23,7 +23,6 @@ void fold_sort_v2(main_array array);
 void gambit_insertion_sort(main_array array);
 void grailsort_cpp(main_array array);
 void grail_sort(main_array array);
-void ilp_binary_msd_radix_sort(main_array array);
 void insertion_sort(main_array array);
 void lsd_radix_sort(main_array array);
 void matrix_sort(main_array array);

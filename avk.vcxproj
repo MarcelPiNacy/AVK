@@ -286,12 +286,10 @@
     <ClCompile Include="avk\algorithms\bose_nelson_network.cpp" />
     <ClCompile Include="avk\algorithms\bose_nelson_network_parallel.cpp" />
     <ClCompile Include="avk\algorithms\breadth_sort.cpp" />
-    <ClCompile Include="avk\algorithms\ctree_sort.cpp" />
     <ClCompile Include="avk\algorithms\custom_sqrt_sort.cpp" />
     <ClCompile Include="avk\algorithms\fold_sort_parallel.cpp" />
     <ClCompile Include="avk\algorithms\fold_sort_recursive.cpp" />
     <ClCompile Include="avk\algorithms\fold_sort_v2.cpp" />
-    <ClCompile Include="avk\algorithms\ilp_binary_msd_radix_sort.cpp" />
     <ClCompile Include="avk\algorithms\matrix_sort.cpp" />
     <ClCompile Include="avk\algorithms\odd_even_merge_sort_parallel.cpp" />
     <ClCompile Include="avk\algorithms\pairwise_sorting_network.cpp" />
