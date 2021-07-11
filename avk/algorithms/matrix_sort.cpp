@@ -1,38 +1,42 @@
 #include "all.h"
-#include <cmath>
+#include <algorithm>
 
-static void gapped_reverse(main_array array, size_t start, size_t end, size_t gap)
+template <typename I>
+struct MatrixSorter
 {
-    for (size_t i = start, j = end; i < j; i += gap, j -= gap)
-        swap(array, i, j - gap);
-}
+    static uint8_t CountLeadingZeros(size_t value)
+    {
+        if (value == 0)
+            return 1;
+        return (uint8_t)__lzcnt64(value);
+    }
 
-static void matrix_sort(main_array array, size_t start, size_t end, size_t gap, bool ascending)
+    static uint32_t Sqrt(size_t value)
+    {
+        return (uint32_t)round(sqrt(value));
+    }
+
+    static constexpr size_t FallbackThreshold = 16;
+    static constexpr size_t MaxDepth = 50;
+
+    static void SortCore(I begin, size_t count, size_t step)
+    {
+        if (count == 2)
+
+        size_t next_count = Sqrt(count);
+        SortCore(begin, step, next_step);
+
+    }
+};
+
+template <typename I>
+static void MatrixSort(I begin, I end)
 {
-    size_t length = (end - start) / gap;
-    if (length < 2)
-        return;
-    if (length == 2)
-    {
-        if ((array[start] > array[start + gap]) && ascending)
-            swap(array[start], array[start + gap]);
-        return;
-    }
-    size_t width = (size_t)sqrt(length);
-    while ((length % width) != 0)
-        --width;
-    for (size_t i = start + width * gap; i < end; i += 2 * width * gap)
-    {
-        gapped_reverse(array, i, i + width * gap, gap);
-    }
-    for (size_t i = start; i < end; i += width * gap)
-    {
-        matrix_sort(array, i, i + width * gap, gap, ascending);
-        ascending = !ascending;
-    }
+    size_t count = std::distance(begin, end);
+    MatrixSorter<item*>::SortCore(begin, count, count);
 }
 
 void matrix_sort(main_array array)
 {
-    matrix_sort(array, 0, array.size(), 1, true);
+    MatrixSort(array.begin(), array.end());
 }

@@ -185,9 +185,6 @@
     <ClCompile Include="avk\algorithms\monitor_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
-    <ClCompile Include="avk\algorithms\custom_radix_sort.cpp">
-      <Filter>avk\algorithms</Filter>
-    </ClCompile>
     <ClCompile Include="avk\algorithms\ska_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
@@ -297,6 +294,9 @@
       <Filter>avk\algorithms</Filter>
     </ClCompile>
     <ClCompile Include="avk\algorithms\custom_sqrt_sort.cpp">
+      <Filter>avk\algorithms</Filter>
+    </ClCompile>
+    <ClCompile Include="avk\algorithms\stripe_sort.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
   </ItemGroup>

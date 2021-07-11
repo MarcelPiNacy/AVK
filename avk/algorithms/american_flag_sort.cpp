@@ -105,7 +105,7 @@ namespace detail::american_flag_sort
 				return;
 			--digit_index;
 
-			std::stable_sort(std::begin(partitions), std::end(partitions));
+			std::sort(std::begin(partitions), std::end(partitions));
 			const partition_info* const partitions_end = partitions + Radix;
 			for (auto p = partitions_end - active_partition_count; p < partitions_end; ++p)
 				core(p->begin, p->end, digit_index, extract_digit);

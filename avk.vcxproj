@@ -297,7 +297,6 @@
     <ClCompile Include="avk\algorithms\fold_sort_bottom_up.cpp" />
     <ClCompile Include="avk\algorithms\binary_tree_sort.cpp" />
     <ClCompile Include="avk\algorithms\bitonic_sort.cpp" />
-    <ClCompile Include="avk\algorithms\custom_radix_sort.cpp" />
     <ClCompile Include="avk\algorithms\grailsort_cpp.cpp" />
     <ClCompile Include="avk\algorithms\monitor_sort.cpp" />
     <ClCompile Include="avk\algorithms\counting_sort.cpp" />
@@ -324,6 +323,7 @@
     <ClCompile Include="avk\algorithms\insertion_sort.cpp" />
     <ClCompile Include="avk\algorithms\selection_sort.cpp" />
     <ClCompile Include="avk\algorithms\std_stable_sort.cpp" />
+    <ClCompile Include="avk\algorithms\stripe_sort.cpp" />
     <ClCompile Include="avk\algorithms\thatsoven_feature_sort.cpp" />
     <ClCompile Include="avk\algorithms\thatsoven_m16aqsort.cpp" />
     <ClCompile Include="avk\algorithms\thatsoven_stable_sort.cpp" />

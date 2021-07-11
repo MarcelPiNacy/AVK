@@ -28,12 +28,6 @@ case IDM_SORT_bubble_sort:
 case IDM_SORT_counting_sort:
 	algorithm_thread::launch(counting_sort);
 	break;
-case IDM_SORT_ctree_sort:
-	algorithm_thread::launch(ctree_sort);
-	break;
-case IDM_SORT_custom_radix_sort:
-	algorithm_thread::launch(custom_radix_sort);
-	break;
 case IDM_SORT_custom_sqrt_sort:
 	algorithm_thread::launch(custom_sqrt_sort);
 	break;
@@ -132,6 +126,9 @@ case IDM_SORT_std_sort:
 	break;
 case IDM_SORT_std_stable_sort:
 	algorithm_thread::launch(std_stable_sort);
+	break;
+case IDM_SORT_stripe_sort:
+	algorithm_thread::launch(stripe_sort);
 	break;
 case IDM_SORT_thatsoven_feature_sort:
 	algorithm_thread::launch(thatsoven_feature_sort);
