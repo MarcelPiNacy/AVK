@@ -21,11 +21,6 @@ struct MatrixSorter
 
     static void SortCore(I begin, size_t count, size_t step)
     {
-        if (count == 2)
-
-        size_t next_count = Sqrt(count);
-        SortCore(begin, step, next_step);
-
     }
 };
 

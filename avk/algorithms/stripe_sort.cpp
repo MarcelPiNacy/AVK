@@ -321,17 +321,18 @@ struct Sorter
 			return;
 		--digit_index;
 
-		size_t this_partition = 0;
+		size_t this_partition = 255;
 		size_t finished_partition_count = 0;
-		for (;; ++this_partition)
+		for (;; --this_partition)
 		{
 			if (!presence.test(this_partition))
 				continue;
-			if (counts[this_partition] <= 1)
-				continue;
-			I i = begin;
-			begin += counts[this_partition];
-			SortCore(i, begin, digit_index);
+			if (counts[this_partition] > 1)
+			{
+				I next = end - counts[this_partition];
+				SortCore(next, end, digit_index);
+				end = next;
+			}
 			++finished_partition_count;
 			if (finished_partition_count == total_active_partition_count)
 				break;
