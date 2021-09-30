@@ -1,13 +1,14 @@
 #include "all.h"
 #include <algorithm>
-#include "../internal/parallel_for.h"
+#include <Comet.hpp>
 
 void parallel_merge_sort(main_array array)
 {
+	array.begin_parallel_sort();
 	size_t base_run_size = 16;
 	size_t size = array.size();
 
-	parallel_for<size_t>(0, size / base_run_size, [=](size_t base_index)
+	Comet::ForEach<size_t>(0, size / base_run_size, [=](size_t base_index)
 	{
 		ptrdiff_t begin = (base_index * base_run_size);
 		ptrdiff_t end = begin + base_run_size;
@@ -27,7 +28,7 @@ void parallel_merge_sort(main_array array)
 		size_t next_run_size = run_size * 2;
 		size_t run_count = size / run_size;
 
-		parallel_for<size_t>(0, run_count, [=](size_t base_index)
+		Comet::ForEach<size_t>(0, run_count, [=](size_t base_index)
 		{
 			size_t begin_offset = base_index * next_run_size;
 			size_t middle_offset = begin_offset + run_size;
@@ -41,4 +42,5 @@ void parallel_merge_sort(main_array array)
 
 		run_size = next_run_size;
 	}
+	array.end_parallel_sort();
 }

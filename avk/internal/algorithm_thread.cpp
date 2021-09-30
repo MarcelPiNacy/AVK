@@ -1,68 +1,58 @@
 #include "algorithm_thread.h"
 #include "common.h"
-#include <thread>
-#include <cmts.h>
-#pragma comment(lib, "Synchronization.lib")
-
-static cmts_event done = CMTS_EVENT_INIT;
+#include <Comet.hpp>
 
 namespace algorithm_thread
 {
+	static bool done = true;
+
 	void launch(sort_function_pointer sort)
 	{
-		cmts_result result;
-		bool initialized = cmts_is_initialized();
-		if (cmts_event_state(&done) == CMTS_OK || !initialized)
+		done = false;
+		sort_stats::clear();
+		if (Comet::GetSchedulerState() == Comet::SchedulerState::Uninitialized)
 		{
-			if (initialized)
-			{
-				cmts_purge_all();
-				return;
-			}
-			cmts_init_options init_options = {};
-			init_options.allocate_function = nullptr;
-			init_options.task_stack_size = 4096;
-			init_options.thread_count = (uint32_t)cmts_processor_count();
-			init_options.flags = 0;
-			init_options.max_tasks = (uint32_t)main_array::size();
-			result = cmts_init(&init_options);
+			auto options = Comet::InitOptions::Default();
+			options.max_tasks = main_array::size();
+			options.max_tasks *= floor_log2(options.max_tasks);
+			Comet::Init();
 		}
-		done = CMTS_EVENT_INIT;
-		cmts_dispatch_options options = {};
-		options.parameter = sort;
-		options.sync_object = &done;
-		options.sync_type = CMTS_SYNC_TYPE_EVENT;
-		options.flags = CMTS_DISPATCH_FLAGS_FORCE;
-		result = cmts_dispatch([](void* param)
+		Comet::Dispatch([](void* param)
 		{
-			sort_stats::clear();
 			((sort_function_pointer)param)({});
-		}, &options);
-		AVK_ASSERT(result == CMTS_OK);
+			done = true;
+		}, sort);
 	}
 
 	bool is_paused()
 	{
-		return cmts_is_paused();
+		return Comet::GetSchedulerState() == Comet::SchedulerState::Paused;
 	}
 
 	bool is_idle()
 	{
-		return cmts_event_state(&done) != CMTS_OK;
+		return done;
 	}
 
 	void pause()
 	{
-		cmts_pause();
+		Comet::Pause();
 	}
 
 	void resume()
 	{
-		cmts_resume();
+		Comet::Resume();
+	}
+
+	void await_exit()
+	{
+		Comet::Shutdown();
+		Comet::Finalize();
 	}
 
 	void terminate()
 	{
-		cmts_terminate(nullptr);
+		Comet::Terminate();
+		done = true;
 	}
 }

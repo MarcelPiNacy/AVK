@@ -1,5 +1,5 @@
 #include "all.h"
-#include "../internal/parallel_for.h"
+#include <Comet.hpp>
 #include <vector>
 #include <bitset>
 #include <atomic>
@@ -13,7 +13,7 @@ static constexpr auto BREADTH_SORT_SEQUENTIAL_THRESHOLD = 128;
 template <typename I, typename J>
 static void parallel_move(I begin, I end, J out_begin)
 {
-	parallel_for(begin, end, [&](I e)
+	Comet::ForEach(begin, end, [&](I e)
 	{
 		*std::next(out_begin, std::distance(begin, e)) = std::move(*e);
 	});
@@ -107,7 +107,7 @@ static void breadth_sort_pass_parallel(I begin, I end, J buffer_begin, J buffer_
 		memset(presence, 0, sizeof(presence));
 		memset(counts, 0, sizeof(counts));
 
-		parallel_for(begin, end, [&](I e)
+		Comet::ForEach(begin, end, [&](I e)
 		{
 			size_t digit = extract(*e, digit_index);
 			size_t mask_index = digit >> 6;
@@ -141,7 +141,7 @@ static void breadth_sort_pass_parallel(I begin, I end, J buffer_begin, J buffer_
 
 	memcpy((void*)shared_offsets, (void*)offsets, sizeof(offsets));
 
-	parallel_for(begin, end, [&](I e)
+	Comet::ForEach(begin, end, [&](I e)
 	{
 		size_t digit = extract(*e, digit_index);
 		size_t index = shared_offsets[digit].fetch_add(1, std::memory_order_acquire);
@@ -161,7 +161,7 @@ static void breadth_sort_pass_parallel(I begin, I end, J buffer_begin, J buffer_
 		return;
 	}
 
-	parallel_for<size_t>(0, BREADTH_SORT_RADIX_SIZE, [&](size_t i)
+	Comet::ForEach<size_t>(0, BREADTH_SORT_RADIX_SIZE, [&](size_t i)
 	{
 		size_t size = counts[i].load(std::memory_order_acquire);
 		if (size == 0)
@@ -184,11 +184,12 @@ static void breadth_sort_pass_parallel(I begin, I end, J buffer_begin, J buffer_
 
 void breadth_sort(main_array array)
 {
-	array.mark_as_parallel_sort();
+	array.begin_parallel_sort();
 	std::vector<item> buffer;
 	buffer.resize(array.size());
 
 	breadth_sort_pass_parallel(
 		array.begin(), array.end(),
 		buffer.begin(), buffer.end(), item::max_radix(BREADTH_SORT_RADIX_SIZE), [](const item& e, size_t index) { return extract_radix(e, (size_t)index, BREADTH_SORT_RADIX_SIZE); });
+	array.end_parallel_sort();
 }

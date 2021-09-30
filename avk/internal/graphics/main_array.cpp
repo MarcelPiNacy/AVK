@@ -8,7 +8,7 @@
 #include "vulkan_state.h"
 #include "../defer.h"
 #include <shared_mutex>
-#include <cmts.h>
+#include <Comet.hpp>
 using std::chrono::duration_cast;
 
 using clock_type = std::chrono::steady_clock;
@@ -158,7 +158,7 @@ void main_array::sleep(nanoseconds duration)
 		{
 			auto start = high_resolution_clock::now();
 			while (high_resolution_clock::now() - start < duration)
-				cmts_yield();
+				Comet::Yield();
 		}
 		else
 		{
@@ -176,9 +176,14 @@ void main_array::sleep(nanoseconds duration)
 	}
 }
 
-void main_array::mark_as_parallel_sort()
+void main_array::begin_parallel_sort()
 {
 	is_parallel.store(true, std::memory_order_release);
+}
+
+void main_array::end_parallel_sort()
+{
+	is_parallel.store(false, std::memory_order_release);
 }
 
 item& item::operator=(const item& other)

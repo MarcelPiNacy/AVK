@@ -1,5 +1,5 @@
 #include "all.h"
-#include "../internal/parallel_for.h"
+#include <Comet.hpp>
 
 
 
@@ -7,7 +7,7 @@ static void halver(main_array array, size_t low, size_t high)
 {
 	size_t half_range = (high - low) / 2;
 	--high;
-	parallel_for<size_t>(0, half_range, [=](size_t i)
+	Comet::ForEach<size_t>(0, half_range, [=](size_t i)
 	{
 		compare_swap(array, low + i, high - i);
 	});
@@ -26,7 +26,7 @@ static void fold_sort_parallel_step(main_array array, size_t low, size_t high, s
 		{ mid, high },
 	};
 
-	parallel_for<size_t>(0, 2, [=](size_t i)
+	Comet::ForEach<size_t>(0, 2, [=](size_t i)
 	{
 		fold_sort_parallel_step(array, params[i][0], params[i][1], limit);
 	});
@@ -34,9 +34,8 @@ static void fold_sort_parallel_step(main_array array, size_t low, size_t high, s
 
 void fold_sort_parallel(main_array array)
 {
-	array.mark_as_parallel_sort();
+	array.begin_parallel_sort();
 	for (size_t limit = array.size() / 2; limit > 1; limit /= 2)
-	{
 		fold_sort_parallel_step(array, 0, array.size(), limit);
-	}
+	array.end_parallel_sort();
 }

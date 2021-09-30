@@ -3,7 +3,7 @@
 #include "../main_array.h"
 #include "../defer.h"
 #include <mutex>
-#include <cmts.h>
+#include <Comet.hpp>
 
 using std::vector;
 
@@ -72,9 +72,9 @@ int init_vulkan()
 		VkApplicationInfo app_info = {};
 		app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		app_info.pApplicationName = "Array-VK";
-		app_info.applicationVersion = 0;
+		app_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		app_info.pEngineName = "Array-VK";
-		app_info.engineVersion = 0;
+		app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 		app_info.apiVersion = VK_API_VERSION_1_1;
 
 		constexpr const char* instance_extensions[] =
@@ -621,15 +621,14 @@ int vulkan_on_window_resize()
 {
 	if (instance == VK_NULL_HANDLE)
 		return 0;
-
-	if (cmts_is_initialized())
-		AVK_ASSERT(cmts_pause() == CMTS_OK);
+	if (Comet::GetSchedulerState() != Comet::SchedulerState::Uninitialized)
+		Comet::Pause();
 	algorithm_thread::pause();
 	DEFER
 	{
 		algorithm_thread::resume();
-		if (cmts_is_initialized())
-			AVK_ASSERT(cmts_resume() == CMTS_OK);
+	if (Comet::GetSchedulerState() != Comet::SchedulerState::Uninitialized)
+		Comet::Resume();
 	};
 	vkDeviceWaitIdle(device);
 

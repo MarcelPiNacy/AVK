@@ -156,7 +156,8 @@ struct main_array
 	static void set_compare_delay(nanoseconds ns);
 	static void sleep(int64_t nanoseconds);
 	static void sleep(nanoseconds ns);
-	static void mark_as_parallel_sort();
+	static void begin_parallel_sort();
+	static void end_parallel_sort();
 };
 
 

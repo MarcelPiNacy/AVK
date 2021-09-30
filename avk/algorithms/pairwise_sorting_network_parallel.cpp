@@ -1,5 +1,5 @@
 #include "all.h"
-#include "../internal/parallel_for.h"
+#include <Comet.hpp>
 
 static void pairwise_sorting_network_parallel_step(main_array array, size_t begin, size_t end, size_t gap)
 {
@@ -10,7 +10,7 @@ static void pairwise_sorting_network_parallel_step(main_array array, size_t begi
     for (size_t i = begin + gap; i < end; i += (2 * gap))
         ++n;
 
-    parallel_for<size_t>(0, n, [&](size_t i)
+    Comet::ForEach<size_t>(0, n, [&](size_t i)
     {
         i *= gap * 2;
         i += begin + gap;
@@ -25,7 +25,7 @@ static void pairwise_sorting_network_parallel_step(main_array array, size_t begi
             { begin + gap, end + gap }
         };
 
-        parallel_for(0, 2, [&](int i)
+        Comet::ForEach(0, 2, [&](int i)
         {
             pairwise_sorting_network_parallel_step(array, params[i][0], params[i][1], gap * 2);
         });
@@ -38,7 +38,7 @@ static void pairwise_sorting_network_parallel_step(main_array array, size_t begi
             { begin + gap, end }
         };
 
-        parallel_for(0, 2, [&](int i)
+        Comet::ForEach(0, 2, [&](int i)
         {
             pairwise_sorting_network_parallel_step(array, params[i][0], params[i][1], gap * 2);
         });
@@ -55,7 +55,7 @@ static void pairwise_sorting_network_parallel_step(main_array array, size_t begi
     for (size_t j = k; j > 1;)
     {
         j /= 2;
-        parallel_for<size_t>(0, n, [&](size_t i)
+        Comet::ForEach<size_t>(0, n, [&](size_t i)
         {
             i *= 2 * gap;
             i += begin + gap;
@@ -69,6 +69,7 @@ static void pairwise_sorting_network_parallel_step(main_array array, size_t begi
 
 void pairwise_sorting_network_parallel(main_array array)
 {
-    array.mark_as_parallel_sort();
+    array.begin_parallel_sort();
     pairwise_sorting_network_parallel_step(array, 0, array.size(), 1);
+    array.end_parallel_sort();
 }

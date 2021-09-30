@@ -99,9 +99,6 @@
     <ClInclude Include="avk\internal\debug.h">
       <Filter>avk\internal</Filter>
     </ClInclude>
-    <ClInclude Include="avk\internal\parallel_for.h">
-      <Filter>avk\internal</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="avk\internal\main.cpp">
@@ -242,7 +239,7 @@
     <ClCompile Include="avk\internal\debug.cpp">
       <Filter>avk\internal</Filter>
     </ClCompile>
-    <ClCompile Include="avk\internal\cmts_include.cpp">
+    <ClCompile Include="avk\internal\comet_include.cpp">
       <Filter>avk\internal</Filter>
     </ClCompile>
     <ClCompile Include="avk\algorithms\max_heap_sort.cpp">

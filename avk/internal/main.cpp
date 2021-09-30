@@ -1,4 +1,3 @@
-#include "../external_dependencies/cmts/cmts.h"
 #include "algorithm_thread.h"
 #include "graphics/vulkan_state.h"
 #include "windows-specific/framework.h"
@@ -91,7 +90,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
     main_array::set_compare_delay(delay);
     main_array::set_read_delay(delay);
     main_array::set_write_delay(delay);
-    main_array::resize(1 << 10);
+    main_array::resize(65536);
     
     main_array::for_each([&](item& e, uint32_t position)
     {

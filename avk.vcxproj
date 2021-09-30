@@ -97,7 +97,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING; WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\avk\external_dependencies\vulkan;$(SolutionDir)\avk\external_dependencies\cmts;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\avk\external_dependencies\vulkan;$(SolutionDir)\avk\external_dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -131,7 +131,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING; WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\avk\external_dependencies\vulkan;$(SolutionDir)\avk\external_dependencies\cmts;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\avk\external_dependencies\vulkan;$(SolutionDir)\avk\external_dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -170,7 +170,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING; _DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\avk\external_dependencies\vulkan;$(SolutionDir)\avk\external_dependencies\cmts;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\avk\external_dependencies\vulkan;$(SolutionDir)\avk\external_dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -204,7 +204,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX;_CRT_SECURE_NO_WARNINGS;_SILENCE_CXX17_RESULT_OF_DEPRECATION_WARNING; NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\avk\external_dependencies\vulkan;$(SolutionDir)\avk\external_dependencies\cmts;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\avk\external_dependencies\vulkan;$(SolutionDir)\avk\external_dependencies;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -270,7 +270,6 @@
     <ClInclude Include="avk\internal\common.h" />
     <ClInclude Include="avk\internal\graphics\vulkan_state.h" />
     <ClInclude Include="avk\internal\main_array.h" />
-    <ClInclude Include="avk\internal\parallel_for.h" />
     <ClInclude Include="avk\internal\platform.h" />
     <ClInclude Include="avk\internal\locks.h" />
     <ClInclude Include="avk\internal\algorithm_thread.h" />
@@ -332,7 +331,7 @@
     <ClCompile Include="avk\algorithms\weave_sorting_network_parallel.cpp" />
     <ClCompile Include="avk\algorithms\weave_sorting_network_recursive.cpp" />
     <ClCompile Include="avk\algorithms\wiki_sort.cpp" />
-    <ClCompile Include="avk\internal\cmts_include.cpp" />
+    <ClCompile Include="avk\internal\comet_include.cpp" />
     <ClCompile Include="avk\internal\common.cpp" />
     <ClCompile Include="avk\internal\debug.cpp" />
     <ClCompile Include="avk\internal\graphics\main_array.cpp" />

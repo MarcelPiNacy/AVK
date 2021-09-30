@@ -1,5 +1,5 @@
 #include "all.h"
-#include "../internal/parallel_for.h"
+#include <Comet.hpp>
 
 void bitonic_sort_merge(main_array array, size_t begin, size_t end, bool ascending)
 {
@@ -10,13 +10,13 @@ void bitonic_sort_merge(main_array array, size_t begin, size_t end, bool ascendi
     size_t k = size / 2;
     AVK_ASSERT(k <= array.size() / 2);
 
-    parallel_for(begin, begin + k, [&](size_t i)
+    Comet::ForEach(begin, begin + k, [&](size_t i)
     {
         if (ascending == (array[i] > array[i + k]))
             swap(array, i, i + k);
     });
 
-    parallel_for(0, 2, [&](int i)
+    Comet::ForEach(0, 2, [&](int i)
     {
         size_t b = begin;
         size_t e = begin + k;
@@ -39,7 +39,7 @@ void bitonic_sort_kernel(main_array array, size_t begin, size_t end, bool ascend
     size_t k = size / 2;
     AVK_ASSERT(k <= array.size() / 2);
 
-    parallel_for(0, 2, [&](int i)
+    Comet::ForEach(0, 2, [&](int i)
     {
         size_t b = begin;
         size_t e = begin + k;
@@ -55,6 +55,7 @@ void bitonic_sort_kernel(main_array array, size_t begin, size_t end, bool ascend
 
 void bitonic_sort_parallel(main_array array)
 {
-    array.mark_as_parallel_sort();
+    array.begin_parallel_sort();
     bitonic_sort_kernel(array, 0, array.size(), true);
+    array.end_parallel_sort();
 }

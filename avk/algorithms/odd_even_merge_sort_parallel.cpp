@@ -1,5 +1,5 @@
 #include "all.h"
-#include "../internal/parallel_for.h"
+#include <Comet.hpp>
 
 static void odd_even_merge_sort_kernel(main_array array, size_t lo, size_t m2, size_t n, size_t r)
 {
@@ -14,7 +14,7 @@ static void odd_even_merge_sort_kernel(main_array array, size_t lo, size_t m2, s
                 { lo + r, m2 / 2, n - r }
             };
 
-            parallel_for<size_t>(0, 2, [=](size_t i)
+            Comet::ForEach<size_t>(0, 2, [=](size_t i)
             {
                 odd_even_merge_sort_kernel(array, params[i][0], params[i][1], params[i][2], m);
             });
@@ -27,7 +27,7 @@ static void odd_even_merge_sort_kernel(main_array array, size_t lo, size_t m2, s
                 { lo + r, m2 / 2, n }
             };
 
-            parallel_for<size_t>(0, 2, [=](size_t i)
+            Comet::ForEach<size_t>(0, 2, [=](size_t i)
             {
                 odd_even_merge_sort_kernel(array, params[i][0], params[i][1], params[i][2], m);
             });
@@ -68,7 +68,7 @@ static void odd_even_merge_sort_core(main_array array, size_t lo, size_t n)
             { lo + m, n - m }
         };
         
-        parallel_for<size_t>(0, 2, [=](size_t i)
+        Comet::ForEach<size_t>(0, 2, [=](size_t i)
         {
             odd_even_merge_sort_core(array, params[i][0], params[i][1]);
         });
@@ -80,6 +80,7 @@ static void odd_even_merge_sort_core(main_array array, size_t lo, size_t n)
 
 void odd_even_merge_sort_parallel(main_array array)
 {
-    array.mark_as_parallel_sort();
+    array.begin_parallel_sort();
     odd_even_merge_sort_core(array, 0, array.size());
+    array.end_parallel_sort();
 }

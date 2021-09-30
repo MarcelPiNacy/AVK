@@ -11,5 +11,6 @@ namespace algorithm_thread
 	bool is_idle();
 	void pause();
 	void resume();
+	void await_exit();
 	void terminate();
 }

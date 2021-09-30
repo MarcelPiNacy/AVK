@@ -1,5 +1,5 @@
 #include "all.h"
-#include "../internal/parallel_for.h"
+#include <Comet.hpp>
 
 static void weave_compare_swap(main_array array, size_t left, size_t right, size_t limit)
 {
@@ -16,7 +16,7 @@ static void circle(main_array array, size_t offset, size_t size, size_t limit, s
 	for (size_t i = 0; 2 * i < (size - 1) * gap; i += gap)
 		++n;
 	
-	parallel_for<size_t>(0, n, [&](size_t i)
+	Comet::ForEach<size_t>(0, n, [&](size_t i)
 	{
 		i *= gap;
 		weave_compare_swap(array, offset + i, offset + (size - 1) * gap - i, limit);
@@ -28,7 +28,7 @@ static void circle(main_array array, size_t offset, size_t size, size_t limit, s
 		offset + size * gap / 2
 	};
 	
-	parallel_for(0, 2, [&](int i)
+	Comet::ForEach(0, 2, [&](int i)
 	{
 		if (params[i] < limit)
 			circle(array, params[i], size / 2, limit, gap);
@@ -46,7 +46,7 @@ static void weave_circle(main_array array, size_t offset, size_t size, size_t li
 		offset + gap
 	};
 
-	parallel_for(0, 2, [&](int i)
+	Comet::ForEach(0, 2, [&](int i)
 	{
 		weave_circle(array, params[i], size / 2, limit, 2 * gap);
 	});
@@ -56,9 +56,10 @@ static void weave_circle(main_array array, size_t offset, size_t size, size_t li
 
 void weave_sorting_network_parallel(main_array array)
 {
-	array.mark_as_parallel_sort();
+	array.begin_parallel_sort();
 	size_t i = 1;
 	while (i < array.size())
 		i *= 2;
 	weave_circle(array, 0, i, array.size(), 1);
+	array.end_parallel_sort();
 }
