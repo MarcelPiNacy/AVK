@@ -287,8 +287,6 @@
     <ClCompile Include="avk\algorithms\breadth_sort.cpp" />
     <ClCompile Include="avk\algorithms\custom_sqrt_sort.cpp" />
     <ClCompile Include="avk\algorithms\fold_sort_parallel.cpp" />
-    <ClCompile Include="avk\algorithms\fold_sort_recursive.cpp" />
-    <ClCompile Include="avk\algorithms\fold_sort_v2.cpp" />
     <ClCompile Include="avk\algorithms\matrix_sort.cpp" />
     <ClCompile Include="avk\algorithms\odd_even_merge_sort_parallel.cpp" />
     <ClCompile Include="avk\algorithms\pairwise_sorting_network.cpp" />
@@ -308,7 +306,6 @@
     <ClCompile Include="avk\algorithms\parallel_merge_sort.cpp" />
     <ClCompile Include="avk\algorithms\quadsort_cpp.cpp" />
     <ClCompile Include="avk\algorithms\radix_tree_sort.cpp" />
-    <ClCompile Include="avk\algorithms\fold_sort_randomized.cpp" />
     <ClCompile Include="avk\algorithms\ska_sort.cpp" />
     <ClCompile Include="avk\algorithms\ska_sort_copy.cpp" />
     <ClCompile Include="avk\algorithms\sqrt_sort.cpp" />
@@ -326,7 +323,6 @@
     <ClCompile Include="avk\algorithms\thatsoven_feature_sort.cpp" />
     <ClCompile Include="avk\algorithms\thatsoven_m16aqsort.cpp" />
     <ClCompile Include="avk\algorithms\thatsoven_stable_sort.cpp" />
-    <ClCompile Include="avk\algorithms\triangle_fold_sort.cpp" />
     <ClCompile Include="avk\algorithms\weave_sorting_network.cpp" />
     <ClCompile Include="avk\algorithms\weave_sorting_network_parallel.cpp" />
     <ClCompile Include="avk\algorithms\weave_sorting_network_recursive.cpp" />

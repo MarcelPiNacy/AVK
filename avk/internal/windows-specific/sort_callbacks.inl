@@ -40,15 +40,6 @@ case IDM_SORT_fold_sort_bottom_up:
 case IDM_SORT_fold_sort_parallel:
 	algorithm_thread::launch(fold_sort_parallel);
 	break;
-case IDM_SORT_fold_sort_randomized:
-	algorithm_thread::launch(fold_sort_randomized);
-	break;
-case IDM_SORT_fold_sort_recursive:
-	algorithm_thread::launch(fold_sort_recursive);
-	break;
-case IDM_SORT_fold_sort_v2:
-	algorithm_thread::launch(fold_sort_v2);
-	break;
 case IDM_SORT_gambit_insertion_sort:
 	algorithm_thread::launch(gambit_insertion_sort);
 	break;
@@ -138,9 +129,6 @@ case IDM_SORT_thatsoven_m16aqsort:
 	break;
 case IDM_SORT_thatsoven_stable_sort:
 	algorithm_thread::launch(thatsoven_stable_sort);
-	break;
-case IDM_SORT_triangle_fold_sort:
-	algorithm_thread::launch(triangle_fold_sort);
 	break;
 case IDM_SORT_weave_sorting_network:
 	algorithm_thread::launch(weave_sorting_network);

@@ -19,9 +19,7 @@ void fold_sort(main_array array)
 		{
 			for (size_t k = 0; k < size / j; ++k)
 			{
-				size_t low = k * j;
-				size_t high = (k + 1) * j;
-				halver(array, low, high - 1);
+				halver(array, k * j, (k + 1) * j - 1);
 			}
 		}
 	}

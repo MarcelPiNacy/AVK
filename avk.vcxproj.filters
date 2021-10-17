@@ -254,19 +254,7 @@
     <ClCompile Include="avk\internal\windows-specific\callbacks.cpp">
       <Filter>avk\internal\windows-specific</Filter>
     </ClCompile>
-    <ClCompile Include="avk\algorithms\fold_sort_randomized.cpp">
-      <Filter>avk\algorithms</Filter>
-    </ClCompile>
-    <ClCompile Include="avk\algorithms\fold_sort_recursive.cpp">
-      <Filter>avk\algorithms</Filter>
-    </ClCompile>
     <ClCompile Include="avk\algorithms\breadth_sort.cpp">
-      <Filter>avk\algorithms</Filter>
-    </ClCompile>
-    <ClCompile Include="avk\algorithms\triangle_fold_sort.cpp">
-      <Filter>avk\algorithms</Filter>
-    </ClCompile>
-    <ClCompile Include="avk\algorithms\fold_sort_v2.cpp">
       <Filter>avk\algorithms</Filter>
     </ClCompile>
     <ClCompile Include="avk\algorithms\weave_sorting_network_recursive.cpp">

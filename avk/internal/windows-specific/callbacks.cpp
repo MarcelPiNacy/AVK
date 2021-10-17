@@ -6,6 +6,7 @@
 #include "../prng.h"
 #include <ctime>
 #include <algorithm>
+#include <Comet.hpp>
 
 extern std::atomic<bool> should_continue_global;
 extern HINSTANCE hinstance;
@@ -23,6 +24,7 @@ enum class array_mode
     ORGAN_PIPE_LINEAR,
     ORGAN_PIPE_LINEAR_REVERSE,
     RANDOM_SHUFFLE,
+    MERGESHUFFLE,
     RANDOM_ROMUDUOJR,
     QSORT_KILLER,
     MIN_HEAP,
@@ -155,7 +157,7 @@ void modify_array<array_mode::RANDOM_SHUFFLE>()
         auto operator()() { return romu2jr::get(); }
     };
 
-    romu_duo_functor tmp;
+    romu_duo_functor tmp = {};
     tmp.set_seed(time(nullptr));
     std::shuffle(main_array::begin(), main_array::end(), tmp);
     main_array::for_each([](item& e, uint32_t position)
@@ -163,6 +165,31 @@ void modify_array<array_mode::RANDOM_SHUFFLE>()
         e.original_position = position;
         e.color = item_color::white();
     });
+}
+
+template <>
+void modify_array<array_mode::MERGESHUFFLE>()
+{
+    size_t i = 16;
+    for (; i < main_array::size(); i *= 2)
+    {
+        size_t count = main_array::size() / i;
+        Comet::ForEach<size_t>(0, count, [i](size_t index)
+        {
+            struct romu_duo_functor : romu2jr
+            {
+                using result_type = uint64_t;
+                static constexpr auto min() { return 0; }
+                static constexpr auto max() { return UINT64_MAX; }
+                auto operator()() { return romu2jr::get(); }
+            } tmp = {};
+            tmp.set_seed(time(nullptr));
+            auto begin = main_array::begin() + index * i;
+            ++index;
+            auto end = main_array::begin() + index * i;
+            std::shuffle(begin, end, tmp);
+        });
+    }
 }
 
 static uint64_t romu2jr_seed;
@@ -457,6 +484,13 @@ LRESULT CALLBACK window_callbacks(HWND hWnd, UINT message, WPARAM wParam, LPARAM
             {
                 last_array_mode = array_mode::RANDOM_SHUFFLE;
                 algorithm_thread::launch([](main_array unused) { modify_array<array_mode::RANDOM_SHUFFLE>(); });
+            }
+            break;
+        case IDM_INITIALIZE_MERGESHUFFLE:
+            if (algorithm_thread::is_idle())
+            {
+                last_array_mode = array_mode::MERGESHUFFLE;
+                algorithm_thread::launch([](main_array unused) { modify_array<array_mode::MERGESHUFFLE>(); });
             }
             break;
         case IDM_INITIALIZE_RANDOM_ROMU_DUO_JR:
