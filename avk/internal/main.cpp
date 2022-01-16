@@ -86,11 +86,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 
     auto last = high_resolution_clock::now();
     
-    auto delay = std::chrono::microseconds(50);
+    auto delay = std::chrono::microseconds(0);
     main_array::set_compare_delay(delay);
     main_array::set_read_delay(delay);
     main_array::set_write_delay(delay);
-    main_array::resize(65536);
+    main_array::resize(1 << 16);
     
     main_array::for_each([&](item& e, uint32_t position)
     {

@@ -31,6 +31,9 @@ case IDM_SORT_counting_sort:
 case IDM_SORT_custom_sqrt_sort:
 	algorithm_thread::launch(custom_sqrt_sort);
 	break;
+case IDM_SORT_flipsort:
+	algorithm_thread::launch(flipsort);
+	break;
 case IDM_SORT_fold_sort:
 	algorithm_thread::launch(fold_sort);
 	break;
@@ -57,6 +60,9 @@ case IDM_SORT_lsd_radix_sort:
 	break;
 case IDM_SORT_matrix_sort:
 	algorithm_thread::launch(matrix_sort);
+	break;
+case IDM_SORT_matrix_sort_parallel:
+	algorithm_thread::launch(matrix_sort_parallel);
 	break;
 case IDM_SORT_max_heap_sort:
 	algorithm_thread::launch(max_heap_sort);
@@ -99,6 +105,9 @@ case IDM_SORT_radix_tree_sort:
 	break;
 case IDM_SORT_selection_sort:
 	algorithm_thread::launch(selection_sort);
+	break;
+case IDM_SORT_simd_american_flag_sort:
+	algorithm_thread::launch(simd_american_flag_sort);
 	break;
 case IDM_SORT_ska_sort:
 	algorithm_thread::launch(ska_sort);

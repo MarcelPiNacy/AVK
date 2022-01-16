@@ -1,14 +1,13 @@
 #pragma once
 #include <cstdint>
 #include <atomic>
-#define VC_EXTRALEAN
-#include <Windows.h>
+#include <bit>
 
 #if defined(_DEBUG) || !defined(NDEBUG)
 void avk_assertion_handler(const wchar_t* expression);
 void avk_assertion_handler(const char* expression);
 #define DEBUG
-#define AVK_BREAKPOINT DebugBreak()
+#define AVK_BREAKPOINT __debugbreak()
 #define AVK_ASSERT(expression) if (!(expression)) { AVK_BREAKPOINT; avk_assertion_handler(#expression); }
 #else
 #define AVK_BREAKPOINT
@@ -36,52 +35,20 @@ void non_atomic_store(std::atomic<T>& where, U&& value)
 	new ((T*)&where) T(std::forward<U>(value));
 }
 
-inline uint8_t floor_log2(uint32_t value)
+template <typename T>
+constexpr uint8_t floor_log2(T value)
 {
-#ifdef _MSVC_LANG
-	return 31 - (uint8_t)__lzcnt(value);
-#else
-	return 31 - (uint8_t)__builtin_clz(value);
-#endif
+	return (uint8_t)((sizeof(T) * 8 - 1) - std::countl_zero(value));
 }
 
-inline uint8_t floor_log2(uint64_t value)
+template <typename T>
+constexpr uint8_t ceil_log2(T value)
 {
-#ifdef _MSVC_LANG
-	return 63 - (uint8_t)__lzcnt64(value);
-#else
-	return 63 - (uint8_t)__builtin_clzll(value);
-#endif
+	return (uint8_t)((sizeof(T) * 8) - std::countl_zero(value - 1));
 }
 
-inline uint8_t round_log2(uint32_t value)
+template <typename T>
+constexpr T round_pow2(T value)
 {
-	--value;
-#ifdef _MSVC_LANG
-	return 32 - (uint8_t)__lzcnt(value);
-#else
-	return 32 - (uint8_t)__builtin_clz(value);
-#endif
-}
-
-inline uint8_t round_log2(uint64_t value)
-{
-	--value;
-#ifdef _MSVC_LANG
-	return 64 - (uint8_t)__lzcnt64(value);
-#else
-	return 64 - (uint8_t)__builtin_clzll(value);
-#endif
-}
-
-inline uint32_t round_pow2(uint32_t value)
-{
-	uint32_t log2 = (uint32_t)round_log2(value);
-	return 1U << log2;
-}
-
-inline uint64_t round_pow2(uint64_t value)
-{
-	uint64_t log2 = (uint64_t)round_log2(value);
-	return 1ULL << log2;
+	return (T)1 << ceil_log2(value);
 }

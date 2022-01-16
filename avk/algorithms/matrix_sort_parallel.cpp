@@ -1,5 +1,6 @@
 #include "all.h"
 
+#include <Comet.hpp>
 #include <iterator>
 #include <algorithm>
 #include <bit>
@@ -81,32 +82,58 @@ namespace Detail
         // Recursively calls MatrixSortCore on each row of the virtual matrix.
         static constexpr void SortRows(I begin, I end, size_t width, size_t width_x_step, size_t step, bool forward)
         {
+            auto n = std::distance(begin, end) / width_x_step;
+            Comet::Counter ctr = n;
+            auto options = Comet::TaskOptions::Default();
+            options.counter = &ctr;
+
             while (begin < end)
             {
                 I next = begin + width_x_step;
                 if (next > end)
                     next = end;
-                Core(begin, next, width, step, forward);
+                Comet::Dispatch([=]()
+                {
+                    Core(begin, next, width, step, forward);
+                }, options);
                 begin = next;
                 forward = !forward;
             }
+
+            ctr.Await();
         }
 
         // Recursively calls MatrixSortCore on each column of the virtual matrix.
         static constexpr void SortColumns(I begin, I end, size_t width, size_t width_x_step, size_t step, bool forward)
         {
-            for (I limit = begin + width_x_step; begin < limit; begin += step)
+            I limit = begin + width_x_step;
+            auto n = std::distance(begin, limit) / step;
+            Comet::Counter ctr = n;
+            auto options = Comet::TaskOptions::Default();
+            options.counter = &ctr;
+
+            for (; begin < limit; begin += step)
             {
                 I high = begin + width * width_x_step;
                 if (high > end)
                     high = end;
-                Core(begin, high, width, width_x_step, forward);
+                Comet::Dispatch([=]()
+                {
+                    Core(begin, high, width, width_x_step, forward);
+                }, options);
             }
+
+            ctr.Await();
         }
 
         static constexpr void ReverseOddRows(I begin, I end, size_t width, size_t width_x_step, size_t step, bool forward)
         {
             auto wxs2 = width_x_step * 2;
+            auto n = std::distance(begin, end) / wxs2;
+            Comet::Counter ctr = n;
+            auto options = Comet::TaskOptions::Default();
+            options.counter = &ctr;
+
             begin += width_x_step; //Skip non-reversed rows
             for (; begin < end; begin += wxs2)
             {
@@ -116,7 +143,10 @@ namespace Detail
                     high = end - step;
                 while (low < high)
                 {
-                    std::iter_swap(low, high);
+                    Comet::Dispatch([=]()
+                    {
+                        std::iter_swap(low, high);
+                    }, options);
                     low += step;
                     high -= step;
                 }
@@ -150,14 +180,14 @@ namespace Detail
 }
 
 template <typename I>
-constexpr void MatrixSort(I begin, I end)
+constexpr void MatrixSortParallel(I begin, I end)
 {
     Detail::MatrixSort<I>::Core(begin, end, std::distance(begin, end), 1, true);
 }
 
 
 
-void matrix_sort(main_array array)
+void matrix_sort_parallel(main_array array)
 {
-    MatrixSort(array.begin(), array.end());
+    MatrixSortParallel(array.begin(), array.end());
 }
